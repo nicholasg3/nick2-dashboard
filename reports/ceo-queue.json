@@ -1,12 +1,12 @@
 {
-  "ts": "2026-06-30T16:00:15Z",
+  "ts": "2026-06-30T16:08:02Z",
   "mode": "ceo_reflect",
   "context": {
     "counts": {
       "running": 0,
       "held": 0,
       "queued": 0,
-      "blocked": 8,
+      "blocked": 0,
       "coding_running": 0
     },
     "budget_remaining_usd": 20.0,
@@ -51,7 +51,7 @@
   "llm": {
     "enabled": true,
     "ran": false,
-    "skip_reason": "interval not elapsed (30m < 60m)",
+    "skip_reason": "interval not elapsed (38m < 60m)",
     "execute": true
   }
 }

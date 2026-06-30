@@ -142,7 +142,13 @@ def gather_context() -> dict:
     running = [r for r in bus_rows if r["status"] == "running"]
     held = [r for r in bus_rows if r["status"] == "held"]
     queued = [r for r in bus_rows if r["status"] == "queued"]
-    blocked = [r for r in bus_rows if r["status"] == "blocked"]
+    # A job that ended in status=blocked but whose worker_status is done has
+    # finished (work was a no-op or landed elsewhere) — it is not a live blocker.
+    # Counting these produced the misleading "blocked: N / fully stalled" drift.
+    blocked = [
+        r for r in bus_rows
+        if r["status"] == "blocked" and (r.get("worker_status") or "") != "done"
+    ]
     coding_running = [r for r in running if (r.get("to_session") or "") == "coding_worker"]
 
     issue_tasks = {
