@@ -24,6 +24,7 @@ sys.path.insert(0, str(SCRIPTS))
 import dashboard_honesty as dh  # noqa: E402
 import ledger_write_guard as lwg  # noqa: E402
 import pattern_detector as pd  # noqa: E402
+import pmo_dispatch as pmo_disp  # noqa: E402
 
 LEDGER = ROOT / "logs" / "ceo-ledger.jsonl"
 SGT = timezone(timedelta(hours=8))
@@ -191,6 +192,19 @@ def reconcile(events: list[dict]) -> int:
     n += dh.reconcile_bus(events, tasks, base, append)
     events = load_events()
     n += pd.emit_pattern_flags(events, base, append)
+
+    # PMO-001 complete → enqueue ranked issues + bus dispatch (idempotent)
+    events = load_events()
+    tasks = task_state(events)
+    if (
+        (tasks.get("PMO-001", {}).get("status") or "").lower() == "completed"
+        and not pmo_disp.dispatch_already_done(tasks)
+        and pmo_disp.load_triage_result()
+    ):
+        out = pmo_disp.run_dispatch(dry_run=False, append_fn=append)
+        if out.get("dispatched"):
+            n += int(out["dispatched"]) + 2  # DISPATCH-001 + focus_snapshot
+            print(f"reconcile: pmo_dispatch queued {out.get('dispatched')} issues")
 
     return n
 

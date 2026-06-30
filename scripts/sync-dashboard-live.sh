@@ -5,6 +5,7 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
 export AGENT_BUS_DB="${AGENT_BUS_DB:-$HOME/ai-agents-workspace/agent-bus/jobs.sqlite}"
 
+python3 scripts/pmo_cycle.py || true
 python3 scripts/reconcile-ledger.py
 python3 scripts/generate-memos.py
 python3 scripts/export_bus_live.py

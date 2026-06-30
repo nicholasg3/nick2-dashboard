@@ -562,16 +562,19 @@ function taskMemoLinkFromState(text, taskId, state, className = 'memo-link') {
 }
 
 function pickCurrentFocus(state) {
+  const inProg = state.active.find((t) => t.status === 'in_progress');
+  if (inProg) return inProg;
+  const queued = state.active.find((t) => t.status === 'queued');
+  if (queued) return queued;
   const snap = state.focusSnapshot;
   if (snap?.focus_task_id) {
     const linked = state.active.find((t) => t.task_id === snap.focus_task_id);
     if (linked) return { ...linked, focus_line: snap.focus_line, focus_detail: snap.focus_detail };
   }
-  const inProg = state.active.find((t) => t.status === 'in_progress');
-  if (inProg) return inProg;
-  const queued = state.active.find((t) => t.status === 'queued');
-  if (queued) return queued;
-  return state.active[0] || snap || null;
+  if (snap && !COMPLETED_STATUSES.has(snap.status) && snap.status !== 'idle') {
+    return snap;
+  }
+  return state.active[0] || null;
 }
 
 function focusPlainLine(focus, state) {

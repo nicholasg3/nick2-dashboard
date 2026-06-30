@@ -12,6 +12,7 @@ OUT = ROOT / "reports" / "org-fleet.json"
 
 # Curated dashboard tree (matches org.json maps_to + droplet services)
 SERVICE_SCHEDULES = {
+    "pmo": {"schedule": "24/7 worker-pmo tmux", "label": "PMO (agent-bus)"},
     "telegram-bridge": {"schedule": "24/7 systemd", "label": "Hermes (telegram-bridge)"},
     "skill-radar": {"schedule": "~06:02 SGT daily", "label": "skill-radar"},
     "sp-trend-scout": {"schedule": "~05:32 SGT daily", "label": "sp-trend-scout"},
@@ -86,11 +87,17 @@ def ledger_context(events: list[dict]) -> dict:
             budget["mode"] = ev.get("budget_mode")
 
     pmo = tasks.get("PMO-001") or {}
+    dispatch_active = any(
+        (t.get("status") or "") in ("queued", "in_progress")
+        for tid, t in tasks.items()
+        if tid.startswith("ISSUE-") or tid == "DISPATCH-001"
+    )
     return {
         "gates": gates,
         "focus": focus,
         "pmo_status": pmo.get("status"),
         "pmo_task": pmo.get("task"),
+        "dispatch_active": dispatch_active,
         "worker_enabled": worker_enabled,
         "budget": budget,
         "open_gate_count": len(gates),
@@ -121,7 +128,9 @@ def _node(
 
 
 def build_tree(ctx: dict) -> dict:
-    pmo_active = ctx.get("pmo_status") in ("in_progress", "queued")
+    pmo_active = ctx.get("pmo_status") in ("in_progress", "queued") or ctx.get(
+        "dispatch_active"
+    )
     worker_on = ctx.get("worker_enabled")
     gates = ctx.get("gates") or []
     focus = ctx.get("focus") or {}
@@ -174,11 +183,11 @@ def build_tree(ctx: dict) -> dict:
         _node(
             "coo_pmo",
             "COO / PMO",
-            status=coo_status,
-            icon=coo_icon,
-            maps_to=SERVICE_SCHEDULES["frontier-orchestrator"]["label"],
-            detail=frontier_detail + " · PMO uses gpt-4.1-mini",
-            schedule=SERVICE_SCHEDULES["frontier-orchestrator"]["schedule"],
+            status="live",
+            icon="🟢",
+            maps_to=SERVICE_SCHEDULES["pmo"]["label"],
+            detail=frontier_detail + " · always-on worker-pmo · gpt-4.1-mini",
+            schedule=SERVICE_SCHEDULES["pmo"]["schedule"],
         ),
         _node(
             "cio",
