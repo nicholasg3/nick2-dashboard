@@ -23,7 +23,8 @@
     <p id="work-room-error" class="empty" hidden></p>
   </main>
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-  <script src="gate-chat.js?v=5"></script>
+  <script src="live-config.js?v=15"></script>
+  <script src="gate-chat.js?v=6"></script>
   <script>
     (async function () {
       const params = new URLSearchParams(location.search);
@@ -36,11 +37,12 @@
         return;
       }
 
+      const dataUrls = await Nick2LiveConfig.resolveLiveDataUrls();
       let meta = { task_id: taskId, task: taskId, owner: 'PMO', status: 'in_progress', memo_task_id: taskId };
 
       async function loadMetaFromLedger() {
         try {
-          const res = await fetch(`logs/ceo-ledger.jsonl?t=${Date.now()}`);
+          const res = await fetch(`${dataUrls.ledger}?t=${Date.now()}`);
           if (!res.ok) return;
           const lines = (await res.text()).trim().split('\n').filter(Boolean);
           let focusMission = null;
@@ -62,8 +64,7 @@
 
       async function loadMetaFromApi() {
         try {
-          const cfg = await fetch(`config.json?t=${Date.now()}`).then((r) => r.json());
-          const api = (cfg.gateChatApi || '').replace(/\/$/, '');
+          const api = (dataUrls.gateChatApi || '').replace(/\/$/, '');
           if (!api) return;
           const res = await fetch(`${api}/api/work/${taskId}/meta?t=${Date.now()}`);
           if (res.ok) meta = { ...meta, ...(await res.json()) };

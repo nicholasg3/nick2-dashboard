@@ -3,10 +3,7 @@
  * Source of truth: logs/ceo-ledger.jsonl (append-only)
  */
 
-const LEDGER_URL = 'logs/ceo-ledger.jsonl';
-const ORG_FLEET_URL = 'reports/org-fleet.json';
-const BUS_LIVE_URL = 'reports/bus-live.json';
-const GATED_URL = 'reports/gated.json';
+let dataUrls = { ...Nick2LiveConfig.STATIC, source: 'github-static' };
 const GATED_POLL_MS = 20000;
 const BUS_LIVE_POLL_MS = 8000;
 const WIP_STALE_MS = 30 * 60 * 1000;
@@ -148,7 +145,7 @@ function startLiveTimers() {
 }
 
 async function loadLedger() {
-  const res = await fetch(`${LEDGER_URL}?t=${Date.now()}`);
+  const res = await fetch(`${dataUrls.ledger}?t=${Date.now()}`);
   if (!res.ok) throw new Error(`Failed to load ledger (${res.status})`);
   const text = await res.text();
   return text
@@ -1049,7 +1046,7 @@ function renderOrgFleet(orgData, busData) {
 
 async function loadOrgFleet() {
   try {
-    const res = await fetch(`${ORG_FLEET_URL}?t=${Date.now()}`);
+    const res = await fetch(`${dataUrls.orgFleet}?t=${Date.now()}`);
     if (!res.ok) return null;
     return await res.json();
   } catch (e) {
@@ -1060,7 +1057,7 @@ async function loadOrgFleet() {
 
 async function loadBusLive() {
   try {
-    const res = await fetch(`${BUS_LIVE_URL}?t=${Date.now()}`);
+    const res = await fetch(`${dataUrls.busLive}?t=${Date.now()}`);
     if (!res.ok) return null;
     return await res.json();
   } catch (e) {
@@ -1095,6 +1092,13 @@ function renderAll(state) {
       delete lastUp.dataset.ledgerTs;
       lastUp.textContent = 'No events';
     }
+    if (dataUrls.source && dataUrls.source !== 'github-static') {
+      lastUp.title = `Data: droplet live (${dataUrls.apiBase || 'same origin'})`;
+    }
+  }
+  const tagline = document.querySelector('.tagline');
+  if (tagline && dataUrls.source && dataUrls.source !== 'github-static') {
+    tagline.textContent = 'AI-native operating company · droplet live ledger';
   }
   startLiveTimers();
 }
@@ -1121,7 +1125,10 @@ async function refresh() {
     ]);
     allEvents = events;
   } catch (err) {
-    showError(`Could not load ledger: ${err.message}. Ensure logs/ceo-ledger.jsonl is deployed alongside the dashboard.`);
+    const hint = dataUrls.source === 'github-static'
+      ? ' Set config.json liveDataApi to your droplet gate URL, or open the dashboard on :8788.'
+      : ' Check gate server on droplet (port 8788) and /api/live/ledger.';
+    showError(`Could not load ledger: ${err.message}.${hint}`);
     console.error(err);
     return;
   }
@@ -1149,7 +1156,7 @@ $('activity-filter').addEventListener('input', (e) => {
 async function refreshGatedSection() {
   if (!allEvents.length) return;
   try {
-    const res = await fetch(`${GATED_URL}?t=${Date.now()}`);
+    const res = await fetch(`${dataUrls.gated}?t=${Date.now()}`);
     if (res.ok) {
       const gatedSnapshot = await res.json();
       const st = buildState(allEvents);
@@ -1183,7 +1190,10 @@ window.addEventListener('message', (ev) => {
   }
 });
 
-refresh();
+(async function boot() {
+  dataUrls = await Nick2LiveConfig.resolveLiveDataUrls();
+  await refresh();
+})();
 setInterval(refresh, 5 * 60 * 1000);
 setInterval(refreshGatedSection, GATED_POLL_MS);
 setInterval(refreshFleetPanel, BUS_LIVE_POLL_MS);

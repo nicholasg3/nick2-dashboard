@@ -22,7 +22,8 @@
     <div id="gate-room-root" class="panel gate-room-panel"></div>
     <p id="gate-room-error" class="empty" hidden></p>
   </main>
-  <script src="gate-chat.js?v=2"></script>
+  <script src="live-config.js?v=15"></script>
+  <script src="gate-chat.js?v=6"></script>
   <script>
     (async function () {
       const params = new URLSearchParams(location.search);
@@ -34,9 +35,10 @@
         err.textContent = 'Missing ?task=DEC-002 (or other gate ID).';
         return;
       }
+      const dataUrls = await Nick2LiveConfig.resolveLiveDataUrls();
       let meta = { task_id: taskId, task: taskId, priority: 'medium', output: '' };
       try {
-        const res = await fetch(`reports/gated.json?t=${Date.now()}`);
+        const res = await fetch(`${dataUrls.gated}?t=${Date.now()}`);
         if (res.ok) {
           const items = await res.json();
           const hit = items.find((g) => g.task_id === taskId);

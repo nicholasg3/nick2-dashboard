@@ -7,18 +7,26 @@
  */
 (function (global) {
   const CHAT_URL = (taskId) => `logs/gate-chats/${taskId}.jsonl`;
-  const BRIEFS_URL = 'reports/gate-briefs.json';
 
   let config = { gateChatApi: '', pollIntervalMs: 8000, telegramDeepLink: '' };
+  let dataUrls = { gateBriefs: 'reports/gate-briefs.json', gateChatApi: '' };
   let pollTimer = null;
   let activeTaskId = null;
   let cachedBrief = null;
+
+  function gateApi() {
+    return (dataUrls.gateChatApi || config.gateChatApi || '').replace(/\/$/, '');
+  }
 
   async function loadConfig() {
     try {
       const res = await fetch(`config.json?t=${Date.now()}`);
       if (res.ok) config = { ...config, ...(await res.json()) };
     } catch (_) { /* defaults */ }
+    if (global.Nick2LiveConfig) {
+      dataUrls = await global.Nick2LiveConfig.resolveLiveDataUrls();
+      if (dataUrls.gateChatApi) config.gateChatApi = dataUrls.gateChatApi;
+    }
   }
 
   function esc(s) {
@@ -77,7 +85,7 @@
   }
 
   async function fetchMessages(taskId) {
-    const api = (config.gateChatApi || '').replace(/\/$/, '');
+    const api = gateApi();
     if (api) {
       try {
         const res = await fetch(`${api}/api/gate/${taskId}/messages?t=${Date.now()}`);
@@ -172,7 +180,7 @@
 
   async function loadBrief(taskId) {
     try {
-      const res = await fetch(`${BRIEFS_URL}?t=${Date.now()}`);
+      const res = await fetch(`${dataUrls.gateBriefs}?t=${Date.now()}`);
       if (!res.ok) return null;
       const all = await res.json();
       return all[taskId] || null;
@@ -207,7 +215,7 @@
   }
 
   function bridgeLive() {
-    return Boolean((config.gateChatApi || '').trim());
+    return Boolean(gateApi());
   }
 
   function renderBridgeBanner(el) {
@@ -221,7 +229,7 @@
   }
 
   async function sendMessage(taskId, text, taskMeta, statusEl, messagesEl) {
-    const api = (config.gateChatApi || '').replace(/\/$/, '');
+    const api = gateApi();
     if (api) {
       statusEl.textContent = 'Sending to agent…';
       try {
@@ -256,7 +264,7 @@
   }
 
   async function resolveGate(taskId, note, taskMeta, statusEl, messagesEl) {
-    const api = (config.gateChatApi || '').replace(/\/$/, '');
+    const api = gateApi();
     if (api) {
       statusEl.textContent = 'Clearing gate…';
       try {
@@ -367,7 +375,7 @@
   const WORK_CHAT_URL = (taskId) => `logs/work-chats/${taskId}.jsonl`;
 
   async function fetchWorkMessages(taskId) {
-    const api = (config.gateChatApi || '').replace(/\/$/, '');
+    const api = gateApi();
     if (api) {
       try {
         const res = await fetch(`${api}/api/work/${taskId}/messages?t=${Date.now()}`);
@@ -450,7 +458,7 @@
   }
 
   async function sendWorkMessage(taskId, text, taskMeta, statusEl, messagesEl) {
-    const api = (config.gateChatApi || '').replace(/\/$/, '');
+    const api = gateApi();
     if (api) {
       statusEl.textContent = 'Sending to agent…';
       try {

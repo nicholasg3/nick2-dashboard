@@ -26,13 +26,32 @@ from pathlib import Path
 from urllib.parse import urlparse
 
 ROOT = Path(os.environ.get("NICK2_ROOT", Path(__file__).resolve().parents[1]))
+DASHBOARD = ROOT / "dashboard"
 CHATS = ROOT / "logs" / "gate-chats"
 WORK_CHATS = ROOT / "logs" / "work-chats"
 LEDGER = ROOT / "logs" / "ceo-ledger.jsonl"
+REPORTS = ROOT / "reports"
 SGT = timezone(timedelta(hours=8))
 PORT = int(os.environ.get("GATE_CHAT_PORT", "8788"))
+BUS_LIVE_MAX_AGE_SEC = int(os.environ.get("BUS_LIVE_MAX_AGE_SEC", "120"))
 DEFAULT_AGENT = f"python3 {ROOT / 'scripts' / 'gate_agent_bus.py'}"
 DEFAULT_WORK_AGENT = f"python3 {ROOT / 'scripts' / 'work_agent_bus.py'}"
+
+LIVE_FILES = {
+    "/api/live/ledger": (LEDGER, "text/plain; charset=utf-8"),
+    "/api/live/bus-live": (REPORTS / "bus-live.json", "application/json"),
+    "/api/live/org-fleet": (REPORTS / "org-fleet.json", "application/json"),
+    "/api/live/gated": (REPORTS / "gated.json", "application/json"),
+    "/api/live/gate-briefs": (REPORTS / "gate-briefs.json", "application/json"),
+}
+
+STATIC_MIME = {
+    ".html": "text/html; charset=utf-8",
+    ".js": "application/javascript; charset=utf-8",
+    ".css": "text/css; charset=utf-8",
+    ".json": "application/json",
+    ".jsonl": "text/plain; charset=utf-8",
+}
 
 
 def now_sgt() -> str:
@@ -142,6 +161,47 @@ def refresh_reports() -> None:
             text=True,
             timeout=120,
         )
+
+
+def ensure_bus_live_fresh() -> None:
+    """Refresh bus-live.json from agent-bus when the on-disk copy is stale."""
+    out = REPORTS / "bus-live.json"
+    script = ROOT / "scripts" / "export_bus_live.py"
+    if not script.is_file():
+        return
+    age_sec = None
+    if out.exists():
+        age_sec = datetime.now(timezone.utc).timestamp() - out.stat().st_mtime
+    if age_sec is None or age_sec > BUS_LIVE_MAX_AGE_SEC:
+        subprocess.run(
+            [sys.executable, str(script)],
+            cwd=str(ROOT),
+            capture_output=True,
+            text=True,
+            timeout=60,
+        )
+
+
+def resolve_static_path(url_path: str) -> Path | None:
+    """Map URL path to a file under dashboard/, logs/, reports/, or memos/."""
+    clean = url_path.split("?", 1)[0]
+    if clean in ("", "/"):
+        return DASHBOARD / "index.html"
+    rel = clean.lstrip("/")
+    if rel.startswith("api/"):
+        return None
+    for base in (DASHBOARD, ROOT / "logs", REPORTS, ROOT / "memos"):
+        candidate = (base / rel).resolve()
+        try:
+            candidate.relative_to(base.resolve())
+        except ValueError:
+            continue
+        if candidate.is_file():
+            return candidate
+    dash = (DASHBOARD / rel).resolve()
+    if dash.is_file() and str(dash).startswith(str(DASHBOARD.resolve())):
+        return dash
+    return None
 
 
 def push_dashboard() -> str | None:
@@ -306,6 +366,36 @@ class Handler(BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(raw)
 
+    def _raw(self, code: int, body: bytes, content_type: str):
+        self.send_response(code)
+        self.send_header("Content-Type", content_type)
+        self.send_header("Cache-Control", "no-store")
+        self._cors()
+        self.end_headers()
+        self.wfile.write(body)
+
+    def _serve_live(self, path: str) -> bool:
+        spec = LIVE_FILES.get(path)
+        if not spec:
+            return False
+        file_path, mime = spec
+        if path == "/api/live/bus-live":
+            ensure_bus_live_fresh()
+        if not file_path.exists():
+            empty = b"[]" if mime == "application/json" else b""
+            self._raw(200, empty, mime)
+            return True
+        self._raw(200, file_path.read_bytes(), mime)
+        return True
+
+    def _serve_static(self, url_path: str) -> bool:
+        file_path = resolve_static_path(url_path)
+        if not file_path:
+            return False
+        mime = STATIC_MIME.get(file_path.suffix.lower(), "application/octet-stream")
+        self._raw(200, file_path.read_bytes(), mime)
+        return True
+
     def do_OPTIONS(self):
         self.send_response(204)
         self._cors()
@@ -314,7 +404,18 @@ class Handler(BaseHTTPRequestHandler):
     def do_GET(self):
         path = urlparse(self.path).path
         if path == "/api/health":
-            self._json(200, {"ok": True, "service": "nick2-gate-chat", "port": PORT})
+            self._json(
+                200,
+                {
+                    "ok": True,
+                    "service": "nick2-gate-chat",
+                    "port": PORT,
+                    "live": list(LIVE_FILES.keys()),
+                    "root": str(ROOT),
+                },
+            )
+            return
+        if self._serve_live(path):
             return
         if path.startswith("/api/gate/") and path.endswith("/messages"):
             task_id = path.split("/")[3]
@@ -334,6 +435,8 @@ class Handler(BaseHTTPRequestHandler):
         if path.startswith("/api/work/") and path.endswith("/messages"):
             task_id = path.split("/")[3]
             self._json(200, {"messages": load_messages(task_id, work=True)})
+            return
+        if self._serve_static(self.path):
             return
         self._json(404, {"error": "not found"})
 
@@ -466,10 +569,12 @@ def main() -> None:
     WORK_CHATS.mkdir(parents=True, exist_ok=True)
     server = ThreadingHTTPServer(("0.0.0.0", PORT), Handler)
     print(f"gate-chat server on http://0.0.0.0:{PORT}")
+    print(f"  dashboard: {DASHBOARD}")
     print(f"  chats: {CHATS}")
     print(f"  ledger: {LEDGER}")
+    print(f"  live API: {', '.join(LIVE_FILES)}")
     print(f"  agent: {os.environ.get('GATE_AGENT_CMD', DEFAULT_AGENT)}")
-    print("Expose via tailscale funnel; set dashboard/config.json gateChatApi to the HTTPS URL.")
+    print("Expose via cloudflared/tailscale; set dashboard/config.json gateChatApi to the HTTPS URL.")
     try:
         server.serve_forever()
     except KeyboardInterrupt:
