@@ -81,8 +81,16 @@ def main() -> None:
 
     resolved = {ev.get("task_id") for ev in events if ev.get("event") in ("decision_resolved", "nick_gate_resolved")}
 
+    # A task is only gated if it is genuinely awaiting Nick AND not already
+    # done/parked. Items cleared via work_removed (idle) or finished
+    # (completed/closed) must never linger in the gated queue even if an old
+    # event still carried needs_nicholas — this was the ROUTING-001/ISSUE-80 bug.
+    DONE_STATES = {"completed", "idle", "deferred", "done", "closed-superseded"}
+
     def gated(tid: str, t: dict) -> bool:
         if tid in resolved:
+            return False
+        if t.get("status") in DONE_STATES:
             return False
         if t.get("gated_by_nick") or t.get("needs_nicholas"):
             return True
