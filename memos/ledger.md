@@ -4,6 +4,10 @@ Read-only view of `logs/ceo-ledger.jsonl`.
 
 | Time | Actor | Event | Task ID | Task |
 |------|-------|-------|---------|------|
+| 2026-06-30T16:35:52 | COO | focus_snapshot | FOCUS-001 | Triage 13 ready-for-agent GitHub issues |
+| 2026-06-30T16:35:52 | PMO | task_started | PMO-001 | Triage 13 ready-for-agent GitHub issues |
+| 2026-06-30T16:35:52 | COO | worker_status | SYS-001 | Frontier worker configuration |
+| 2026-06-30T16:35:51 | Nicholas | nick_decision | PMO-001 | Triage 13 ready-for-agent GitHub issues |
 | 2026-06-30T16:22:52 | CEO | policy_set | POL-001 | Nick gate queue convention |
 | 2026-06-30T16:18:18 | COO | focus_snapshot | FOCUS-001 | Triage 13 ready-for-agent GitHub issues |
 | 2026-06-30T16:18:18 | COO | task_updated | SYS-001 | Frontier worker configuration |

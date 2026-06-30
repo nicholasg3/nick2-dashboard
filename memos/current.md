@@ -1,6 +1,6 @@
 # Current focus — Nick2
 
-_Updated 2026-06-30 16:32 SGT (hourly cadence)_
+_Updated 2026-06-30 16:35 SGT (hourly cadence)_
 
 ## 1. Executive Framing
 
@@ -12,15 +12,15 @@ _Updated 2026-06-30 16:32 SGT (hourly cadence)_
 | Bucket | Now |
 |--------|-----|
 | **Focus** | PMO: [Triage 13 ready-for-agent GitHub issues](queue/PMO-001.html) (`PMO-001`) |
-| **Status** | queued |
+| **Status** | in_progress |
 | **Budget** | $20.00/wk · spent $0.00 · mode capped |
 | **Gates** | 2 item(s) waiting on Nick |
 
 ## 3. Root cause
 
-Budget authorized ($20/week). Blocked on worker.enabled=false — enable in lane.json to dispatch.
+Dispatch authorized (Option B). Ranking 13 ready-for-agent GitHub issues; frontier worker enabled for autonomous execution within $20/wk cap.
 
 ## 5. Recommendation
 
-**Agents:** Execute analysis-only PMO triage (PMO-001) — no spend required.  
-**Nick:** Clear [Approve PMO scoring framework](gated/DEC-002.html), then [Confirm Telegram alert method](gated/DEC-003.html). Optionally enable `worker.enabled` in `lane.json`.
+**Agents:** [PMO triage](queue/PMO-001.html) **in progress** — worker enabled (Nick Option B). Append ledger + push `nick2-dashboard` on each milestone.  
+**Nick:** Clear [Approve PMO scoring framework](gated/DEC-002.html) and [Confirm Telegram alert method](gated/DEC-003.html) when ready.

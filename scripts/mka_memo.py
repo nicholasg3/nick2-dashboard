@@ -89,69 +89,38 @@ TASK_BRIEFS: dict[str, dict[str, Any]] = {
     },
     "PMO-001": {
         "objective": "Produce a ranked execution order for 13 ready-for-agent GitHub issues — highest ROI first within the $20/week budget.",
-        "decision": "How PMO proceeds while worker dispatch remains off.",
+        "decision": "**Settled — Nicholas chose Option B** (enable worker + dispatch). Agents: execute.",
         "mece": [
-            ("Inventory", "13 issues, tiers, dependencies", "Queued; proposal P-001 approved (Tier B)"),
-            ("Scoring", "Framework weights and rank output", "Blocked on DEC-002 unless Nick approves interim rubric"),
-            ("Dispatch readiness", "Budget, worker flag, model routing", "Budget OK ($20/wk); `worker.enabled=false`"),
-            ("Deliverable", "Ranked list + memos for top 3", "Not yet produced"),
+            ("Inventory", "13 issues, tiers, dependencies", "In progress; P-001 approved (Tier B)"),
+            ("Scoring", "Framework weights and rank output", "DEC-002 still open — use interim rubric until Nick approves"),
+            ("Dispatch readiness", "Budget, worker flag, model routing", "Budget $20/wk; `worker.enabled=true` (Nick 2026-06-30)"),
+            ("Deliverable", "Ranked list + memos for top 3", "PMO dispatch authorized"),
         ],
-        "root_cause": "Execution switch is off (`worker.enabled=false`) even though capital is authorized — PMO can analyze but cannot auto-dispatch.",
+        "root_cause": "Was configuration lag (`worker.enabled=false`). **Resolved** — Nick explicitly approved Option B and worker dispatch.",
         "options": [
             {
-                "name": "Analysis-only triage now",
-                "upside": "Zero spend; delivers ranked list for Nick review.",
-                "downside": "No autonomous execution until worker enabled.",
-                "when": "Default path — do this now.",
-            },
-            {
-                "name": "Nick enables worker.enabled",
-                "upside": "Full autonomous dispatch after triage.",
-                "downside": "Spend starts; needs DEC-002 for consistent scoring.",
-                "when": "After framework approval or explicit Nick OK.",
-            },
-            {
-                "name": "CEO manual top-3 pick",
-                "upside": "Fastest single decision.",
-                "downside": "Bypasses PMO; not repeatable.",
-                "when": "Emergency only.",
+                "name": "Option B — active (Nick approved)",
+                "upside": "Full autonomous dispatch after triage within $20/wk cap.",
+                "downside": "Spend starts; DEC-002 scoring framework still pending for calibration.",
+                "when": "**Selected by Nicholas.** PMO must append ledger events and push nick2-dashboard on milestones.",
             },
         ],
-        "recommendation": "**Run analysis-only triage immediately** (no spend). Nick enables `worker.enabled` in `lane.json` when DEC-002 is cleared.",
-        "nick_action": "Optional: set `worker.enabled: true` in `ai-agents-workspace/Projects-for-agents/frontier-orchestrator/lane.json`.",
+        "recommendation": "**Execute PMO triage and dispatch now.** Append `task_updated` / `task_completed` events to `nick2-dashboard/logs/ceo-ledger.jsonl` and push — dashboard is the public source of truth.",
+        "nick_action": "None — Option B approved. Monitor spend on dashboard until DEC-003 alerts ship.",
     },
     "SYS-001": {
         "objective": "Turn on the frontier worker execution path so queued PMO work can dispatch against the authorized budget.",
-        "decision": "Whether to enable autonomous worker dispatch now.",
+        "decision": "**Settled — worker enabled** per Nicholas Option B (PMO-001).",
         "mece": [
-            ("Worker flag", "`worker.enabled` in lane.json", "false — auto-dispatch off"),
+            ("Worker flag", "`worker.enabled` in lane.json", "**true** — auto-dispatch on"),
             ("Budget gate", "Weekly cap authorized", "$20/week capped (BUD-002)"),
             ("Model routing", "Default worker model", "moonshotai/kimi-k2.6 configured"),
-            ("Safety", "Trust tier, spend alerts", "Baseline trust; DEC-003 alerts pending"),
+            ("Safety", "Trust tier, spend alerts", "Baseline trust; DEC-003 alerts pending — monitor dashboard"),
         ],
-        "root_cause": "Worker remains disabled from pre-budget era — configuration lag, not missing funds.",
-        "options": [
-            {
-                "name": "Enable worker now",
-                "upside": "Unblocks PMO-001 dispatch immediately.",
-                "downside": "Spend begins without Telegram alerts if DEC-003 open.",
-                "when": "Nick accepts manual dashboard monitoring this week.",
-            },
-            {
-                "name": "Enable after DEC-002 + DEC-003",
-                "upside": "Scoring + alerts in place first.",
-                "downside": "Delays dispatch 1–2 Nick decisions.",
-                "when": "Preferred if Nick wants guardrails first.",
-            },
-            {
-                "name": "Keep disabled — analysis only",
-                "upside": "Zero autonomous spend risk.",
-                "downside": "Company stays in manual mode.",
-                "when": "Nick is not ready for auto-dispatch.",
-            },
-        ],
-        "recommendation": "**Enable worker after DEC-002 approval** (or now if Nick explicitly accepts interim manual monitoring). Update `lane.json` → `worker.enabled: true`.",
-        "nick_action": "Flip `worker.enabled` in `lane.json` when ready.",
+        "root_cause": "Was pre-budget default (`enabled=false`). **Resolved** by Nick directive.",
+        "options": [],
+        "recommendation": "**Worker live.** Frontier orchestrator may spawn workers per lane.json. CFO tracks spend; agents log costs to ledger.",
+        "nick_action": "None.",
     },
     "P-001": {
         "objective": "Validate the highest-ROI next move among 13 ready-for-agent issues before broader PMO ranking.",
@@ -513,8 +482,8 @@ _Updated {now} (hourly cadence)_
 
 ## 5. Recommendation
 
-**Agents:** Execute analysis-only PMO triage (PMO-001) — no spend required.  
-**Nick:** Clear [Approve PMO scoring framework](gated/DEC-002.html), then [Confirm Telegram alert method](gated/DEC-003.html). Optionally enable `worker.enabled` in `lane.json`.
+**Agents:** [PMO triage](queue/PMO-001.html) **in progress** — worker enabled (Nick Option B). Append ledger + push `nick2-dashboard` on each milestone.  
+**Nick:** Clear [Approve PMO scoring framework](gated/DEC-002.html) and [Confirm Telegram alert method](gated/DEC-003.html) when ready.
 """
 
 
