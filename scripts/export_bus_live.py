@@ -105,19 +105,27 @@ def export_from_db(db: Path) -> dict:
 def main() -> None:
     if BUS_DB.is_file():
         payload = export_from_db(BUS_DB)
-    else:
-        payload = {
-            "generated_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
-            "running": [],
-            "queued": [],
-            "held": [],
-            "recent_completed": [],
-            "pmo_focus": load_pmo_focus(),
-            "note": "agent-bus DB not found — run on droplet",
-        }
+        OUT.parent.mkdir(parents=True, exist_ok=True)
+        OUT.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+        print(f"Wrote {OUT.relative_to(ROOT)}")
+        return
+    if OUT.is_file():
+        print(
+            f"Skipped {OUT.relative_to(ROOT)} — no agent-bus DB; keeping existing export"
+        )
+        return
+    payload = {
+        "generated_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "running": [],
+        "queued": [],
+        "held": [],
+        "recent_completed": [],
+        "pmo_focus": load_pmo_focus(),
+        "note": "agent-bus DB not found — run on droplet",
+    }
     OUT.parent.mkdir(parents=True, exist_ok=True)
     OUT.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
-    print(f"Wrote {OUT.relative_to(ROOT)}")
+    print(f"Wrote {OUT.relative_to(ROOT)} (empty stub — no DB, no prior file)")
 
 
 if __name__ == "__main__":

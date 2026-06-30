@@ -10,5 +10,13 @@ if git diff --staged --quiet; then
   exit 0
 fi
 git commit -m "chore: refresh bus-live snapshot ($(date -u +%Y-%m-%dT%H:%MZ))"
+STASHED=0
+if ! git diff --quiet || ! git diff --cached --quiet; then
+  git stash push -m "sync-bus-live auto-stash $(date -u +%Y-%m-%dT%H:%MZ)" --include-untracked
+  STASHED=1
+fi
 git pull --rebase origin main
 git push origin main
+if [ "$STASHED" = "1" ]; then
+  git stash pop || true
+fi
