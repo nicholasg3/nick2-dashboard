@@ -1,6 +1,26 @@
 {
-  "generated_at": "2026-06-30T18:03:01Z",
-  "running": [],
+  "generated_at": "2026-06-30T18:06:02Z",
+  "running": [
+    {
+      "job_id": "JOB-20260630-641",
+      "short_job_id": "JOB-641",
+      "created_at": "2026-06-30T18:04:01Z",
+      "updated_at": "2026-06-30T18:04:11Z",
+      "started_at": "2026-06-30T18:04:05Z",
+      "display_name": "diagnostic-report-current-system-idle-st [heavy] \u00b7 executing",
+      "feature_name": "diagnostic-report-current-system-idle-st",
+      "objective_preview": "diagnostic: report current system idle state, confirm architecture implementation status from handoff, and update CEO focus",
+      "lane": "heavy",
+      "repo": "ai-agents-workspace",
+      "to_session": "heavy_coder",
+      "worker_status": "executing",
+      "hold_reason": "",
+      "status": "running",
+      "branch": "job/20260630-641-diagnostic-report-current-syst",
+      "mission_id": "",
+      "memo_path": "memos/jobs/JOB-20260630-641.md"
+    }
+  ],
   "queued": [],
   "held": [],
   "recent_completed": [
