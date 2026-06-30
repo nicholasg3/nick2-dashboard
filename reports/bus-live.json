@@ -1,12 +1,12 @@
 {
-  "generated_at": "2026-06-30T11:21:01Z",
+  "generated_at": "2026-06-30T11:24:01Z",
   "running": [
     {
-      "job_id": "JOB-20260630-453",
-      "display_name": "gate-room-live-agent-bus-dispatch-auto-c [heavy] \u00b7 executing",
-      "lane": "heavy",
+      "job_id": "JOB-20260630-755",
+      "display_name": "gate-dec-002-approve-pmo-scoring-framewo [pmo] \u00b7 executing",
+      "lane": "pmo",
       "repo": "nick2-dashboard",
-      "to_session": "heavy_coder",
+      "to_session": "pmo",
       "worker_status": "executing",
       "hold_reason": "",
       "status": "running"
@@ -34,8 +34,8 @@
       "status": "queued"
     },
     {
-      "job_id": "JOB-20260630-755",
-      "display_name": "gate-dec-002-approve-pmo-scoring-framewo [pmo] \u00b7 queued",
+      "job_id": "JOB-20260630-973",
+      "display_name": "gate-dec-003-confirm-telegram-alert-meth [pmo] \u00b7 queued",
       "lane": "pmo",
       "repo": "nick2-dashboard",
       "to_session": "pmo",
@@ -44,19 +44,18 @@
       "status": "queued"
     }
   ],
-  "held": [
-    {
-      "job_id": "JOB-20260630-973",
-      "display_name": "gate-dec-003-confirm-telegram-alert-meth [pmo] \u00b7 queued",
-      "lane": "pmo",
-      "repo": "nick2-dashboard",
-      "to_session": "pmo",
-      "worker_status": "queued",
-      "hold_reason": "repo nick2-dashboard claimed by JOB-20260630-453",
-      "status": "held"
-    }
-  ],
+  "held": [],
   "recent_completed": [
+    {
+      "job_id": "JOB-20260630-453",
+      "display_name": "gate-room-live-agent-bus-dispatch-auto-c [heavy] \u00b7 completed",
+      "lane": "heavy",
+      "repo": "nick2-dashboard",
+      "to_session": "heavy_coder",
+      "worker_status": "done",
+      "hold_reason": "",
+      "status": "completed"
+    },
     {
       "job_id": "JOB-20260630-139",
       "display_name": "dashboard-live-agent-bus-panel-real-time [dashboard] \u00b7 completed",
@@ -103,7 +102,7 @@
     "task": "Triage 13 ready-for-agent GitHub issues",
     "ledger_status": "in_progress",
     "since": "2026-06-30T16:35:52+08:00",
-    "bus_state": "held",
-    "note": "repo nick2-dashboard claimed by JOB-20260630-453"
+    "bus_state": "executing",
+    "note": "PMO worker running on agent-bus"
   }
 }
