@@ -23,6 +23,7 @@ sys.path.insert(0, str(SCRIPTS))
 
 import dashboard_honesty as dh  # noqa: E402
 import ledger_write_guard as lwg  # noqa: E402
+import pattern_detector as pd  # noqa: E402
 
 LEDGER = ROOT / "logs" / "ceo-ledger.jsonl"
 SGT = timezone(timedelta(hours=8))
@@ -188,6 +189,8 @@ def reconcile(events: list[dict]) -> int:
         n += 1
 
     n += dh.reconcile_bus(events, tasks, base, append)
+    events = load_events()
+    n += pd.emit_pattern_flags(events, base, append)
 
     return n
 

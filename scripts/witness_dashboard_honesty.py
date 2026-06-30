@@ -39,12 +39,13 @@ def main() -> int:
             print(f"WITNESS FAIL wiring: {e}", file=sys.stderr)
         return 1
 
-    test = SCRIPTS / "test_dashboard_honesty.py"
-    if test.is_file():
-        r = subprocess.run([sys.executable, str(test)], cwd=str(ROOT))
-        if r.returncode != 0:
-            print("WITNESS FAIL unit tests", file=sys.stderr)
-            return r.returncode
+    for test_name in ("test_dashboard_honesty.py", "test_pattern_detector.py"):
+        test = SCRIPTS / test_name
+        if test.is_file():
+            r = subprocess.run([sys.executable, str(test)], cwd=str(ROOT))
+            if r.returncode != 0:
+                print(f"WITNESS FAIL {test_name}", file=sys.stderr)
+                return r.returncode
 
     issues = dh.detect_drift()
     if issues:
