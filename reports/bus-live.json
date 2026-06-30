@@ -1,29 +1,28 @@
 {
-  "generated_at": "2026-06-30T15:33:02Z",
-  "running": [
+  "generated_at": "2026-06-30T15:36:02Z",
+  "running": [],
+  "queued": [],
+  "held": [],
+  "recent_completed": [
     {
       "job_id": "JOB-20260630-576",
       "short_job_id": "JOB-576",
       "created_at": "2026-06-30T15:32:56Z",
-      "updated_at": "2026-06-30T15:33:01Z",
-      "started_at": "2026-06-30T15:33:01Z",
-      "display_name": "repro-worker-model-crash-check [coder] \u00b7 checking out branch",
+      "updated_at": "2026-06-30T15:33:15Z",
+      "started_at": "2026-06-30T15:32:56Z",
+      "display_name": "repro-worker-model-crash-check [coder] \u00b7 completed",
       "feature_name": "repro-worker-model-crash-check",
       "objective_preview": "REPRO: worker_model crash check",
       "lane": "coder",
       "repo": "ai-agents-workspace",
       "to_session": "coding_worker",
-      "worker_status": "checking out branch",
+      "worker_status": "done",
       "hold_reason": "",
-      "status": "running",
+      "status": "completed",
       "branch": "job/20260630-576-repro-worker-model-crash-check",
       "mission_id": "",
       "memo_path": "memos/jobs/JOB-20260630-576.md"
-    }
-  ],
-  "queued": [],
-  "held": [],
-  "recent_completed": [
+    },
     {
       "job_id": "JOB-20260630-183",
       "short_job_id": "JOB-183",
@@ -118,25 +117,6 @@
       "branch": "job/20260630-163-auto-heal-gate-bus-zombie-jobs",
       "mission_id": "",
       "memo_path": "memos/jobs/JOB-20260630-163.md"
-    },
-    {
-      "job_id": "JOB-20260630-924",
-      "short_job_id": "JOB-924",
-      "created_at": "2026-06-30T11:28:44Z",
-      "updated_at": "2026-06-30T12:14:39Z",
-      "started_at": "2026-06-30T11:28:44Z",
-      "display_name": "dashboard-live-sync-no-react-fix-memo-le [dashboard] \u00b7 completed",
-      "feature_name": "dashboard-live-sync-no-react-fix-memo-le",
-      "objective_preview": "Dashboard live-sync (no React): fix memo/ledger/bus lag + POL-002 server enforcement.",
-      "lane": "dashboard",
-      "repo": "nick2-dashboard",
-      "to_session": "dashboard_worker",
-      "worker_status": "done",
-      "hold_reason": "",
-      "status": "completed",
-      "branch": "job/20260630-924-dashboard-live-sync-no-react-f",
-      "mission_id": "SYS-002",
-      "memo_path": "memos/jobs/JOB-20260630-924.md"
     }
   ],
   "pmo_focus": {
