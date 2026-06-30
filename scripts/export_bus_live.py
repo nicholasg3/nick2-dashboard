@@ -125,18 +125,27 @@ def row_job(row: sqlite3.Row, events: list[dict]) -> dict:
     }
 
 
+def _visible_rows(conn: sqlite3.Connection, sql: str) -> list[sqlite3.Row]:
+    try:
+        sys.path.insert(0, str(ROOT / "scripts"))
+        from generate_job_memos import is_dashboard_visible_row  # noqa: E402
+    except ImportError:
+        is_dashboard_visible_row = lambda r: True  # type: ignore[assignment,misc]
+    return [r for r in conn.execute(sql) if is_dashboard_visible_row(r)]
+
+
 def export_from_db(db: Path) -> dict:
     events = load_ledger_events()
     conn = sqlite3.connect(db)
     conn.row_factory = sqlite3.Row
-    running = [row_job(r, events) for r in conn.execute(
-        """SELECT * FROM jobs WHERE status='running' ORDER BY updated_at DESC"""
+    running = [row_job(r, events) for r in _visible_rows(
+        conn, "SELECT * FROM jobs WHERE status='running' ORDER BY updated_at DESC"
     )]
-    queued = [row_job(r, events) for r in conn.execute(
-        """SELECT * FROM jobs WHERE status='queued' ORDER BY created_at ASC"""
+    queued = [row_job(r, events) for r in _visible_rows(
+        conn, "SELECT * FROM jobs WHERE status='queued' ORDER BY created_at ASC"
     )]
-    held = [row_job(r, events) for r in conn.execute(
-        """SELECT * FROM jobs WHERE status='held' ORDER BY updated_at DESC"""
+    held = [row_job(r, events) for r in _visible_rows(
+        conn, "SELECT * FROM jobs WHERE status='held' ORDER BY updated_at DESC"
     )]
     recent_completed = [row_job(r, events) for r in conn.execute(
         """SELECT * FROM jobs WHERE status='completed' ORDER BY updated_at DESC LIMIT 6"""

@@ -141,3 +141,12 @@ One active bus packet per `(repo, feature_name)`:
 - Before `bus.py submit`, check `jobs.sqlite` for `running|queued|held` with the same slug.
 - After retry/dispatch storms, run `python3 agent-bus/scripts/cancel_duplicate_jobs.py` on the droplet (keeps `running`, else earliest `queued`).
 - Close extras as `closed-superseded`, not `completed`.
+
+## Smoke and witness (POL-007)
+
+**Smoke checks and acceptance witnesses are steps inside the job that owns the work** — not separate `JOB-*` rows on the dashboard.
+
+- **Do:** run the witness command on the job branch before the worker report; cite `exit 0` in evidence.
+- **Do not:** `bus.py submit` with `smoke` in the objective (rejected at submit unless `--allow-smoke` for infra harness only).
+- **Dashboard:** `export_bus_live.py` and `generate_job_memos.py` hide smoke packets entirely.
+- **Cleanup:** `python3 agent-bus/scripts/cancel_duplicate_jobs.py --smoke-only` on the droplet.

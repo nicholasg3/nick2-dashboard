@@ -302,7 +302,15 @@ def load_report_snippet(report_path: str | None, limit: int = 600) -> str | None
 
 def is_smoke_or_test(objective: str, feature: str) -> bool:
     blob = f"{objective} {feature}".lower()
-    return bool(re.search(r"\b(smoke|smoke-test|test packet|orphan)\b", blob))
+    return bool(re.search(r"\b(smoke\b|smoke-test|smoke test|test packet|orphan)\b", blob))
+
+
+def is_dashboard_visible_row(row: sqlite3.Row) -> bool:
+    """POL-007 — smoke/witness probes are not Nick-facing dashboard jobs."""
+    return not is_smoke_or_test(
+        (row["objective"] or ""),
+        (row["feature_name"] or ""),
+    )
 
 
 def report_supersedes_running(row: sqlite3.Row) -> bool:
@@ -671,9 +679,13 @@ def active_job_ids(conn: sqlite3.Connection) -> list[str]:
     seen: set[str] = set()
     out: list[str] = []
     for (jid,) in list(rows) + list(done):
-        if jid not in seen:
-            seen.add(jid)
-            out.append(jid)
+        if jid in seen:
+            continue
+        row = conn.execute("SELECT objective, feature_name FROM jobs WHERE job_id=?", (jid,)).fetchone()
+        if row and not is_dashboard_visible_row(row):
+            continue
+        seen.add(jid)
+        out.append(jid)
     return out
 
 

@@ -43,6 +43,10 @@ python3 scripts/export_bus_live.py
 
 Gate: `validate_job_memo()` — script exits 1 if any active memo is thin/boilerplate.
 
+## POL-007 — smoke stays inside the parent job
+
+Never submit `bus.py submit … smoke …` as its own job. Witness runs on the parent branch; smoke jobs are hidden from the dashboard and rejected at submit.
+
 ## POL-006 — no duplicate bus packets
 
 Before PMO dispatch retry, check bus DB. After storms:
