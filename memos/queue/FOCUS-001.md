@@ -1,13 +1,10 @@
 [Tue Jun 30, 2026]
 
-# P-001: PMO Triage Proposal (Tier B)
+# FOCUS-001: Make the dashboard live
 
-**Owner:** CEO  
-**Status:** 🟠 Stale — no update in 30+ min (POL-002)  
-**Last Updated:** 2026-06-30 14:50
-
-> **WIP policy (POL-002):** Last ledger touch was **304 minutes** ago. Agents must append `task_updated` every 30 minutes or set `idle`/`completed`.
-
+**Owner:** dashboard_worker  
+**Status:** 🟢 Executing  
+**Last Updated:** 2026-06-30 19:54
 
 ────────────────────────────────────────────
 
@@ -15,33 +12,18 @@
 
 ### Objective
 
-Seed PMO-001 with highest-ROI analysis entry point for 13 ready-for-agent issues.
+CEO focus pinned to SYS-002 while JOB-924 executes.
 
 ### Success Criteria
 
-☑ Proposal approved (Tier B, score 0.6)
-☐ Analysis output linked to PMO-001
-☐ Ranked recommendation delivered
+☐ Mission completed per ledger
 
 ### Mission Decomposition (MECE)
 
-1. Scope
-Progress: ██████████
+1. Execute
+Progress: █░░░░░░░░░
 
-• Pure analysis — no external writes
-• Feeds PMO-001
-
-2. Analyze
-Progress: ███░░░░░░░
-
-• Review issue board
-• Draft rank inputs
-
-3. Handoff
-Progress: ░░░░░░░░░░
-
-• Merge into PMO-001 backlog
-• Close P-001
+• CEO focus pinned to SYS-002 while JOB-924 executes.
 
 ────────────────────────────────────────────
 
@@ -49,7 +31,7 @@ Progress: ░░░░░░░░░░
 
 ### Overall Progress
 
-████░░░░░░ 45%
+██░░░░░░░░ 15%
 
 ### Budget
 
@@ -59,21 +41,20 @@ Limit: $20.00/week
 
 ### Critical Path
 
-Approved scope
+Start
       ↓
-Analysis
+Execute
       ↓
-Handoff to PMO-001
+Verify
+      ↓
+Report
 
 ────────────────────────────────────────────
 
 ## CURRENT WORKSTREAMS
 
-████░░░░░░
-Analysis
-
-░░░░░░░░░░
-Handoff
+██░░░░░░░░
+Primary workstream
 
 ────────────────────────────────────────────
 
@@ -86,7 +67,7 @@ Handoff
 ## NEXT MILESTONES
 
 —
-Complete analysis handoff to PMO-001
+_TBD_
 
 ────────────────────────────────────────────
 
@@ -98,13 +79,22 @@ Complete analysis handoff to PMO-001
 
 ## RECENT EVENTS
 
-14:50
-proposal_created: Highest-ROI next move: pure analysis, no external writes.
+19:54
+ceo_focus: 
+
+19:54
+focus_snapshot: CEO focus pinned to SYS-002 while JOB-924 executes.
+
+16:35
+focus_snapshot: PMO triage in progress; worker enabled per Nicholas Option B.
+
+16:18
+focus_snapshot: Hourly focus: PMO triage queued; enable frontier worker to start.
 
 ────────────────────────────────────────────
 
 ## LINKS
 
 - [Dashboard](https://nicholasg3.github.io/nick2-dashboard/)
-- [PMO-001 brief](PMO-001.html)
-- Ledger: `logs/ceo-ledger.jsonl` (`P-001`)
+- [CEO Ledger](../ledger.html)
+- Ledger: `logs/ceo-ledger.jsonl` (`FOCUS-001`)

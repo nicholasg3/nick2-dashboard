@@ -15,7 +15,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from md_page import write_html
-from execution_brief import execution_brief_body
+from execution_brief import ceo_focus_line, execution_brief_body
 from mka_memo import (
     mka_completed_body,
     mka_gated_body,
@@ -141,9 +141,11 @@ No active ungated work in queue. See [gated queue](gated-queue.html) or [roadmap
         remaining=rem,
         memo_context="current",
     )
+    focus_line = (focus_ev or {}).get("focus_line") or ceo_focus_line(pid, primary)
     return (
         f"_Current focus → [{pid}](queue/{pid}.html) · "
-        f"{gated_count} gated · {now}_\n\n{body}"
+        f"{gated_count} gated · {now}_\n\n"
+        f"**{focus_line}**\n\n{body}"
     )
 
 

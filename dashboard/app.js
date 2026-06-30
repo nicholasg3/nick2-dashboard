@@ -152,6 +152,10 @@ function buildState(events) {
       focusSnapshot = ev;
     }
 
+    if (ev.event === 'ceo_focus') {
+      focusSnapshot = { ...focusSnapshot, ...ev, focus_line: ev.focus_line || ev.output };
+    }
+
     if (ev.event === 'roadmap_item') {
       roadmap.push(ev);
     }
@@ -166,7 +170,9 @@ function buildState(events) {
       budgetEntries.push(ev);
     }
 
-    if (ev.actor === 'CEO' && ACTIVE_STATUSES.has(ev.status)) {
+    if (ev.event === 'ceo_focus') {
+      currentCeoTask = ev;
+    } else if (ev.event === 'focus_snapshot' && ev.focus_line) {
       currentCeoTask = ev;
     }
   }
@@ -279,13 +285,13 @@ function renderSnapshot(state) {
       label: 'CEO Focus',
       valueHtml: state.currentCeoTask
         ? taskMemoLinkFromState(
-            state.currentCeoTask.task?.slice(0, 40) || state.currentCeoTask.task_id,
-            state.currentCeoTask.task_id,
+            focusPlainLine(state.currentCeoTask, state) || state.currentCeoTask.task_id,
+            state.currentCeoTask.focus_task_id || state.currentCeoTask.task_id,
             state,
             'stat-link'
           )
         : null,
-      value: state.currentCeoTask?.task?.slice(0, 40) || 'Idle',
+      value: state.currentCeoTask ? focusPlainLine(state.currentCeoTask, state) || 'Idle' : 'Idle',
       sub: state.currentCeoTask ? fmtTs(state.currentCeoTask.ts) : 'No active CEO task',
     },
     {
@@ -399,16 +405,27 @@ function taskMemoLinkFromState(text, taskId, state, className = 'memo-link') {
 }
 
 function pickCurrentFocus(state) {
+  const snap = state.focusSnapshot;
+  if (snap?.focus_task_id) {
+    const linked = state.active.find((t) => t.task_id === snap.focus_task_id);
+    if (linked) return { ...linked, focus_line: snap.focus_line, focus_detail: snap.focus_detail };
+  }
   const inProg = state.active.find((t) => t.status === 'in_progress');
   if (inProg) return inProg;
   const queued = state.active.find((t) => t.status === 'queued');
   if (queued) return queued;
-  const snap = state.focusSnapshot;
-  if (snap?.focus_task_id) {
-    const linked = state.active.find((t) => t.task_id === snap.focus_task_id);
-    if (linked) return linked;
-  }
   return state.active[0] || snap || null;
+}
+
+function focusPlainLine(focus, state) {
+  if (!focus) return null;
+  if (focus.focus_line) return focus.focus_line;
+  const tid = focus.task_id || focus.focus_task_id;
+  const task = (focus.task || '').trim();
+  if (task && !task.includes('POL-') && task.length <= 80) return task;
+  const out = (focus.output || '').split(/[.!?\n]/)[0]?.trim();
+  if (out && out.length <= 100) return out;
+  return task ? `${tid}: ${task.slice(0, 60)}` : tid || 'Idle';
 }
 
 function setFocusPanel(focus, state) {
@@ -425,13 +442,13 @@ function setFocusPanel(focus, state) {
     return;
   }
 
-  const owner = focus.owner || focus.actor || 'CEO';
-  const taskId = focus.task_id || focus.focus_task_id;
-  const title = `${owner}: ${focus.task || '—'}`;
-  headline.innerHTML = state
-    ? taskMemoLinkFromState(title, taskId, state, 'focus-link')
-    : esc(title);
-  detail.textContent = focus.output || '';
+  const taskId = focus.focus_task_id || focus.task_id;
+  const line = focusPlainLine(focus, state) || '—';
+  headline.innerHTML = state && taskId
+    ? taskMemoLinkFromState(line, taskId, state, 'focus-link')
+    : esc(line);
+  const detailSrc = focus.focus_detail || focus.output || '';
+  detail.textContent = detailSrc.length > 220 ? `${detailSrc.slice(0, 217)}…` : detailSrc;
   meta.innerHTML = `
     <span class="meta-pill">${badge(focus.status)}</span>
     <span class="meta-pill">${esc(taskId || '')}</span>

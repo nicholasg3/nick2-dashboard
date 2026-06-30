@@ -201,7 +201,141 @@ EXECUTION_BRIEFS: dict[str, dict[str, Any]] = {
             ("theme_06 memo", "Projects-for-agents/strategic-publishing/grounded/2026-07-12-agents-need-memory-architecture-not-just-prompt/literature/round-gt-theory/theme_06_operational_memory_governance.md"),
         ],
     },
+    "SYS-002": {
+        "title": "Make the dashboard live",
+        "situation": (
+            "The operating dashboard still reads ledger and agent-bus state from GitHub Pages "
+            "snapshots that can lag minutes behind reality. POL-002 needs server-side stale "
+            "detection so workers cannot sit at Executing while asleep."
+        ),
+        "mece": [
+            ("Live read path", "Add droplet API for ledger tail + bus SQLite — in flight via JOB-924"),
+            ("Honest reconcile", "Auto-flag or transition tasks with no heartbeat in 30+ minutes"),
+            ("Publish cadence", "15-minute cron to reconcile, regenerate memos, and push"),
+            ("Client wiring", "dashboard app polls live API when configured, static JSON fallback"),
+        ],
+        "paths_considered": [
+            "Full React/Node rewrite on GitHub Pages",
+            "Extend existing Python gate server with /api/live/* + vanilla JS polling",
+            "Static-only: shorter cron and hope agents heartbeats",
+        ],
+        "chosen_path_why": (
+            "We chose extending the gate server and vanilla JS because it fixes latency and "
+            "honesty without a framework migration. React would improve DX but would not stop "
+            "agents from going quiet without the reconcile layer; static-only leaves the "
+            "phone and dashboard blind during the export gap. The gate server already runs on "
+            "the droplet beside the ledger — adding live endpoints is the cheapest path that "
+            "unifies memo and panel reads."
+        ),
+        "where_it_stands": (
+            "JOB-924 is executing on the droplet after one harness failure and a requeue. "
+            "The worker is implementing live ledger/bus endpoints, POL-002 reconcile rules, "
+            "and the 15-minute sync script. JOB-102 (full McKinsey template for all missions) "
+            "waits behind 924. No Nick gate — this is autonomous dashboard ops."
+        ),
+        "effort": {
+            "time": "In focus ~90m; ~45m lost to repo-lock zombies and one worker crash",
+            "work": "2 dispatches on JOB-924 (1 retry), JOB-102 held",
+            "budget": "spent $0.00 · remaining $20.00 · limit $20/week",
+        },
+        "links": [
+            ("Dashboard", DASHBOARD),
+            ("CEO Ledger", "ledger.html"),
+        ],
+    },
 }
+
+
+def _is_mckinsey_brief(brief: dict[str, Any]) -> bool:
+    return bool(brief.get("situation") and brief.get("mece"))
+
+
+def ceo_focus_line(tid: str, t: dict, brief: dict[str, Any] | None = None) -> str:
+    """One plain sentence for CEO Focus — never truncated mid-word."""
+    brief = brief or EXECUTION_BRIEFS.get(tid, {})
+    if _is_mckinsey_brief(brief):
+        status = (t.get("status") or "queued").replace("_", " ")
+        title = brief.get("title") or tid
+        if status == "in progress":
+            return f"{title} — executing on droplet (JOB-924), live API + reconcile path"
+        if status == "queued":
+            return f"{title} — queued on droplet, waiting for worker slot"
+        return f"{title} — {status}"
+    task = (t.get("task") or brief.get("mission_name") or tid).strip()
+    if len(task) <= 72:
+        return task
+    cut = task[:72].rsplit(" ", 1)[0]
+    return cut + "…"
+
+
+def mckinsey_brief_body(
+    tid: str,
+    t: dict,
+    brief: dict[str, Any],
+    *,
+    memo_context: str = "queue",
+) -> str:
+    title = brief.get("title") or t.get("task") or tid
+    updated = (t.get("ts") or "")[:16].replace("T", " ")
+    stale = _wip_stale(t)
+    stale_note = ""
+    if stale:
+        age = _wip_age_minutes(t)
+        mins = int(age) if age is not None else WIP_MEMO_MAX_AGE_MIN
+        stale_note = (
+            f"\n\n> POL-002: last ledger touch **{mins}m** ago — heartbeat or status transition due.\n"
+        )
+
+    mece = "\n".join(f"- **{branch}** — {state}" for branch, state in brief.get("mece", []))
+    paths = "\n".join(f"- {p}" for p in brief.get("paths_considered", []))
+    effort = brief.get("effort", {})
+    effort_block = (
+        f"- **Time:** {effort.get('time', '—')}\n"
+        f"- **Work:** {effort.get('work', '—')}\n"
+        f"- **Budget:** {effort.get('budget', '—')}"
+    )
+
+    back = "../index.html"
+    links = "\n".join(
+        f"- [{label}]({href})" for label, href in brief.get("links", [("Dashboard", DASHBOARD)])
+    )
+
+    return f"""{_date_stamp()}
+
+[← Dashboard]({back})
+
+**{tid}: {title}**
+
+## SITUATION
+
+{brief.get('situation', '')}
+
+## MECE DECOMPOSITION
+
+{mece}
+
+## PATHS CONSIDERED
+
+{paths}
+
+## CHOSEN PATH + WHY
+
+{brief.get('chosen_path_why', '')}
+
+## WHERE IT STANDS
+
+{brief.get('where_it_stands', '')}{stale_note}
+
+## EFFORT & COST
+
+{effort_block}
+
+## LINKS
+
+{links}
+
+_Last updated {updated} SGT_
+"""
 
 
 def _date_stamp(dt: datetime | None = None) -> str:
@@ -320,6 +454,9 @@ def execution_brief_body(
     remaining: float | None,
     memo_context: str = "queue",
 ) -> str:
+    raw = EXECUTION_BRIEFS.get(tid, {})
+    if _is_mckinsey_brief(raw):
+        return mckinsey_brief_body(tid, t, raw, memo_context=memo_context)
     brief = _brief(tid, t)
     owner = t.get("owner") or t.get("actor", "—")
     stale = _wip_stale(t)
