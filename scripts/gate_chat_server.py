@@ -33,7 +33,7 @@ LEDGER = ROOT / "logs" / "ceo-ledger.jsonl"
 REPORTS = ROOT / "reports"
 SGT = timezone(timedelta(hours=8))
 PORT = int(os.environ.get("GATE_CHAT_PORT", "8788"))
-BUS_LIVE_MAX_AGE_SEC = int(os.environ.get("BUS_LIVE_MAX_AGE_SEC", "120"))
+BUS_LIVE_MAX_AGE_SEC = int(os.environ.get("BUS_LIVE_MAX_AGE_SEC", "30"))
 DEFAULT_AGENT = f"python3 {ROOT / 'scripts' / 'gate_agent_bus.py'}"
 DEFAULT_WORK_AGENT = f"python3 {ROOT / 'scripts' / 'work_agent_bus.py'}"
 
@@ -163,8 +163,8 @@ def refresh_reports() -> None:
         )
 
 
-def ensure_bus_live_fresh() -> None:
-    """Refresh bus-live.json from agent-bus when the on-disk copy is stale."""
+def ensure_bus_live_fresh(*, force: bool = False) -> None:
+    """Refresh bus-live.json from agent-bus (every live API read, or when stale on disk)."""
     out = REPORTS / "bus-live.json"
     script = ROOT / "scripts" / "export_bus_live.py"
     if not script.is_file():
@@ -172,13 +172,19 @@ def ensure_bus_live_fresh() -> None:
     age_sec = None
     if out.exists():
         age_sec = datetime.now(timezone.utc).timestamp() - out.stat().st_mtime
-    if age_sec is None or age_sec > BUS_LIVE_MAX_AGE_SEC:
-        subprocess.run(
-            [sys.executable, str(script)],
-            cwd=str(ROOT),
-            capture_output=True,
-            text=True,
-            timeout=60,
+    if not force and age_sec is not None and age_sec <= BUS_LIVE_MAX_AGE_SEC:
+        return
+    r = subprocess.run(
+        [sys.executable, str(script)],
+        cwd=str(ROOT),
+        capture_output=True,
+        text=True,
+        timeout=60,
+    )
+    if r.returncode != 0:
+        print(
+            f"[gate-chat] export_bus_live failed ({r.returncode}): "
+            f"{(r.stderr or r.stdout)[:400]}"
         )
 
 
@@ -380,7 +386,7 @@ class Handler(BaseHTTPRequestHandler):
             return False
         file_path, mime = spec
         if path == "/api/live/bus-live":
-            ensure_bus_live_fresh()
+            ensure_bus_live_fresh(force=True)
         if not file_path.exists():
             empty = b"[]" if mime == "application/json" else b""
             self._raw(200, empty, mime)

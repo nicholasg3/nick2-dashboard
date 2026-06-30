@@ -7,7 +7,7 @@ let dataUrls = { ...Nick2LiveConfig.STATIC, source: 'github-static' };
 const GATED_POLL_MS = 20000;
 const BUS_LIVE_POLL_MS = 8000;
 const WIP_STALE_MS = 30 * 60 * 1000;
-const BUS_STALE_MS = 5 * 60 * 1000;
+const BUS_STALE_MS = 2 * 60 * 1000;
 let liveTimerInterval = null;
 const ROADMAP_LANES = {
   near_term: 'Near-term',
@@ -122,7 +122,7 @@ function tickLiveTimers() {
       const stale = ms >= BUS_STALE_MS;
       fleetUpdated.textContent = stale
         ? `Bus snapshot ${snap} ago (stale)`
-        : `Bus live · ${snap} ago`;
+        : `Bus live · refreshed ${snap} ago`;
       fleetUpdated.classList.toggle('meta-stale', stale);
     }
   }
