@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-30T11:22:08Z",
+  "generated_at": "2026-06-30T11:38:06Z",
   "legend": {
     "live": "\ud83d\udfe2 Running now (24/7 service)",
     "timer": "\u23f0 Scheduled \u2014 fires on systemd timer",
@@ -22,8 +22,8 @@
     "worker_enabled": true,
     "budget": {
       "weekly_usd": 20,
-      "mode": "capped",
-      "remaining_usd": 20
+      "remaining_usd": 20,
+      "mode": "capped"
     },
     "open_gate_count": 0
   },
