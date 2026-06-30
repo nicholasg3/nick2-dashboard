@@ -126,8 +126,7 @@ def push_dashboard() -> str | None:
         return "git push skipped (GATE_SKIP_GIT_PUSH)"
     try:
         subprocess.run(["git", "add", "logs/ceo-ledger.jsonl", "reports/gated.json"], cwd=str(ROOT), check=True)
-        chat_glob = list(CHATS.glob("*.jsonl"))
-        if chat_glob:
+        if list(CHATS.glob("*.jsonl")):
             subprocess.run(["git", "add", "logs/gate-chats/"], cwd=str(ROOT), check=True)
         msg = f"gate-bridge: update ledger and gated queue ({now_sgt()})"
         r = subprocess.run(
@@ -138,7 +137,24 @@ def push_dashboard() -> str | None:
         )
         if r.returncode != 0 and "nothing to commit" in (r.stdout + r.stderr):
             return "no git changes"
-        subprocess.run(["git", "push", "origin", "main"], cwd=str(ROOT), check=True, timeout=120)
+        pull = subprocess.run(
+            ["git", "pull", "--rebase", "origin", "main"],
+            cwd=str(ROOT),
+            capture_output=True,
+            text=True,
+            timeout=120,
+        )
+        if pull.returncode != 0:
+            return f"git pull --rebase failed: {(pull.stderr or pull.stdout)[:300]}"
+        push = subprocess.run(
+            ["git", "push", "origin", "main"],
+            cwd=str(ROOT),
+            capture_output=True,
+            text=True,
+            timeout=120,
+        )
+        if push.returncode != 0:
+            return f"git push failed: {(push.stderr or push.stdout)[:300]}"
         return "pushed to origin/main"
     except Exception as e:
         return f"git push failed: {e}"
