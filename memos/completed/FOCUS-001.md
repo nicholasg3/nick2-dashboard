@@ -1,19 +1,19 @@
-# FOCUS-001: Make the dashboard live — Completed
+# FOCUS-001: Triage 13 ready-for-agent GitHub issues — Completed
 
-**Owner:** dashboard_worker · **Status:** completed · **Updated:** 2026-06-30T20:34 · **Cost:** $0.00
+**Owner:** PMO · **Status:** completed · **Updated:** 2026-06-30T21:30 · **Cost:** $0.00
 
 
 ## 1. Executive Framing
 
-**Objective:** Advance: Make the dashboard live  
-**Outcome:** reconcile-bus:sys002-job-924-done
+**Objective:** Advance: Triage 13 ready-for-agent GitHub issues  
+**Outcome:** PMO-001 triage done (JOB-792). Top-5 ranked; ready to dispatch issue workers.
 
 ## 2. What shipped (MECE)
 
 | Bucket | Scope | Current state |
 |--------|-------|---------------|
-| Work unit | Make the dashboard live | reconcile-bus:sys002-job-924-done |
-| Status & owner | completed / dashboard_worker | 2026-06-30T20:34 |
+| Work unit | Triage 13 ready-for-agent GitHub issues | PMO-001 triage done (JOB-792). Top-5 ranked; ready to dispatch issue workers. |
+| Status & owner | completed / PMO | 2026-06-30T21:30 |
 | Dependencies | Gates, budget, worker | See dashboard Gated queue and budget panel |
 | Deliverable | Ledger event + artifacts | Not listed |
 

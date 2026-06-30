@@ -4,6 +4,8 @@ Read-only view of `logs/ceo-ledger.jsonl`.
 
 | Time | Actor | Event | Task ID | Task |
 |------|-------|-------|---------|------|
+| 2026-06-30T21:30:34 | COO | focus_snapshot | FOCUS-001 | Triage 13 ready-for-agent GitHub issues |
+| 2026-06-30T21:30:34 | COO | task_updated | PMO-001 | Triage 13 ready-for-agent GitHub issues |
 | 2026-06-30T20:34:57 | COO | task_updated | P-001 | PMO triage of 13 ready-for-agent GitHub issues |
 | 2026-06-30T20:34:57 | COO | task_updated | PMO-001 | Triage 13 ready-for-agent GitHub issues |
 | 2026-06-30T20:34:57 | COO | focus_snapshot | FOCUS-001 | Make the dashboard live |
@@ -42,5 +44,3 @@ Read-only view of `logs/ceo-ledger.jsonl`.
 | 2026-06-30T15:03:00 | CEO | roadmap_item | RM-002 | Capability: Model Routing Policy skill |
 | 2026-06-30T15:02:00 | CEO | roadmap_item | RM-001 | Near-term: PMO triage + budget fix |
 | 2026-06-30T15:00:00 | CHRO | trust_snapshot | TRUST-001 | Initialize agent trust ledger |
-| 2026-06-30T14:58:00 | CEO | task_queued | PMO-001 | Triage 13 ready-for-agent GitHub issues |
-| 2026-06-30T14:57:00 | CEO | decision_needed | DEC-003 | Confirm Telegram alert method for $5 spend thresho |

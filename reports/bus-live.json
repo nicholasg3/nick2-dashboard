@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-30T13:30:02Z",
+  "generated_at": "2026-06-30T13:30:35Z",
   "running": [],
   "queued": [
     {
@@ -59,7 +59,7 @@
       "hold_reason": "",
       "status": "completed",
       "branch": "",
-      "mission_id": "",
+      "mission_id": "PMO-001",
       "memo_path": "memos/jobs/JOB-20260630-792.md"
     },
     {
@@ -161,8 +161,8 @@
   "pmo_focus": {
     "task_id": "PMO-001",
     "task": "Triage 13 ready-for-agent GitHub issues",
-    "ledger_status": "blocked",
-    "since": "2026-06-30T20:34:57+08:00",
+    "ledger_status": "completed",
+    "since": "2026-06-30T21:30:34+08:00",
     "bus_state": "idle"
   }
 }

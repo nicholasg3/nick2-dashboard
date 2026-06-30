@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-30T13:30:03Z",
+  "generated_at": "2026-06-30T13:30:35Z",
   "legend": {
     "live": "\ud83d\udfe2 Running now (24/7 service)",
     "timer": "\u23f0 Scheduled \u2014 fires on systemd timer",
@@ -12,17 +12,17 @@
   "context": {
     "gates": [],
     "focus": {
-      "task_id": "SYS-002",
-      "task": "Make the dashboard live",
+      "task_id": "PMO-001",
+      "task": "Triage 13 ready-for-agent GitHub issues",
       "status": "completed",
-      "owner": "dashboard_worker"
+      "owner": "PMO"
     },
-    "pmo_status": "blocked",
+    "pmo_status": "completed",
     "pmo_task": "Triage 13 ready-for-agent GitHub issues",
     "worker_enabled": true,
     "budget": {
       "weekly_usd": 20,
-      "remaining_usd": 20.0,
+      "remaining_usd": 20,
       "mode": "capped"
     },
     "open_gate_count": 0
@@ -33,7 +33,7 @@
     "status": "idle",
     "icon": "\u25c6",
     "maps_to": "frontier-orchestrator",
-    "detail": "SYS-002 (completed) \u00b7 $20/wk cap ($20.0 left)",
+    "detail": "PMO-001 (completed) \u00b7 $20/wk cap ($20 left)",
     "schedule": "",
     "children": [
       {
