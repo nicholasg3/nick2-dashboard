@@ -1,11 +1,1 @@
-[
-  {
-    "rank": 1,
-    "task_id": "ISSUE-15",
-    "task": "FEATURE: optional skill usefulness tiers",
-    "priority": "medium",
-    "nick_priority": null,
-    "what_nick_must_do": "Decision-gated: Nick must pick the tier schema (Option A vs B) before agents implement. Moved out of active coding queue into Gated-by-Nick.",
-    "since": "2026-06-30T23:51:30+08:00"
-  }
-]
+[]
