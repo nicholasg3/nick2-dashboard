@@ -264,6 +264,13 @@ def main() -> None:
     ledger_md = ledger_html(events)
     emit_pair(MEMOS / "ledger.md", ledger_md, "CEO ledger", "../index.html")
 
+    try:
+        from generate_job_memos import main as gen_job_memos
+
+        gen_job_memos()
+    except Exception as exc:
+        print(f"generate_job_memos skipped: {exc}", file=sys.stderr)
+
     print(f"generate-memos: wrote memos (.md + .html) under {MEMOS.relative_to(ROOT)}")
 
 

@@ -5,7 +5,7 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
 export AGENT_BUS_DB="${AGENT_BUS_DB:-$HOME/ai-agents-workspace/agent-bus/jobs.sqlite}"
 python3 scripts/export_bus_live.py
-git add reports/bus-live.json
+git add reports/bus-live.json memos/jobs/
 if git diff --staged --quiet; then
   exit 0
 fi

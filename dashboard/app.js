@@ -376,6 +376,28 @@ function memoHref(kind, taskId) {
   return `memo.html?p=${encodeURIComponent(mdPath)}`;
 }
 
+function shortJobId(jobId) {
+  if (!jobId) return '';
+  const m = String(jobId).match(/^JOB-\d{8}-(\d+)$/);
+  return m ? `JOB-${m[1]}` : jobId;
+}
+
+function jobMemoHref(jobId) {
+  if (!jobId) return null;
+  return memoHref('jobs', jobId);
+}
+
+function fleetJobTitle(job) {
+  const jid = job.job_id || '';
+  const shortId = job.short_job_id || shortJobId(jid);
+  const feature =
+    job.feature_name ||
+    (job.display_name || '').split('[')[0].trim() ||
+    jid ||
+    'job';
+  return shortId ? `${shortId} · ${feature}` : feature;
+}
+
 /** Gated queue titles open the gate room popup (MKA + chat). */
 function gateTaskLink(text, taskId, className = 'memo-link') {
   const label = text ?? '—';
@@ -725,14 +747,39 @@ function busWorkCard(job, kind) {
     kind === 'held' && job.hold_reason
       ? `<p class="fleet-job-hold">${esc(job.hold_reason)}</p>`
       : '';
+  const title = fleetJobTitle(job);
+  const jobBrief = jobMemoHref(job.job_id);
+  const missionBrief = job.mission_id ? memoHref('queue', job.mission_id) : null;
+  const preview = job.objective_preview
+    ? `<p class="fleet-job-preview">${esc(job.objective_preview)}</p>`
+    : '';
+  const links = [];
+  if (jobBrief) {
+    links.push(`<a class="fleet-job-link" href="${esc(jobBrief)}">Job brief</a>`);
+  }
+  if (missionBrief) {
+    links.push(
+      `<a class="fleet-job-link" href="${esc(missionBrief)}">${esc(job.mission_id)} mission</a>`
+    );
+  }
+  const linkRow = links.length
+    ? `<p class="fleet-job-links">${links.join('<span class="fleet-job-link-sep">·</span>')}</p>`
+    : '';
+  const fullId =
+    job.job_id && (job.short_job_id || shortJobId(job.job_id)) !== job.job_id
+      ? `<p class="fleet-job-id" title="${esc(job.job_id)}">${esc(job.job_id)}</p>`
+      : '';
   return `<article class="fleet-job-card fleet-job-${esc(kind)}">
     <div class="fleet-job-route">
       <span class="fleet-pipe-step">Nick</span><span class="fleet-pipe-arrow">→</span>
       <span class="fleet-pipe-step">harness</span><span class="fleet-pipe-arrow">→</span>
       ${session || `<span class="fleet-pipe-step">${esc(job.lane || 'worker')}</span>`}
     </div>
-    <h4 class="fleet-job-title">${esc(job.display_name || job.job_id)}</h4>
+    <h4 class="fleet-job-title">${jobBrief ? `<a class="fleet-job-title-link" href="${esc(jobBrief)}">${esc(title)}</a>` : esc(title)}</h4>
+    ${fullId}
     <p class="fleet-job-meta">${esc(job.repo || '')} · ${esc(job.worker_status || job.status || kind)}</p>
+    ${preview}
+    ${linkRow}
     ${hold}
   </article>`;
 }
@@ -806,7 +853,11 @@ function renderOrgFleetBoard(root, bus) {
     }
     html += `<div class="fleet-section"><h3 class="fleet-section-title">Asleep</h3>${renderAsleepAccordion(asleepBucket, asleepCount)}</div>`;
     if (done.length) {
-      html += `<div class="fleet-section fleet-section-done"><h3 class="fleet-section-title">Recently done</h3><ul class="bus-done-list">${done.map((j) => `<li>${esc(j.display_name || j.job_id)}</li>`).join('')}</ul></div>`;
+      html += `<div class="fleet-section fleet-section-done"><h3 class="fleet-section-title">Recently done</h3><ul class="bus-done-list">${done.map((j) => {
+        const href = jobMemoHref(j.job_id);
+        const label = fleetJobTitle(j);
+        return `<li>${href ? `<a class="fleet-job-link" href="${esc(href)}">${esc(label)}</a>` : esc(label)}</li>`;
+      }).join('')}</ul></div>`;
     }
     return html;
   }

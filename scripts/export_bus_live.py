@@ -4,7 +4,9 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import sqlite3
+import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -17,6 +19,44 @@ BUS_DB = Path(
         Path.home() / "ai-agents-workspace" / "agent-bus" / "jobs.sqlite",
     )
 )
+
+
+def short_job_id(job_id: str) -> str:
+    m = re.match(r"^JOB-(\d{8})-(\d+)$", job_id or "")
+    return f"JOB-{m.group(2)}" if m else (job_id or "")
+
+
+def load_ledger_events() -> list[dict]:
+    if not LEDGER.exists():
+        return []
+    out = []
+    for line in LEDGER.read_text(encoding="utf-8").splitlines():
+        line = line.strip()
+        if not line:
+            continue
+        try:
+            out.append(json.loads(line))
+        except json.JSONDecodeError:
+            continue
+    return out
+
+
+def mission_for_job(job_id: str, events: list[dict]) -> str | None:
+    short = short_job_id(job_id)
+    needles = (job_id, short, f"`{job_id}`")
+    for ev in reversed(events):
+        tid = ev.get("task_id") or ""
+        if not tid or tid.startswith("FOCUS-"):
+            continue
+        blob = " ".join(
+            str(ev.get(k) or "")
+            for k in ("output", "task", "artifacts")
+        )
+        if not any(n in blob for n in needles):
+            continue
+        if re.match(r"^(SYS|PMO|P-|POL-|LIT-|DEC-)", tid):
+            return tid
+    return None
 
 
 def load_pmo_focus() -> dict:
@@ -43,33 +83,47 @@ def load_pmo_focus() -> dict:
     }
 
 
-def row_job(row: sqlite3.Row) -> dict:
+def row_job(row: sqlite3.Row, events: list[dict]) -> dict:
     lane = (row["display_name"] or "").split("[")[-1].split("]")[0].strip() if row["display_name"] else ""
+    job_id = row["job_id"]
+    feature = (row["feature_name"] or "").strip()
+    if not feature and row["display_name"]:
+        feature = row["display_name"].split("[")[0].strip()
+    objective = (row["objective"] or "").strip()
+    preview = objective.split("\n\n")[0].replace("\n", " ")[:160] if objective else ""
+    mission_id = mission_for_job(job_id, events)
     return {
-        "job_id": row["job_id"],
-        "display_name": row["display_name"] or row["job_id"],
+        "job_id": job_id,
+        "short_job_id": short_job_id(job_id),
+        "display_name": row["display_name"] or job_id,
+        "feature_name": feature,
+        "objective_preview": preview,
         "lane": lane or row["to_session"],
         "repo": row["repo"] or "",
         "to_session": row["to_session"],
         "worker_status": row["worker_status"] or row["status"],
         "hold_reason": row["hold_reason"] or "",
         "status": row["status"],
+        "branch": row["branch"] or "",
+        "mission_id": mission_id or "",
+        "memo_path": f"memos/jobs/{job_id}.md",
     }
 
 
 def export_from_db(db: Path) -> dict:
+    events = load_ledger_events()
     conn = sqlite3.connect(db)
     conn.row_factory = sqlite3.Row
-    running = [row_job(r) for r in conn.execute(
+    running = [row_job(r, events) for r in conn.execute(
         """SELECT * FROM jobs WHERE status='running' ORDER BY updated_at DESC"""
     )]
-    queued = [row_job(r) for r in conn.execute(
+    queued = [row_job(r, events) for r in conn.execute(
         """SELECT * FROM jobs WHERE status='queued' ORDER BY created_at ASC"""
     )]
-    held = [row_job(r) for r in conn.execute(
+    held = [row_job(r, events) for r in conn.execute(
         """SELECT * FROM jobs WHERE status='held' ORDER BY updated_at DESC"""
     )]
-    recent_completed = [row_job(r) for r in conn.execute(
+    recent_completed = [row_job(r, events) for r in conn.execute(
         """SELECT * FROM jobs WHERE status='completed' ORDER BY updated_at DESC LIMIT 6"""
     )]
     conn.close()
@@ -108,6 +162,12 @@ def main() -> None:
         OUT.parent.mkdir(parents=True, exist_ok=True)
         OUT.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
         print(f"Wrote {OUT.relative_to(ROOT)}")
+        try:
+            from generate_job_memos import main as gen_job_memos
+
+            gen_job_memos()
+        except Exception as exc:
+            print(f"generate_job_memos skipped: {exc}", file=sys.stderr)
         return
     if OUT.is_file():
         print(
