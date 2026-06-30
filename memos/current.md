@@ -1,12 +1,12 @@
-_Current focus → [PMO-001](queue/PMO-001.html) · 0 gated · 2026-06-30 19:24 SGT_
+_Current focus → [PMO-001](queue/PMO-001.html) · 0 gated · 2026-06-30 19:30 SGT_
 
 [Tue Jun 30, 2026]
 
 # PMO-001: Triage Ready-for-Agent GitHub Issues
 
 **Owner:** PMO  
-**Status:** 🔴 Blocked  
-**Last Updated:** 2026-06-30 19:24
+**Status:** 🟢 Executing  
+**Last Updated:** 2026-06-30 19:30
 
 ────────────────────────────────────────────
 
@@ -104,8 +104,6 @@ Verification
 
 • nick2-dashboard repo lock — JOB-453 still running (gate work already on main)
 • DEC-002 scoring framework not yet finalized — using interim rubric
-• POL-002 heartbeat: triage stalled — no ranked backlog shipped since 16:35 start. nick2-dashboard repo locked by JOB-453 (gate work already on main). PMO bus jobs queued behind repo lock. Blocked until JOB-453 completes or is cancelled.
-• POL-002 heartbeat: triage stalled — no ranked backlog shipped since 16:35 start. nick2-dashboard repo locked by JOB-453 (gate work already on main). PMO bus jobs queued behind repo lock. Blocked until JOB-453 completes or is cancelled.
 
 ────────────────────────────────────────────
 
@@ -130,6 +128,9 @@ Push dashboard ledger update
 
 ## RECENT EVENTS
 
+19:30
+task_updated: Unblocked: JOB-755 zombie cleared (DEC-002 was already resolved 19:09 — not a Ni
+
 19:24
 task_updated: POL-002 heartbeat: triage stalled — no ranked backlog shipped since 16:35 start.
 
@@ -141,9 +142,6 @@ nick_decision: Nick chose Option B: enable worker.enabled and authorize PMO auto
 
 16:18
 task_updated: Budget authorized ($20/week). Blocked on worker.enabled=false — enable in lane.j
-
-14:58
-task_queued: Waiting for budget authorization before dispatch.
 
 ────────────────────────────────────────────
 

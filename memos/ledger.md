@@ -4,6 +4,8 @@ Read-only view of `logs/ceo-ledger.jsonl`.
 
 | Time | Actor | Event | Task ID | Task |
 |------|-------|-------|---------|------|
+| 2026-06-30T19:30:59 | COO | task_updated | PMO-001 | Triage 13 ready-for-agent GitHub issues |
+| 2026-06-30T19:28:53 | CEO | task_queued | SYS-002 | Dashboard live-sync (ledger+bus API, POL-002 recon |
 | 2026-06-30T19:24:23 | PMO | task_updated | PMO-001 | Triage 13 ready-for-agent GitHub issues |
 | 2026-06-30T19:22:08 | CRO | task_updated | LIT-001 | Autonomous literature research for memory architec |
 | 2026-06-30T19:22:07 | COO | policy_set | POL-002 | WIP execution brief cadence |
@@ -39,3 +41,4 @@ Read-only view of `logs/ceo-ledger.jsonl`.
 | 2026-06-30T14:45:00 | CEO | worker_status | SYS-001 | Frontier worker configuration |
 | 2026-06-30T14:30:00 | CEO | budget_set | BUD-001 | Set weekly OpenRouter budget |
 | 2026-06-30T14:00:00 | CEO | org_wired | ORG-001 | Wire 35-role org chart to frontier-orchestrator |
+| 2026-06-30T11:27:47 | Nicholas | decision_resolved | DEC-002 | Approve PMO scoring framework |
