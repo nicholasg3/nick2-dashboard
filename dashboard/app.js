@@ -71,7 +71,11 @@ function fmtTs(ts) {
 
 function fmtUsd(n) {
   if (n == null || Number.isNaN(n)) return '—';
-  return `$${Number(n).toFixed(2)}`;
+  const v = Number(n);
+  // Do not round real sub-cent spend down to $0.00 — show enough precision
+  // that small per-call LLM costs are visible (e.g. $0.0008).
+  if (v !== 0 && Math.abs(v) < 0.01) return `$${v.toFixed(4)}`;
+  return `$${v.toFixed(2)}`;
 }
 
 function fmtTaskCost(total, tracked) {

@@ -142,6 +142,32 @@ def append_ledger(event: dict, append_fn: Callable[[dict], bool] | None = None) 
     if guarded is None:
         return False
     event = guarded
+    # Accumulate weekly spend: cost-bearing events must roll the running total
+    # forward (previously cumulative_weekly_spend_usd stayed frozen at the last
+    # value, so real per-call costs never showed up in Spent/Remaining).
+    try:
+        _cost = float(event.get("cost_usd") or 0)
+    except (TypeError, ValueError):
+        _cost = 0.0
+    if _cost > 0 and LEDGER.exists():
+        _prev_cum = 0.0
+        _weekly = float(event.get("weekly_budget_usd") or 0)
+        for _ln in reversed(LEDGER.read_text(encoding="utf-8").splitlines()):
+            if not _ln.strip():
+                continue
+            try:
+                _prior = json.loads(_ln)
+            except json.JSONDecodeError:
+                continue
+            if _prior.get("cumulative_weekly_spend_usd") is not None:
+                _prev_cum = float(_prior.get("cumulative_weekly_spend_usd") or 0)
+                if not _weekly:
+                    _weekly = float(_prior.get("weekly_budget_usd") or 0)
+                break
+        _new_cum = round(_prev_cum + _cost, 6)
+        event["cumulative_weekly_spend_usd"] = _new_cum
+        if _weekly:
+            event["budget_remaining_usd"] = round(max(0.0, _weekly - _new_cum), 6)
     line = json.dumps(event, ensure_ascii=False, separators=(",", ":"))
     prefix = ""
     if LEDGER.exists() and LEDGER.stat().st_size > 0:
