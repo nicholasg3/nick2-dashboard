@@ -42,12 +42,12 @@ strong { color: #fff; }
 <h2>CHOSEN PATH + WHY</h2>
 <p>We chose extending the gate server and vanilla JS because it fixes latency and honesty without a framework migration. React would improve DX but would not stop agents from going quiet without the reconcile layer; static-only leaves the phone and dashboard blind during the export gap. The gate server already runs on the droplet beside the ledger — adding live endpoints is the cheapest path that unifies memo and panel reads.</p>
 <h2>WHERE IT STANDS</h2>
-<p>JOB-924 is executing on the droplet (requeued after one harness crash). Live ledger/bus API endpoints, POL-002 reconcile, and 15-minute sync cron are in progress on branch job/20260630-924. Activity feed reads ledger live; memos now load via memo.html so they track regenerate-memos output. JOB-102 will McKinsey-format PMO-001 and remaining queue items after 924 lands. No Nick gate.</p>
+<p>JOB-924 is <strong>executing now</strong> on the droplet (not blocked). One harness crash earlier required a requeue; repo-lock zombies (JOB-755/453) are cleared. Worker is implementing live ledger/bus API, POL-002 reconcile, and 15m sync cron on branch job/20260630-924. JOB-102 waits for 924 to finish. No Nick gate.</p>
 <h2>EFFORT &amp; COST</h2>
-<ul><li><strong>Time:</strong> In focus ~2h; ~45m blocked on repo-lock zombies + ~15m harness retry</li><li><strong>Work:</strong> JOB-924 dispatch 2 (1 blocked retry), JOB-102 held, JOB-438 notify rewrite parallel</li><li><strong>Budget:</strong> spent $0.00 · remaining $20.00 · limit $20/week</li></ul>
+<ul><li><strong>Time:</strong> Now: executing since ~19:50 SGT · Mission age ~2h · Past stalls (resolved): ~45m repo locks + ~15m harness retry — not current blockers</li><li><strong>Work:</strong> JOB-924 attempt 2 executing; attempt 1 blocked (harness); JOB-102 held; JOB-438 parallel</li><li><strong>Budget:</strong> spent $0.00 · remaining $20.00 · limit $20/week</li></ul>
 <h2>LINKS</h2>
 <ul><li><a href="https://nicholasg3.github.io/nick2-dashboard/">Dashboard</a></li><li><a href="ledger.html">CEO Ledger</a></li></ul>
-<p>_Last updated 2026-06-30 19:57 SGT_</p>
+<p>_Last updated 2026-06-30 20:00 SGT_</p>
   </div>
 </body>
 </html>

@@ -228,15 +228,17 @@ EXECUTION_BRIEFS: dict[str, dict[str, Any]] = {
             "unifies memo and panel reads."
         ),
         "where_it_stands": (
-            "JOB-924 is executing on the droplet (requeued after one harness crash). "
-            "Live ledger/bus API endpoints, POL-002 reconcile, and 15-minute sync cron are "
-            "in progress on branch job/20260630-924. Activity feed reads ledger live; memos now "
-            "load via memo.html so they track regenerate-memos output. JOB-102 will McKinsey-format "
-            "PMO-001 and remaining queue items after 924 lands. No Nick gate."
+            "JOB-924 is **executing now** on the droplet (not blocked). One harness crash earlier "
+            "required a requeue; repo-lock zombies (JOB-755/453) are cleared. Worker is implementing "
+            "live ledger/bus API, POL-002 reconcile, and 15m sync cron on branch job/20260630-924. "
+            "JOB-102 waits for 924 to finish. No Nick gate."
         ),
         "effort": {
-            "time": "In focus ~2h; ~45m blocked on repo-lock zombies + ~15m harness retry",
-            "work": "JOB-924 dispatch 2 (1 blocked retry), JOB-102 held, JOB-438 notify rewrite parallel",
+            "time": (
+                "Now: executing since ~19:50 SGT · Mission age ~2h · "
+                "Past stalls (resolved): ~45m repo locks + ~15m harness retry — not current blockers"
+            ),
+            "work": "JOB-924 attempt 2 executing; attempt 1 blocked (harness); JOB-102 held; JOB-438 parallel",
             "budget": "spent $0.00 · remaining $20.00 · limit $20/week",
         },
         "links": [

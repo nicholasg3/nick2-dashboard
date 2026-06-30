@@ -4,6 +4,7 @@ Read-only view of `logs/ceo-ledger.jsonl`.
 
 | Time | Actor | Event | Task ID | Task |
 |------|-------|-------|---------|------|
+| 2026-06-30T20:00:46 | COO | task_updated | SYS-002 | Make the dashboard live |
 | 2026-06-30T19:57:36 | COO | task_updated | SYS-002 | Make the dashboard live |
 | 2026-06-30T19:54:14 | COO | ceo_focus | FOCUS-001 |  |
 | 2026-06-30T19:54:14 | COO | focus_snapshot | FOCUS-001 | Make the dashboard live |
@@ -43,4 +44,3 @@ Read-only view of `logs/ceo-ledger.jsonl`.
 | 2026-06-30T14:55:00 | CEO | decision_needed | DEC-001 | Confirm budget convention: 0 = OFF |
 | 2026-06-30T14:50:00 | CEO | proposal_created | P-001 | PMO triage of 13 ready-for-agent GitHub issues |
 | 2026-06-30T14:45:00 | CEO | worker_status | SYS-001 | Frontier worker configuration |
-| 2026-06-30T14:30:00 | CEO | budget_set | BUD-001 | Set weekly OpenRouter budget |
