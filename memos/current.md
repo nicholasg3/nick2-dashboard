@@ -1,4 +1,4 @@
-_Current focus → [FOCUS-001](queue/FOCUS-001.html) · 0 gated · 2026-06-30 21:15 SGT_
+_Current focus → [SYS-002](queue/SYS-002.html) · 0 gated · 2026-06-30 21:30 SGT_
 
 **Dashboard live mission complete — no dashboard worker on bus**
 
@@ -6,10 +6,7 @@ _Current focus → [FOCUS-001](queue/FOCUS-001.html) · 0 gated · 2026-06-30 21
 
 [← Dashboard](https://nicholasg3.github.io/nick2-dashboard/index.html)
 
-**FOCUS-001: Make the dashboard live**
-
-_Focus memo sourced from **SYS-002**._
-
+**SYS-002: Make the dashboard live**
 
 ## SITUATION
 
@@ -47,4 +44,4 @@ JOB-924 is **executing now** on the droplet (not blocked). One harness crash ear
 - [Dashboard](https://nicholasg3.github.io/nick2-dashboard/)
 - [CEO Ledger](https://nicholasg3.github.io/nick2-dashboard/memos/ledger.html)
 
-_Last updated 2026-06-30 21:12 SGT_
+_Last updated 2026-06-30 20:34 SGT_
