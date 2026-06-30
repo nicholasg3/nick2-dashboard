@@ -292,6 +292,37 @@ def test_ledger_event_for_job_finish() -> None:
     assert ev is not None
     assert "bus-finish:JOB-20260630-924" in ev["output"]
     assert ev["status"] == "completed"
+    assert "cost_usd" not in ev
+
+
+def test_ledger_event_for_job_finish_with_cost() -> None:
+    events = [
+        {
+            "task_id": "SYS-004",
+            "task": "POL-003 cost tracking",
+            "output": "Dispatched JOB-20260630-418",
+            "owner": "coding_worker",
+            "weekly_budget_usd": 20,
+            "cumulative_weekly_spend_usd": 1.5,
+            "budget_mode": "capped",
+        }
+    ]
+    ev = dh.ledger_event_for_job_finish(
+        "JOB-20260630-418",
+        {"to": "coding_worker", "objective": "wire cost_usd"},
+        {
+            "status": "completed",
+            "bottom_line": "Cost wired.",
+            "cost_usd": 0.42,
+            "model": "qwen/qwen3-coder",
+        },
+        events,
+    )
+    assert ev is not None
+    assert ev["cost_usd"] == 0.42
+    assert ev["cumulative_weekly_spend_usd"] == 1.92
+    assert ev["budget_remaining_usd"] == 18.08
+    assert ev["model"] == "qwen/qwen3-coder"
 
 
 def main() -> int:
@@ -301,6 +332,7 @@ def main() -> int:
     test_fresh_snapshot_unblocks_when_pmo_running()
     test_write_guard_blocked_vs_executing()
     test_ledger_event_for_job_finish()
+    test_ledger_event_for_job_finish_with_cost()
     print("test_dashboard_honesty: PASS")
     return 0
 

@@ -484,6 +484,13 @@ def reconcile_bus(
     return n
 
 
+def _latest_field(events: list[dict], key: str, default: Any = None) -> Any:
+    for ev in reversed(events):
+        if ev.get(key) is not None:
+            return ev.get(key)
+    return default
+
+
 def missions_citing_job(job_id: str, events: list[dict]) -> list[str]:
     """Task IDs whose latest ledger output mentions this job."""
     short_m = re.match(r"^JOB-\d{8}-(\d+)$", job_id or "")
@@ -521,7 +528,20 @@ def ledger_event_for_job_finish(
         return None
     short_m = re.match(r"^JOB-\d{8}-(\d+)$", job_id or "")
     short = f"JOB-{short_m.group(1)}" if short_m else job_id
-    return {
+    weekly = float(_latest_field(events, "weekly_budget_usd", 0) or 0)
+    cumulative = float(_latest_field(events, "cumulative_weekly_spend_usd", 0) or 0)
+    budget_mode = _latest_field(events, "budget_mode", "off")
+    cost_raw = report.get("cost_usd")
+    cost_usd: float | None = None
+    if cost_raw is not None:
+        try:
+            parsed = float(cost_raw)
+            if parsed > 0:
+                cost_usd = round(parsed, 6)
+                cumulative = round(cumulative + parsed, 6)
+        except (TypeError, ValueError):
+            pass
+    ev: dict[str, Any] = {
         "actor": "COO",
         "role": "Chief Operating Officer",
         "event": "task_updated",
@@ -534,5 +554,15 @@ def ledger_event_for_job_finish(
             f"{(report.get('bottom_line') or '')[:200]}"
         ),
         "needs_nicholas": False,
-        "cost_usd": 0,
     }
+    if cost_usd is not None:
+        ev["cost_usd"] = cost_usd
+        ev["cumulative_weekly_spend_usd"] = cumulative
+        ev["weekly_budget_usd"] = weekly
+        ev["budget_mode"] = budget_mode
+        ev["budget_remaining_usd"] = (
+            round(max(0.0, weekly - cumulative), 6) if weekly else None
+        )
+        if report.get("model"):
+            ev["model"] = report.get("model")
+    return ev
