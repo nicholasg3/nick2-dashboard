@@ -22,6 +22,7 @@ SCRIPTS = ROOT / "scripts"
 sys.path.insert(0, str(SCRIPTS))
 
 import dashboard_honesty as dh  # noqa: E402
+import ledger_write_guard as lwg  # noqa: E402
 
 LEDGER = ROOT / "logs" / "ceo-ledger.jsonl"
 SGT = timezone(timedelta(hours=8))
@@ -67,6 +68,14 @@ def has_event(events: list[dict], *, event: str, task_id: str | None = None) -> 
 
 
 def append(event: dict) -> bool:
+    guarded = lwg.guard_ledger_event(event)
+    if guarded is None:
+        print(
+            f"reconcile: skipped {event.get('task_id', '')} "
+            "(stale bus snapshot or guard)"
+        )
+        return False
+    event = guarded
     event.setdefault("ts", now_sgt())
     event.setdefault("actor", "COO")
     event.setdefault("role", "Chief Operating Officer")
