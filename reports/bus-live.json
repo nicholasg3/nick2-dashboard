@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-30T14:54:01Z",
+  "generated_at": "2026-06-30T14:57:01Z",
   "running": [],
   "queued": [
     {
@@ -46,7 +46,7 @@
       "job_id": "JOB-20260630-550",
       "short_job_id": "JOB-550",
       "created_at": "2026-06-30T14:25:50Z",
-      "updated_at": "2026-06-30T14:53:56Z",
+      "updated_at": "2026-06-30T14:57:00Z",
       "started_at": "2026-06-30T14:25:50Z",
       "display_name": "issue-15-implement-optional-skill-useful [coder] \u00b7 queued",
       "feature_name": "issue-15-implement-optional-skill-useful",
