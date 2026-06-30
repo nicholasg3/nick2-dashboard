@@ -64,9 +64,18 @@ def run_janitor(
     r = subprocess.run(cmd, capture_output=True, text=True, cwd=str(ROOT.parent / "ai-agents-workspace"))
     summary: dict = {"deferred": deferred, "returncode": r.returncode}
     if r.stdout.strip():
-        try:
-            summary.update(json.loads(r.stdout))
-        except json.JSONDecodeError:
+        parsed = None
+        for block in reversed(r.stdout.strip().split("\n\n")):
+            block = block.strip()
+            if block.startswith("{"):
+                try:
+                    parsed = json.loads(block)
+                    break
+                except json.JSONDecodeError:
+                    continue
+        if parsed:
+            summary.update(parsed)
+        else:
             summary["raw_stdout"] = r.stdout[:2000]
     if r.stderr.strip():
         summary["stderr"] = r.stderr[:800]
