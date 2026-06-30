@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-30T12:45:02Z",
+  "generated_at": "2026-06-30T12:48:01Z",
   "running": [],
   "queued": [
     {
@@ -39,25 +39,6 @@
       "branch": "job/20260630-446-scheduler-unit-test-one",
       "mission_id": "",
       "memo_path": "memos/jobs/JOB-20260630-446.md"
-    },
-    {
-      "job_id": "JOB-20260630-496",
-      "short_job_id": "JOB-496",
-      "created_at": "2026-06-30T12:44:56Z",
-      "updated_at": "2026-06-30T12:44:56Z",
-      "started_at": "2026-06-30T12:44:56Z",
-      "display_name": "work-task-pmo-001-triage-13-ready-for-ag [pmo] \u00b7 queued",
-      "feature_name": "work-task-pmo-001-triage-13-ready-for-ag",
-      "objective_preview": "Work task PMO-001 (Triage 13 ready-for-agent GitHub issues): Nick instructs \u2014 Are you all good with this or do you need anything from my side?",
-      "lane": "pmo",
-      "repo": "ai-agents-workspace",
-      "to_session": "pmo",
-      "worker_status": "queued",
-      "hold_reason": "",
-      "status": "queued",
-      "branch": "",
-      "mission_id": "",
-      "memo_path": "memos/jobs/JOB-20260630-496.md"
     }
   ],
   "held": [],
@@ -181,8 +162,7 @@
     "task_id": "PMO-001",
     "task": "Triage 13 ready-for-agent GitHub issues",
     "ledger_status": "blocked",
-    "since": "2026-06-30T20:34:57+08:00",
-    "bus_state": "queued",
-    "note": "PMO job queued \u2014 not executing yet"
+    "since": "2026-06-30T20:44:55+08:00",
+    "bus_state": "idle"
   }
 }
