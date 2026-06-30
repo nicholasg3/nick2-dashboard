@@ -32,27 +32,17 @@
       </div>
     </section>
 
-    <section id="agent-bus-live" class="panel bus-live-panel">
-      <div class="panel-head">
-        <div>
-          <h2>Live Agent Bus</h2>
-          <p class="panel-policy">Real-time workers on the droplet — running, queued, and held jobs. <span id="bus-live-updated" class="meta-pill">Loading…</span></p>
-        </div>
-      </div>
-      <div id="bus-live-board" class="bus-live-board" aria-live="polite"></div>
-    </section>
-
     <section id="org-fleet" class="panel org-fleet-panel">
       <div class="panel-head">
         <div>
-          <h2>Agent Fleet — Org Tree</h2>
-          <p class="panel-policy">Live status of Nick2 roles on the droplet. <span id="org-fleet-updated" class="meta-pill">Loading…</span></p>
+          <h2>Agent Fleet</h2>
+          <p class="panel-policy">Who is working <strong>right now</strong> on the droplet — delegation chain from agent-bus. <span id="org-fleet-updated" class="meta-pill">Loading…</span></p>
         </div>
-        <div id="org-fleet-filters" class="org-fleet-filters" role="group" aria-label="Filter fleet by status"></div>
+        <div id="org-fleet-filters" class="org-fleet-filters" role="group" aria-label="Filter fleet view"></div>
       </div>
-      <div id="org-fleet-legend" class="org-legend-grid" aria-label="Status legend"></div>
       <div id="org-fleet-context" class="org-fleet-context"></div>
-      <div id="org-fleet-tree" class="org-fleet-board" aria-label="Nick2 organization fleet"></div>
+      <div id="org-fleet-tree" class="org-fleet-board" aria-live="polite" aria-label="Agent fleet"></div>
+      <div id="org-fleet-legend" class="org-legend-grid org-legend-collapsed" aria-label="Status legend" hidden></div>
     </section>
 
     <section id="nick-gate" class="panel gate-panel">
@@ -131,6 +121,6 @@
     <p>Source of truth: <code>logs/ceo-ledger.jsonl</code> · Append-only · SGT timestamps</p>
   </footer>
 
-  <script src="app.js?v=9"></script>
+  <script src="app.js?v=10"></script>
 </body>
 </html>

@@ -862,6 +862,98 @@ tr:hover td { background: rgba(79, 156, 249, 0.05); }
   border: 1px solid var(--border);
 }
 
+.org-context-warn {
+  border-color: var(--warning);
+  color: var(--warning);
+}
+
+.fleet-section {
+  margin-bottom: 1rem;
+}
+
+.fleet-section-title {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+  margin: 0 0 0.55rem;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.fleet-job-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(18rem, 1fr));
+  gap: 0.6rem;
+}
+
+.fleet-job-grid-compact {
+  grid-template-columns: repeat(auto-fill, minmax(14rem, 1fr));
+}
+
+.fleet-job-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 0.7rem 0.8rem;
+  min-width: 0;
+}
+
+.fleet-job-running {
+  border-left: 3px solid var(--success);
+}
+
+.fleet-job-held {
+  border-left: 3px solid var(--warning);
+  background: rgba(245, 166, 35, 0.05);
+}
+
+.fleet-job-queued {
+  opacity: 0.92;
+}
+
+.fleet-job-route {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.2rem 0.35rem;
+  font-size: 0.68rem;
+  color: var(--muted);
+  margin-bottom: 0.35rem;
+}
+
+.fleet-pipe-step {
+  background: var(--surface-2);
+  padding: 0.1rem 0.35rem;
+  border-radius: 4px;
+}
+
+.fleet-pipe-arrow {
+  color: var(--accent);
+}
+
+.fleet-job-title {
+  margin: 0;
+  font-size: 0.86rem;
+  font-weight: 600;
+  line-height: 1.35;
+  word-break: break-word;
+}
+
+.fleet-job-meta {
+  margin: 0.3rem 0 0;
+  font-size: 0.72rem;
+  color: var(--muted);
+}
+
+.fleet-job-hold {
+  margin: 0.4rem 0 0;
+  font-size: 0.74rem;
+  color: var(--warning);
+  line-height: 1.35;
+}
+
 .org-fleet-board {
   display: flex;
   flex-direction: column;

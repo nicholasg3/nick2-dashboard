@@ -600,10 +600,12 @@ function renderArtifacts(state) {
     .join('');
 }
 
-const ORG_PROMINENT = new Set(['live', 'active', 'timer', 'implicit', 'passive']);
+const ORG_LIVE = new Set(['live']);
+const ORG_SCHEDULED = new Set(['timer']);
 const ORG_ASLEEP = new Set(['asleep', 'idle']);
-let orgFleetFilter = 'all';
+let orgFleetFilter = 'now';
 let orgFleetDataCache = null;
+let busLiveDataCache = null;
 
 function orgRoleCard(node, { compact = false } = {}) {
   const status = node.status || 'asleep';
@@ -641,27 +643,31 @@ function renderOrgFleetLegend(legend) {
     .join('');
 }
 
-function renderOrgFleetContext(ctx) {
+function renderOrgFleetContext(ctx, bus) {
   const el = $('org-fleet-context');
-  if (!el || !ctx) {
-    if (el) el.innerHTML = '';
-    return;
+  if (!el) return;
+  const chips = [];
+  const pmo = bus?.pmo_focus;
+  if (pmo?.task_id) {
+    const state = pmo.bus_state || pmo.ledger_status || 'unknown';
+    const warn = state === 'stale' || state === 'held' ? ' org-context-warn' : '';
+    chips.push(
+      `<div class="org-context-chip${warn}" title="${esc(pmo.note || '')}">PMO ${esc(pmo.task_id)} · ${esc(state)}</div>`
+    );
+  } else if (ctx?.focus?.task_id) {
+    chips.push(
+      `<div class="org-context-chip">${esc(ctx.focus.task_id)} · ${esc(ctx.focus.status || '—')}</div>`
+    );
   }
-  const budget = ctx.budget
-    ? `$${ctx.budget.weekly_usd}/wk · ${ctx.budget.mode} · $${ctx.budget.remaining_usd} left`
-    : '';
-  const focus = ctx.focus
-    ? `${ctx.focus.task_id}: ${ctx.focus.task} (${ctx.focus.status})`
-    : '';
-  const gates =
-    ctx.open_gate_count > 0
-      ? `${ctx.open_gate_count} gate(s) waiting on Nick`
-      : 'No Nick gates';
-  el.innerHTML = `
-    <div class="org-context-chip">${esc(focus || 'No active focus')}</div>
-    <div class="org-context-chip">${esc(gates)}</div>
-    <div class="org-context-chip">${esc(budget)}</div>
-    <div class="org-context-chip">${ctx.worker_enabled ? 'Worker on' : 'Worker off'}</div>`;
+  if (ctx?.budget?.weekly_usd != null) {
+    chips.push(
+      `<div class="org-context-chip">$${ctx.budget.weekly_usd}/wk · $${ctx.budget.remaining_usd} left</div>`
+    );
+  }
+  const running = (bus?.running || []).length;
+  const held = (bus?.held || []).length;
+  chips.push(`<div class="org-context-chip">${running} executing · ${held} held</div>`);
+  el.innerHTML = chips.join('');
 }
 
 function bindOrgFleetFilters() {
@@ -669,16 +675,20 @@ function bindOrgFleetFilters() {
   if (!el || el.dataset.bound) return;
   el.dataset.bound = '1';
   const filters = [
-    ['all', 'All'],
-    ['prominent', 'Live & active'],
+    ['now', 'Working now'],
+    ['scheduled', 'Scheduled'],
     ['asleep', 'Asleep'],
+    ['all', 'All'],
   ];
-  el.innerHTML = filters
-    .map(
-      ([id, label]) =>
-        `<button type="button" class="btn btn-sm org-filter-btn${orgFleetFilter === id ? ' is-active' : ''}" data-filter="${id}">${esc(label)}</button>`
-    )
-    .join('');
+  const paint = () => {
+    el.innerHTML = filters
+      .map(
+        ([id, label]) =>
+          `<button type="button" class="btn btn-sm org-filter-btn${orgFleetFilter === id ? ' is-active' : ''}" data-filter="${id}">${esc(label)}</button>`
+      )
+      .join('');
+  };
+  paint();
   el.addEventListener('click', (e) => {
     const btn = e.target.closest('[data-filter]');
     if (!btn) return;
@@ -686,17 +696,35 @@ function bindOrgFleetFilters() {
     el.querySelectorAll('.org-filter-btn').forEach((b) => {
       b.classList.toggle('is-active', b.dataset.filter === orgFleetFilter);
     });
-    if (orgFleetDataCache) renderOrgFleet(orgFleetDataCache);
+    renderOrgFleet(orgFleetDataCache, busLiveDataCache);
   });
 }
 
-function renderOrgFleetBoard(root) {
-  const children = root.children || [];
-  const prominent = [];
+function busWorkCard(job, kind) {
+  const session = job.to_session ? `<span class="fleet-pipe-step">${esc(job.to_session)}</span>` : '';
+  const hold =
+    kind === 'held' && job.hold_reason
+      ? `<p class="fleet-job-hold">${esc(job.hold_reason)}</p>`
+      : '';
+  return `<article class="fleet-job-card fleet-job-${esc(kind)}">
+    <div class="fleet-job-route">
+      <span class="fleet-pipe-step">Nick</span><span class="fleet-pipe-arrow">→</span>
+      <span class="fleet-pipe-step">harness</span><span class="fleet-pipe-arrow">→</span>
+      ${session || `<span class="fleet-pipe-step">${esc(job.lane || 'worker')}</span>`}
+    </div>
+    <h4 class="fleet-job-title">${esc(job.display_name || job.job_id)}</h4>
+    <p class="fleet-job-meta">${esc(job.repo || '')} · ${esc(job.worker_status || job.status || kind)}</p>
+    ${hold}
+  </article>`;
+}
+
+function collectOrgNodes(root) {
+  const scheduled = [];
+  const liveInfra = [];
   const asleepBucket = [];
   let asleepCount = 0;
 
-  for (const child of children) {
+  for (const child of root?.children || []) {
     if (child.id === 'asleep_bucket' || (ORG_ASLEEP.has(child.status) && (child.children || []).length)) {
       const bucketKids = (child.children || []).filter((c) => c.id !== 'asleep_more');
       asleepCount = bucketKids.length;
@@ -706,65 +734,121 @@ function renderOrgFleetBoard(root) {
         if (m) asleepCount += parseInt(m[1], 10);
       }
       asleepBucket.push(child, ...bucketKids);
-    } else if (ORG_PROMINENT.has(child.status) || child.status === 'active') {
-      prominent.push(child);
+    } else if (ORG_SCHEDULED.has(child.status)) {
+      scheduled.push(child);
+    } else if (ORG_LIVE.has(child.status)) {
+      liveInfra.push(child);
     } else if (ORG_ASLEEP.has(child.status)) {
       asleepBucket.push(child);
       asleepCount += 1;
-    } else {
-      prominent.push(child);
     }
   }
-
-  const showProminent = orgFleetFilter === 'all' || orgFleetFilter === 'prominent';
-  const showAsleep = orgFleetFilter === 'all' || orgFleetFilter === 'asleep';
-
-  let html = `<div class="org-ceo-card">${orgRoleCard(root)}</div>`;
-
-  if (showProminent && prominent.length) {
-    html += `<div class="org-card-grid">${prominent.map((n) => orgRoleCard(n)).join('')}</div>`;
-  }
-
-  if (showAsleep && asleepBucket.length) {
-    const bucketNode = asleepBucket[0];
-    const inner = asleepBucket
-      .slice(1)
-      .map((n) => orgRoleCard(n, { compact: true }))
-      .join('');
-    const label = bucketNode.detail || `${asleepCount || asleepBucket.length - 1} roles asleep`;
-    html += `<details class="org-asleep-accordion">
-      <summary>
-        <span class="org-asleep-icon">${esc(bucketNode.icon || '💤')}</span>
-        <span class="org-asleep-label">${esc(bucketNode.title || 'Budget-gated roles')}</span>
-        <span class="org-asleep-count">${esc(label)}</span>
-      </summary>
-      <div class="org-card-grid org-card-grid-compact">${inner}</div>
-    </details>`;
-  }
-
-  if (!showProminent && !showAsleep) {
-    html += '<p class="empty">No roles match this filter.</p>';
-  }
-  return html;
+  return { scheduled, liveInfra, asleepBucket, asleepCount };
 }
 
-function renderOrgFleet(data) {
+function renderAsleepAccordion(asleepBucket, asleepCount) {
+  if (!asleepBucket.length) return '<p class="empty">No budget-gated roles.</p>';
+  const bucketNode = asleepBucket[0];
+  const inner = asleepBucket
+    .slice(1)
+    .map((n) => orgRoleCard(n, { compact: true }))
+    .join('');
+  const label = bucketNode.detail || `${asleepCount || asleepBucket.length - 1} roles asleep`;
+  return `<details class="org-asleep-accordion" open>
+    <summary>
+      <span class="org-asleep-icon">${esc(bucketNode.icon || '💤')}</span>
+      <span class="org-asleep-label">${esc(bucketNode.title || 'Budget-gated roles')}</span>
+      <span class="org-asleep-count">${esc(label)}</span>
+    </summary>
+    <div class="org-card-grid org-card-grid-compact">${inner}</div>
+  </details>`;
+}
+
+function renderOrgFleetBoard(root, bus) {
+  const { scheduled, liveInfra, asleepBucket, asleepCount } = collectOrgNodes(root);
+  const running = bus?.running || [];
+  const queued = bus?.queued || [];
+  const held = bus?.held || [];
+  const done = bus?.recent_completed || [];
+
+  if (orgFleetFilter === 'scheduled') {
+    if (!scheduled.length) return '<p class="empty">No scheduled roles.</p>';
+    return `<div class="org-card-grid">${scheduled.map((n) => orgRoleCard(n)).join('')}</div>`;
+  }
+
+  if (orgFleetFilter === 'asleep') {
+    return renderAsleepAccordion(asleepBucket, asleepCount);
+  }
+
+  if (orgFleetFilter === 'all') {
+    let html = renderOrgFleetNowBoard(running, queued, held, liveInfra);
+    if (scheduled.length) {
+      html += `<div class="fleet-section"><h3 class="fleet-section-title">Scheduled</h3><div class="org-card-grid">${scheduled.map((n) => orgRoleCard(n)).join('')}</div></div>`;
+    }
+    html += `<div class="fleet-section"><h3 class="fleet-section-title">Asleep</h3>${renderAsleepAccordion(asleepBucket, asleepCount)}</div>`;
+    if (done.length) {
+      html += `<div class="fleet-section fleet-section-done"><h3 class="fleet-section-title">Recently done</h3><ul class="bus-done-list">${done.map((j) => `<li>${esc(j.display_name || j.job_id)}</li>`).join('')}</ul></div>`;
+    }
+    return html;
+  }
+
+  return renderOrgFleetNowBoard(running, queued, held, liveInfra);
+}
+
+function renderOrgFleetNowBoard(running, queued, held, liveInfra) {
+  const parts = [];
+  if (running.length) {
+    parts.push(
+      `<div class="fleet-section"><h3 class="fleet-section-title">Executing now <span class="bus-section-count">${running.length}</span></h3>
+      <div class="fleet-job-grid">${running.map((j) => busWorkCard(j, 'running')).join('')}</div></div>`
+    );
+  }
+  if (held.length) {
+    parts.push(
+      `<div class="fleet-section"><h3 class="fleet-section-title">Held <span class="bus-section-count">${held.length}</span></h3>
+      <div class="fleet-job-grid">${held.map((j) => busWorkCard(j, 'held')).join('')}</div></div>`
+    );
+  }
+  if (queued.length) {
+    parts.push(
+      `<div class="fleet-section"><h3 class="fleet-section-title">Queued <span class="bus-section-count">${queued.length}</span></h3>
+      <div class="fleet-job-grid fleet-job-grid-compact">${queued.map((j) => busWorkCard(j, 'queued')).join('')}</div></div>`
+    );
+  }
+  if (liveInfra.length) {
+    parts.push(
+      `<div class="fleet-section"><h3 class="fleet-section-title">Always on</h3>
+      <div class="org-card-grid org-card-grid-compact">${liveInfra.map((n) => orgRoleCard(n, { compact: true })).join('')}</div></div>`
+    );
+  }
+  if (!parts.length) {
+    return '<p class="empty">Nothing executing on the bus right now.</p>';
+  }
+  return parts.join('');
+}
+
+function renderOrgFleet(orgData, busData) {
   const tree = $('org-fleet-tree');
   const updated = $('org-fleet-updated');
+  const legend = $('org-fleet-legend');
   if (!tree) return;
-  orgFleetDataCache = data;
+  orgFleetDataCache = orgData;
+  busLiveDataCache = busData;
   bindOrgFleetFilters();
-  if (!data?.root) {
-    tree.innerHTML = '<p class="empty">Org fleet data not available.</p>';
+  if (!orgData?.root && !busData) {
+    tree.innerHTML = '<p class="empty">Fleet data not available.</p>';
     return;
   }
-  renderOrgFleetLegend(data.legend);
-  renderOrgFleetContext(data.context);
-  tree.innerHTML = renderOrgFleetBoard(data.root);
+  renderOrgFleetContext(orgData?.context, busData);
+  tree.innerHTML = renderOrgFleetBoard(orgData?.root || { children: [] }, busData);
+  if (legend) {
+    const showLegend = orgFleetFilter === 'all';
+    legend.hidden = !showLegend;
+    if (showLegend && orgData?.legend) renderOrgFleetLegend(orgData.legend);
+  }
+  const ts = busData?.generated_at || orgData?.generated_at;
   if (updated) {
-    updated.textContent = data.generated_at
-      ? `Snapshot ${fmtTs(data.generated_at)}`
-      : 'Snapshot';
+    updated.textContent = ts ? `Snapshot ${fmtTs(ts)}` : 'Snapshot';
   }
 }
 
@@ -779,70 +863,6 @@ async function loadOrgFleet() {
   }
 }
 
-function busJobCard(job, { held = false } = {}) {
-  const lane = job.lane ? `<span class="bus-card-lane">${esc(job.lane)}</span>` : '';
-  const repo = job.repo ? `<span class="bus-card-repo">${esc(job.repo)}</span>` : '';
-  const hold = held && job.hold_reason
-    ? `<p class="bus-card-hold">⏸ ${esc(job.hold_reason)}</p>`
-    : '';
-  return `<article class="bus-card${held ? ' bus-card-held' : ''}">
-    <div class="bus-card-head">
-      <h4 class="bus-card-title">${esc(job.display_name || job.job_id || 'Job')}</h4>
-      ${lane}
-    </div>
-    ${repo}
-    ${hold}
-  </article>`;
-}
-
-function renderBusLive(data) {
-  const board = $('bus-live-board');
-  const updated = $('bus-live-updated');
-  if (!board) return;
-  if (!data) {
-    board.innerHTML = '<p class="empty">Agent bus snapshot not available yet.</p>';
-    return;
-  }
-  const running = data.running || [];
-  const queued = data.queued || [];
-  const held = data.held || [];
-  const done = data.recent_completed || [];
-
-  const section = (title, jobs, opts = {}) => {
-    if (!jobs.length && !opts.showEmpty) return '';
-    const cards = jobs.length
-      ? `<div class="bus-card-grid">${jobs.map((j) => busJobCard(j, opts)).join('')}</div>`
-      : '<p class="bus-section-empty">None</p>';
-    return `<div class="bus-section">
-      <h3 class="bus-section-title">${esc(title)} <span class="bus-section-count">${jobs.length}</span></h3>
-      ${cards}
-    </div>`;
-  };
-
-  board.innerHTML = [
-    section('Running', running),
-    section('Queued', queued),
-    section('Held', held, { held: true, showEmpty: true }),
-    done.length
-      ? `<div class="bus-section bus-section-done">
-          <h3 class="bus-section-title">Recently completed <span class="bus-section-count">${done.length}</span></h3>
-          <ul class="bus-done-list">${done
-            .map(
-              (j) =>
-                `<li><span class="bus-done-name">${esc(j.display_name || j.job_id)}</span></li>`
-            )
-            .join('')}</ul>
-        </div>`
-      : '',
-  ].join('');
-
-  if (updated) {
-    updated.textContent = data.generated_at
-      ? `Snapshot ${fmtTs(data.generated_at)}`
-      : 'Snapshot';
-  }
-}
-
 async function loadBusLive() {
   try {
     const res = await fetch(`${BUS_LIVE_URL}?t=${Date.now()}`);
@@ -854,9 +874,9 @@ async function loadBusLive() {
   }
 }
 
-async function refreshBusLive() {
-  const data = await loadBusLive();
-  renderBusLive(data);
+async function refreshFleetPanel() {
+  const [orgFleet, busLive] = await Promise.all([loadOrgFleet(), loadBusLive()]);
+  renderOrgFleet(orgFleet, busLive);
 }
 
 function renderAll(state) {
@@ -902,8 +922,7 @@ async function refresh() {
     return;
   }
   try {
-    renderBusLive(busLive);
-    renderOrgFleet(orgFleet);
+    renderOrgFleet(orgFleet, busLive);
     renderAll(buildState(events));
   } catch (err) {
     showError(`Could not render dashboard: ${err.message}`);
@@ -963,4 +982,4 @@ window.addEventListener('message', (ev) => {
 refresh();
 setInterval(refresh, 5 * 60 * 1000);
 setInterval(refreshGatedSection, GATED_POLL_MS);
-setInterval(refreshBusLive, BUS_LIVE_POLL_MS);
+setInterval(refreshFleetPanel, BUS_LIVE_POLL_MS);

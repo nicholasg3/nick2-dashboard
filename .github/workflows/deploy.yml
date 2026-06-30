@@ -44,6 +44,7 @@ jobs:
           python3 scripts/reconcile-ledger.py
           python3 scripts/generate-memos.py
           python3 scripts/export-json-reports.py
+          python3 scripts/export_bus_live.py
           python3 scripts/export_gate_briefs.py
           python3 scripts/seed_gate_chats.py
 
