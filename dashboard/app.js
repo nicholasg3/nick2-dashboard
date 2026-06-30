@@ -543,9 +543,11 @@ function focusPlainLine(focus, state) {
   if (focus.focus_line) return focus.focus_line;
   const tid = focus.task_id || focus.focus_task_id;
   const task = (focus.task || '').trim();
-  if (task && !task.includes('POL-') && task.length <= 80) return task;
-  const out = (focus.output || '').split(/[.!?\n]/)[0]?.trim();
-  if (out && out.length <= 100) return out;
+  const done = COMPLETED_STATUSES.has(focus.status) || focus.status === 'idle';
+  const outFirst = (focus.output || '').split(/[.!?\n]/)[0]?.trim();
+  if (done && outFirst && outFirst.length <= 120) return outFirst;
+  if (task && !task.includes('POL-') && task.length <= 80 && !done) return task;
+  if (outFirst && outFirst.length <= 100) return outFirst;
   return task ? `${tid}: ${task.slice(0, 60)}` : tid || 'Idle';
 }
 
@@ -568,7 +570,15 @@ function setFocusPanel(focus, state) {
   headline.innerHTML = state && taskId
     ? taskMemoLinkFromState(line, taskId, state, 'focus-link')
     : esc(line);
-  const detailSrc = focus.focus_detail || focus.output || '';
+  const done = COMPLETED_STATUSES.has(focus.status) || focus.status === 'idle';
+  let detailSrc = focus.focus_detail || focus.output || '';
+  if (done && focus.output) {
+    const dot = focus.output.indexOf('.');
+    detailSrc =
+      dot >= 0
+        ? focus.output.slice(dot + 1).trim()
+        : 'Next: dispatch ranked issues to coding_worker (see PMO-001_TRIAGE_SUMMARY.md).';
+  }
   detail.textContent = detailSrc.length > 220 ? `${detailSrc.slice(0, 217)}…` : detailSrc;
   const focusStale = focus.ts && ageMs(focus.ts) >= WIP_STALE_MS;
   meta.innerHTML = `
