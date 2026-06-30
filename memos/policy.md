@@ -166,3 +166,17 @@ One active bus packet per `(repo, feature_name)`:
 Manual escape hatch: `python3 nick2-dashboard/scripts/coo_janitor.py --ledger`
 
 `bus.py supersede` also clears `hold_reason` and deletes matching hold files.
+
+## Landed on main + catalog enrich (POL-009)
+
+Before dispatch/retry (`job_catalog.py` via `ceo_supervisor.py` / `pmo_dispatch.py`):
+
+1. **Enrich** thin `job_work_catalog.json` rows from GitHub issue body + triage item
+2. **Audit landed** — for each triage row (not decision-gated): all `touch_paths` exist on
+   `main` checkout **and** catalog `witness` command exits 0 → auto-set `dispatch: false`
+   in `pmo_001_result.json` with `POL-009 landed on main` reason
+3. **CEO supervisor** runs landed audit + enrich + POL-008 janitor + dashboard witness
+
+Decision-gated issues (`needs-nick`, Nick's queue, p3 decide-if/when) are never auto-landed.
+
+Manual: `python3 scripts/job_catalog.py --audit-landed` / `--enrich`

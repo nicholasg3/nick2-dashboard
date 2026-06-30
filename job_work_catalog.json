@@ -3,6 +3,7 @@
   "note": "Plain-language work intent for PMO-dispatched issues. generate_job_memos.py reads this — update when triage dispatches.",
   "tasks": {
     "ISSUE-BUS-001": {
+      "landed_audit": "off",
       "problem": "When the agent-bus starts a coding worker, it calls `worker_model.py` to pick an OpenRouter model slug. `bus.py` was passing an empty string as the registry model when none is configured; that breaks resolution and can crash worker spawn — jobs then stall as held/queued behind a dead harness.",
       "doing": "Reproduce the crash, patch model resolution in `agent-bus/scripts/bus.py` and/or `worker_model.py`, add a unit test, and prove the witness exits 0 so workers can spawn again.",
       "steps": [
@@ -19,6 +20,7 @@
       ]
     },
     "ISSUE-80": {
+      "landed_audit": "off",
       "problem": "The Nick2 dashboard can lag reality: ledger and bus state are exported on a schedule, and job memos were too thin for Nick to see what workers are actually doing.",
       "doing": "Harden POL-003 live-sync: reconcile ledger vs bus on finish, export bus-live.json, regenerate memos on cron, and add a witness that the droplet sync path stays green.",
       "steps": [
@@ -36,6 +38,8 @@
       ]
     },
     "ISSUE-ROUTING-001": {
+      "shipped_on_main": true,
+      "landed_audit": "open_witness",
       "problem": "PMO queued re-implementation of routing that already shipped on main.",
       "doing": "**Done — no bus dispatch.** `worker_model.py` resolves tier + escalate on retry; `bus.py` calls it at worker spawn; policy in `references/model-routing.yaml`.",
       "steps": [
@@ -51,6 +55,7 @@
       ]
     },
     "ISSUE-15": {
+      "landed_audit": "off",
       "problem": "~107 far-field jesus-pattern skills may pollute router/digest; issue is p3 and decision-gated (Option A: tag tiers + prefer Tier 1–2 vs Option B: leave indexed).",
       "doing": "**Nick's queue — not running on agents.** Pick Option A or B, define tier schema in frontmatter, then re-open with a runnable witness.",
       "steps": [
@@ -66,6 +71,7 @@
       ]
     },
     "ISSUE-24": {
+      "landed_audit": "off",
       "problem": "Telegram PA bot currently runs with bypassPermissions (full root for Nick's Telegram ID only). Nick may want read-only or acceptEdits instead — this is a personal decision, not an agent task.",
       "doing": "**Nick's queue — not running on agents.** When Nick picks it up: compare bypassPermissions vs BRIDGE_PERMISSION_MODE=default vs acceptEdits; decide; optionally systemctl restart telegram-bridge.",
       "steps": [

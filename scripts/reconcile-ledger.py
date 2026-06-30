@@ -189,11 +189,11 @@ def reconcile(events: list[dict]) -> int:
         })
         n += 1
 
-    import coo_janitor as cj  # noqa: E402
+    import ceo_supervisor as cs  # noqa: E402
 
-    jout = cj.run_janitor(dry_run=False, append_fn=append)
-    if int(jout.get("total") or 0):
-        print(f"reconcile: coo_janitor {jout.get('total')} action(s)")
+    sup = cs.run_cycle(dry_run=False, append_ledger=False)
+    if int(sup.get("corrective_actions") or 0):
+        print(f"reconcile: ceo_supervisor {sup.get('corrective_actions')} action(s)")
         n += 1
 
     n += dh.reconcile_bus(events, tasks, base, append)

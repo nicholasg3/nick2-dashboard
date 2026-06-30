@@ -307,6 +307,14 @@ def run_dispatch(
     if not result:
         return {"skipped": True, "reason": "pmo_001_result.json not found"}
 
+    sys.path.insert(0, str(SCRIPTS))
+    import job_catalog as jc  # noqa: E402
+
+    if not dry_run:
+        jc.audit_landed_on_main()
+        jc.enrich_catalog_from_triage()
+        result = load_triage_result() or result
+
     weekly = float(base.get("weekly_budget_usd") or 0)
     if weekly <= 0:
         return {"skipped": True, "reason": "weekly budget is OFF"}
@@ -327,6 +335,8 @@ def run_dispatch(
         if spent_plan + est > budget_left:
             break
         tid = issue_task_id(item)
+        if not dry_run:
+            jc.enrich_catalog_entry(tid, item)
         if tasks.get(tid, {}).get("status") in ("queued", "in_progress", "completed"):
             continue
         queued.append({**item, "task_id": tid, "est_cost_usd": est})
