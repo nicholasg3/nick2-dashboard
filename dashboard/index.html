@@ -32,6 +32,17 @@
       </div>
     </section>
 
+    <section id="org-fleet" class="panel org-fleet-panel">
+      <div class="panel-head">
+        <div>
+          <h2>Agent Fleet — Org Tree</h2>
+          <p class="panel-policy">Live status of Nick2 roles on the droplet. <span id="org-fleet-updated" class="meta-pill">Loading…</span></p>
+        </div>
+        <div id="org-fleet-legend" class="org-legend"></div>
+      </div>
+      <div id="org-fleet-tree" class="org-tree" aria-label="Nick2 organization fleet tree"></div>
+    </section>
+
     <section id="nick-gate" class="panel gate-panel">
       <div class="panel-head">
         <div>
@@ -108,6 +119,6 @@
     <p>Source of truth: <code>logs/ceo-ledger.jsonl</code> · Append-only · SGT timestamps</p>
   </footer>
 
-  <script src="app.js?v=7"></script>
+  <script src="app.js?v=8"></script>
 </body>
 </html>

@@ -702,3 +702,95 @@ tr:hover td { background: rgba(79, 156, 249, 0.05); }
 }
 
 .gate-room-panel { padding: 0; background: transparent; border: none; }
+
+/* Org fleet tree */
+.org-fleet-panel .panel-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-bottom: 1rem;
+}
+
+.org-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 0.75rem;
+  font-size: 0.75rem;
+  color: var(--muted);
+}
+
+.org-legend span {
+  white-space: nowrap;
+}
+
+.org-tree {
+  font-family: var(--mono);
+  font-size: 0.82rem;
+  line-height: 1.65;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1rem 1.25rem;
+  overflow-x: auto;
+}
+
+.org-tree ul {
+  list-style: none;
+  margin: 0;
+  padding-left: 0;
+}
+
+.org-tree ul ul {
+  padding-left: 1.35rem;
+  border-left: 1px solid var(--border);
+  margin-left: 0.35rem;
+}
+
+.org-tree li {
+  margin: 0.15rem 0;
+}
+
+.org-node-line {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.35rem 0.5rem;
+}
+
+.org-node-icon {
+  flex-shrink: 0;
+  width: 1.1rem;
+  text-align: center;
+}
+
+.org-node-title {
+  font-weight: 600;
+  color: var(--text);
+}
+
+.org-node-maps {
+  color: var(--accent);
+  font-size: 0.78rem;
+}
+
+.org-node-detail {
+  color: var(--muted);
+  font-size: 0.76rem;
+  flex: 1 1 100%;
+  padding-left: 1.45rem;
+}
+
+.org-node-schedule {
+  font-size: 0.72rem;
+  color: var(--muted);
+  background: var(--surface-2);
+  padding: 0.1rem 0.45rem;
+  border-radius: 4px;
+}
+
+.org-status-live .org-node-title { color: var(--success); }
+.org-status-timer .org-node-title { color: var(--info); }
+.org-status-active .org-node-title { color: var(--warning); }
+.org-status-asleep .org-node-title { color: var(--muted); }

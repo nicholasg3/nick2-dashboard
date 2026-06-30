@@ -4,6 +4,7 @@
  */
 
 const LEDGER_URL = 'logs/ceo-ledger.jsonl';
+const ORG_FLEET_URL = 'reports/org-fleet.json';
 const ROADMAP_LANES = {
   near_term: 'Near-term',
   capability: 'Capability-building',
@@ -595,6 +596,69 @@ function renderArtifacts(state) {
     .join('');
 }
 
+function renderOrgNode(node) {
+  const maps = node.maps_to
+    ? `<span class="org-node-maps">→ ${esc(node.maps_to)}</span>`
+    : '';
+  const sched = node.schedule
+    ? `<span class="org-node-schedule">${esc(node.schedule)}</span>`
+    : '';
+  const detail = node.detail
+    ? `<div class="org-node-detail">${esc(node.detail)}</div>`
+    : '';
+  const kids = (node.children || [])
+    .map((c) => `<li>${renderOrgNode(c)}</li>`)
+    .join('');
+  const childBlock = kids ? `<ul>${kids}</ul>` : '';
+  return `
+    <div class="org-node org-status-${esc(node.status || 'asleep')}">
+      <div class="org-node-line">
+        <span class="org-node-icon">${esc(node.icon || '·')}</span>
+        <span class="org-node-title">${esc(node.title)}</span>
+        ${maps}
+        ${sched}
+      </div>
+      ${detail}
+      ${childBlock}
+    </div>`;
+}
+
+function renderOrgFleetLegend(legend) {
+  const el = $('org-fleet-legend');
+  if (!el || !legend) return;
+  el.innerHTML = Object.entries(legend)
+    .map(([k, v]) => `<span title="${esc(k)}">${esc(v)}</span>`)
+    .join('');
+}
+
+function renderOrgFleet(data) {
+  const tree = $('org-fleet-tree');
+  const updated = $('org-fleet-updated');
+  if (!tree) return;
+  if (!data?.root) {
+    tree.innerHTML = '<p class="empty">Org fleet data not available.</p>';
+    return;
+  }
+  renderOrgFleetLegend(data.legend);
+  tree.innerHTML = `<ul><li>${renderOrgNode(data.root)}</li></ul>`;
+  if (updated) {
+    updated.textContent = data.generated_at
+      ? `Snapshot ${fmtTs(data.generated_at)}`
+      : 'Snapshot';
+  }
+}
+
+async function loadOrgFleet() {
+  try {
+    const res = await fetch(`${ORG_FLEET_URL}?t=${Date.now()}`);
+    if (!res.ok) return null;
+    return await res.json();
+  } catch (e) {
+    console.warn('org-fleet load failed', e);
+    return null;
+  }
+}
+
 function renderAll(state) {
   renderCurrentFocus(state);
   renderSnapshot(state);
@@ -623,8 +687,9 @@ function showError(msg) {
 async function refresh() {
   document.querySelector('.error-banner')?.remove();
   let events;
+  let orgFleet = null;
   try {
-    events = await loadLedger();
+    [events, orgFleet] = await Promise.all([loadLedger(), loadOrgFleet()]);
     allEvents = events;
   } catch (err) {
     showError(`Could not load ledger: ${err.message}. Ensure logs/ceo-ledger.jsonl is deployed alongside the dashboard.`);
@@ -632,6 +697,7 @@ async function refresh() {
     return;
   }
   try {
+    renderOrgFleet(orgFleet);
     renderAll(buildState(events));
   } catch (err) {
     showError(`Could not render dashboard: ${err.message}`);

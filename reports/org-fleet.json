@@ -1,0 +1,223 @@
+{
+  "generated_at": "2026-06-30T10:14:31Z",
+  "legend": {
+    "live": "\ud83d\udfe2 Running now (24/7 service)",
+    "timer": "\u23f0 Scheduled \u2014 fires on systemd timer",
+    "active": "\ud83d\udfe1 Work in flight (ledger)",
+    "implicit": "\u2699\ufe0f Infrastructure always on",
+    "passive": "\ud83d\udccb Data-only / ledger-derived",
+    "asleep": "\ud83d\udca4 Budget-gated \u2014 not spawned",
+    "idle": "\u25c6 No active portfolio dispatch"
+  },
+  "context": {
+    "gates": [
+      {
+        "task_id": "DEC-002",
+        "task": "Approve PMO scoring framework",
+        "priority": "high"
+      },
+      {
+        "task_id": "DEC-003",
+        "task": "Confirm Telegram alert method for $5 spend thresholds",
+        "priority": "medium"
+      }
+    ],
+    "focus": {
+      "task_id": "PMO-001",
+      "task": "Triage 13 ready-for-agent GitHub issues",
+      "status": "in_progress",
+      "owner": "PMO"
+    },
+    "pmo_status": "in_progress",
+    "pmo_task": "Triage 13 ready-for-agent GitHub issues",
+    "worker_enabled": true,
+    "budget": {
+      "weekly_usd": 20,
+      "mode": "capped",
+      "remaining_usd": 20
+    },
+    "open_gate_count": 2
+  },
+  "root": {
+    "id": "ceo",
+    "title": "CEO (Nick2)",
+    "status": "active",
+    "icon": "\ud83d\udfe1",
+    "maps_to": "frontier-orchestrator",
+    "detail": "PMO-001 (in_progress) \u00b7 $20/wk cap ($20 left)",
+    "schedule": "",
+    "children": [
+      {
+        "id": "chief_of_staff",
+        "title": "Chief of Staff",
+        "status": "live",
+        "icon": "\ud83d\udfe2",
+        "maps_to": "Hermes (telegram-bridge)",
+        "detail": "Hermes secretary \u00b7 Gemini Flash Lite router",
+        "schedule": "24/7 systemd",
+        "children": []
+      },
+      {
+        "id": "caio",
+        "title": "CAIO",
+        "status": "timer",
+        "icon": "\u23f0",
+        "maps_to": "skill-radar",
+        "detail": "Skill crawl + digest",
+        "schedule": "~06:02 SGT daily",
+        "children": []
+      },
+      {
+        "id": "cro",
+        "title": "CRO",
+        "status": "timer",
+        "icon": "\u23f0",
+        "maps_to": "sp-trend-scout",
+        "detail": "Trend scout signals",
+        "schedule": "~05:32 SGT daily",
+        "children": []
+      },
+      {
+        "id": "coo_pmo",
+        "title": "COO / PMO",
+        "status": "active",
+        "icon": "\ud83d\udfe1",
+        "maps_to": "frontier-orchestrator",
+        "detail": "PMO-001 in_progress \u2014 worker on \u00b7 2 Nick gate(s)",
+        "schedule": "~07:30 SGT daily",
+        "children": []
+      },
+      {
+        "id": "cio",
+        "title": "CIO",
+        "status": "asleep",
+        "icon": "\ud83d\udca4",
+        "maps_to": "notion-bridge",
+        "detail": "Not running \u2014 notion-bridge on demand",
+        "schedule": "on demand",
+        "children": []
+      },
+      {
+        "id": "cto",
+        "title": "CTO",
+        "status": "implicit",
+        "icon": "\u2699\ufe0f",
+        "maps_to": "droplet-infra",
+        "detail": "systemd services, CCR :3456, GitHub Actions",
+        "schedule": "systemd + CCR",
+        "children": []
+      },
+      {
+        "id": "chro",
+        "title": "CHRO",
+        "status": "passive",
+        "icon": "\ud83d\udccb",
+        "maps_to": "trust-ledger",
+        "detail": "Trust scores from ledger events",
+        "schedule": "ledger-derived",
+        "children": []
+      },
+      {
+        "id": "asleep_bucket",
+        "title": "Strategy \u00b7 CFO \u00b7 Editorial \u00b7 CMO \u00b7 \u2026",
+        "status": "asleep",
+        "icon": "\ud83d\udca4",
+        "maps_to": "",
+        "detail": "25 roles asleep until CEO admits + budget",
+        "schedule": "budget-gated",
+        "children": [
+          {
+            "id": "asleep_0",
+            "title": "Strategy Office",
+            "status": "asleep",
+            "icon": "\u00b7",
+            "maps_to": "",
+            "detail": "Awaiting portfolio admission",
+            "schedule": "",
+            "children": []
+          },
+          {
+            "id": "asleep_1",
+            "title": "CFO",
+            "status": "asleep",
+            "icon": "\u00b7",
+            "maps_to": "",
+            "detail": "Awaiting portfolio admission",
+            "schedule": "",
+            "children": []
+          },
+          {
+            "id": "asleep_2",
+            "title": "Token Accountant",
+            "status": "asleep",
+            "icon": "\u00b7",
+            "maps_to": "",
+            "detail": "Awaiting portfolio admission",
+            "schedule": "",
+            "children": []
+          },
+          {
+            "id": "asleep_3",
+            "title": "Editorial Director",
+            "status": "asleep",
+            "icon": "\u00b7",
+            "maps_to": "",
+            "detail": "Awaiting portfolio admission",
+            "schedule": "",
+            "children": []
+          },
+          {
+            "id": "asleep_4",
+            "title": "CMO",
+            "status": "asleep",
+            "icon": "\u00b7",
+            "maps_to": "",
+            "detail": "Awaiting portfolio admission",
+            "schedule": "",
+            "children": []
+          },
+          {
+            "id": "asleep_5",
+            "title": "CPO",
+            "status": "asleep",
+            "icon": "\u00b7",
+            "maps_to": "",
+            "detail": "Awaiting portfolio admission",
+            "schedule": "",
+            "children": []
+          },
+          {
+            "id": "asleep_6",
+            "title": "CISO",
+            "status": "asleep",
+            "icon": "\u00b7",
+            "maps_to": "",
+            "detail": "Awaiting portfolio admission",
+            "schedule": "",
+            "children": []
+          },
+          {
+            "id": "asleep_7",
+            "title": "CDO",
+            "status": "asleep",
+            "icon": "\u00b7",
+            "maps_to": "",
+            "detail": "Awaiting portfolio admission",
+            "schedule": "",
+            "children": []
+          },
+          {
+            "id": "asleep_more",
+            "title": "\u2026 +17 more",
+            "status": "asleep",
+            "icon": "\u00b7",
+            "maps_to": "",
+            "detail": "",
+            "schedule": "",
+            "children": []
+          }
+        ]
+      }
+    ]
+  }
+}

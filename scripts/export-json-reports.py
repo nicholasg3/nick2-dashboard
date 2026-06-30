@@ -124,7 +124,12 @@ def main() -> None:
     (REPORTS / "roadmap.json").write_text(json.dumps(roadmap, indent=2) + "\n", encoding="utf-8")
     (REPORTS / "costs.json").write_text(json.dumps(costs, indent=2) + "\n", encoding="utf-8")
     (REPORTS / "gated.json").write_text(json.dumps(gated_queue, indent=2) + "\n", encoding="utf-8")
-    print("Exported trust.json, roadmap.json, costs.json, gated.json")
+
+    import runpy
+
+    runpy.run_path(str(ROOT / "scripts" / "export_org_fleet.py"), run_name="__main__")
+
+    print("Exported trust.json, roadmap.json, costs.json, gated.json, org-fleet.json")
 
 
 if __name__ == "__main__":
