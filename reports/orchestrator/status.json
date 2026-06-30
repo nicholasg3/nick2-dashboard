@@ -1,14 +1,14 @@
 {
-  "ts": "2026-06-30T18:36:06Z",
+  "ts": "2026-06-30T18:41:09Z",
   "mode": "live",
   "reason": "heartbeat",
   "healthy": true,
-  "last_tick_at": "2026-06-30T18:36:06Z",
-  "summary": "CEO loop checked the system; no action was needed. Bus: 0 running, 0 held, 0 queued. Bottlenecks: 0. Role chat messages: CEO 14, COO 4, PMO 0.",
+  "last_tick_at": "2026-06-30T18:41:09Z",
+  "summary": "CEO loop checked the system; no action was needed. Bus: 0 running, 0 held, 0 queued. Bottlenecks: 0. Role chat messages: CEO 14, COO 8, PMO 0.",
   "survey": {
-    "ts": "2026-06-30T18:36:06Z",
+    "ts": "2026-06-30T18:41:09Z",
     "bus_live": {
-      "generated_at": "2026-06-30T18:36:06Z",
+      "generated_at": "2026-06-30T18:41:09Z",
       "running": [],
       "queued": [],
       "held": [],
@@ -137,7 +137,7 @@
       }
     },
     "ceo_queue": {
-      "ts": "2026-06-30T18:36:06Z",
+      "ts": "2026-06-30T18:41:09Z",
       "mode": "ceo_reflect",
       "context": {
         "counts": {
@@ -189,12 +189,12 @@
       "llm": {
         "enabled": true,
         "ran": false,
-        "skip_reason": "interval not elapsed (16m < 60m)",
+        "skip_reason": "interval not elapsed (21m < 60m)",
         "execute": true
       }
     },
     "org_fleet": {
-      "generated_at": "2026-06-30T18:36:06Z",
+      "generated_at": "2026-06-30T18:41:09Z",
       "legend": {
         "live": "🟢 Running now (24/7 service)",
         "timer": "⏰ Scheduled — fires on systemd timer",
@@ -225,10 +225,10 @@
         "orchestrator": {
           "running": true,
           "fresh": true,
-          "age_min": 0.3,
+          "age_min": 5.1,
           "healthy": true,
           "mode": "live",
-          "summary": "CEO loop checked the system; no action was needed. Bus: 0 running, 0 held, 0 queued. Bottlenecks: 0. Role chat messages: CEO 14, COO 2, PMO 0."
+          "summary": "CEO loop checked the system; no action was needed. Bus: 0 running, 0 held, 0 queued. Bottlenecks: 0. Role chat messages: CEO 14, COO 4, PMO 0."
         }
       },
       "root": {
@@ -247,7 +247,7 @@
             "status": "live",
             "icon": "🟢",
             "maps_to": "CEO role office",
-            "detail": "CEO loop checked the system; no action was needed. Bus: 0 running, 0 held, 0 queued. Bottlenecks: 0. Role chat messages: CEO 14, COO 2, PMO 0. (0.3m ago)",
+            "detail": "CEO loop checked the system; no action was needed. Bus: 0 running, 0 held, 0 queued. Bottlenecks: 0. Role chat messages: CEO 14, COO 4, PMO 0. (5.1m ago)",
             "schedule": "24/7 via dashboard bridge",
             "chat_role": "ceo",
             "children": []
@@ -463,10 +463,10 @@
         "last_text": "Nick,\n\n- Currently, no jobs are running, queued, or held, and the system is fully idle with the weekly budget untouched at $20.\n- I cannot directly inspect files on the droplet from here; my access is limited to system state, job queues, an"
       },
       "coo": {
-        "messages": 4,
+        "messages": 8,
         "last_actor": "COO",
-        "last_ts": "2026-07-01T02:35:52+08:00",
-        "last_text": "- I do not have direct file inspection access on the droplet; my management scope covers system state, job queues, and orchestrator-level controls.\n- The system is fully idle now: no running, queued, or held jobs, and the weekly budget rema"
+        "last_ts": "2026-07-01T02:37:57+08:00",
+        "last_text": "- The system is fully idle with no running, queued, or held jobs; the weekly budget remains untouched at $20.\n- Recent completed work includes diagnostics, triage of 13 ready-for-agent GitHub issues (PMO-001), and dashboard updates; no stuc"
       },
       "pmo": {
         "messages": 0,
@@ -477,7 +477,7 @@
     }
   },
   "last_report": {
-    "ts": "2026-06-30T18:36:06Z",
+    "ts": "2026-06-30T18:41:09Z",
     "mode": "supervisor_corrective",
     "landed": {
       "updated": 0,
@@ -514,11 +514,11 @@
     },
     "checkin": {
       "exit_code": 0,
-      "summary": "CEO check-in 2026-06-30T18:36:06Z\nRunning: 0 | Queued: 0 | Held: 0\nPMO-001: completed — \nIssues: none — workers healthy",
+      "summary": "CEO check-in 2026-06-30T18:41:09Z\nRunning: 0 | Queued: 0 | Held: 0\nPMO-001: completed — \nIssues: none — workers healthy",
       "issues": false
     },
     "reflect": {
-      "ts": "2026-06-30T18:36:06Z",
+      "ts": "2026-06-30T18:41:09Z",
       "mode": "ceo_reflect",
       "context": {
         "counts": {
@@ -570,7 +570,7 @@
       "llm": {
         "enabled": true,
         "ran": false,
-        "skip_reason": "interval not elapsed (16m < 60m)",
+        "skip_reason": "interval not elapsed (21m < 60m)",
         "execute": true
       },
       "healthy": true
