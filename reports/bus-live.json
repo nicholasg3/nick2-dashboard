@@ -1,6 +1,27 @@
 {
-  "generated_at": "2026-06-30T12:07:47Z",
-  "running": [],
+  "generated_at": "2026-06-30T12:08:30Z",
+  "running": [
+    {
+      "job_id": "JOB-20260630-163",
+      "display_name": "auto-heal-gate-bus-zombie-jobs-no-manual [coder] \u00b7 executing",
+      "lane": "coder",
+      "repo": "ai-agents-workspace",
+      "to_session": "coding_worker",
+      "worker_status": "executing",
+      "hold_reason": "",
+      "status": "running"
+    },
+    {
+      "job_id": "JOB-20260630-924",
+      "display_name": "dashboard-live-sync-no-react-fix-memo-le [dashboard] \u00b7 executing",
+      "lane": "dashboard",
+      "repo": "nick2-dashboard",
+      "to_session": "dashboard_worker",
+      "worker_status": "executing",
+      "hold_reason": "",
+      "status": "running"
+    }
+  ],
   "queued": [
     {
       "job_id": "JOB-20260630-820",
@@ -21,16 +42,6 @@
       "worker_status": "queued",
       "hold_reason": "",
       "status": "queued"
-    },
-    {
-      "job_id": "JOB-20260630-438",
-      "display_name": "rewrite-telegram-job-completion-pings-gl [coder] \u00b7 executing",
-      "lane": "coder",
-      "repo": "ai-agents-workspace",
-      "to_session": "coding_worker",
-      "worker_status": "queued",
-      "hold_reason": "",
-      "status": "queued"
     }
   ],
   "held": [
@@ -41,7 +52,7 @@
       "repo": "nick2-dashboard",
       "to_session": "dashboard_worker",
       "worker_status": "queued",
-      "hold_reason": "waiting for JOB-20260630-924 (queued)",
+      "hold_reason": "waiting for JOB-20260630-924 (running)",
       "status": "held"
     }
   ],
