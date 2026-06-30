@@ -169,7 +169,10 @@ def run_cycle(
                 "task_id": "FOCUS-001",
                 "focus_task_id": "SYS-002",
                 "task": "CEO supervisor corrective cycle",
-                "status": "completed" if report["healthy"] else "blocked",
+                # A monitoring check-in is never itself "blocked" work — detected
+                # issues are surfaced via pattern_flag / bottleneck events and the
+                # CEO Focus block, not by parking FOCUS-001 in the active queue.
+                "status": "completed",
                 "owner": "CEO",
                 "output": f"{MARKER} {'; '.join(parts) or 'check-in only'}",
                 "artifacts": [

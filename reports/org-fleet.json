@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-30T15:48:38Z",
+  "generated_at": "2026-06-30T15:51:30Z",
   "legend": {
     "live": "\ud83d\udfe2 Running now (24/7 service)",
     "timer": "\u23f0 Scheduled \u2014 fires on systemd timer",
@@ -19,7 +19,7 @@
     },
     "pmo_status": "completed",
     "pmo_task": "Triage 13 ready-for-agent GitHub issues",
-    "dispatch_active": true,
+    "dispatch_active": false,
     "worker_enabled": true,
     "budget": {
       "weekly_usd": 20,
@@ -31,8 +31,8 @@
   "root": {
     "id": "ceo",
     "title": "CEO (Nick2)",
-    "status": "active",
-    "icon": "\ud83d\udfe1",
+    "status": "idle",
+    "icon": "\u25c6",
     "maps_to": "frontier-orchestrator",
     "detail": "SYS-002 (completed) \u00b7 $20/wk cap ($20.0 left)",
     "schedule": "",
@@ -73,7 +73,7 @@
         "status": "live",
         "icon": "\ud83d\udfe2",
         "maps_to": "PMO (agent-bus)",
-        "detail": "PMO-001 completed \u2014 worker on \u00b7 always-on worker-pmo \u00b7 gpt-4.1-mini",
+        "detail": "Daily cycle + /nick2 run on demand \u00b7 always-on worker-pmo \u00b7 gpt-4.1-mini",
         "schedule": "24/7 worker-pmo tmux",
         "children": []
       },

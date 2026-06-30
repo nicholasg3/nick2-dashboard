@@ -169,5 +169,58 @@
     ],
     "recommendation": "**Tighten to read/draft-by-default with confirm-before-send for outward/irreversible actions**, keeping the Nick-only allowlist. Matches the unbrowse/agent guardrail posture already in memory.",
     "what_nick_must_do": "Reply keep / tighten / expand (or custom). CEO appends decision_resolved for ISSUE-24."
+  },
+  "ISSUE-15": {
+    "task_id": "ISSUE-15",
+    "title": "FEATURE: optional skill usefulness tiers",
+    "priority": "medium",
+    "rank": 1,
+    "objective": "Let agents/the skill-router know which skills are worth invoking, so the most useful skills surface first instead of all skills being treated equally.",
+    "decision": "Pick the tier schema before agents implement: simple 3-tier label, numeric usefulness score, or defer.",
+    "mece": [
+      [
+        "Schema",
+        "How usefulness is expressed",
+        "No agreed representation yet"
+      ],
+      [
+        "Source",
+        "Who sets the tier (Nick, usage stats, or LLM judge)",
+        "Undecided \u2014 drives whether it is manual or auto"
+      ],
+      [
+        "Consumption",
+        "How the router uses tiers (filter vs rank)",
+        "skill-router exists; no tier input today"
+      ],
+      [
+        "Maintenance",
+        "Keeping tiers current as skills change",
+        "Manual tiers go stale; auto needs telemetry"
+      ]
+    ],
+    "root_cause": "Skill library has grown large; without a usefulness signal the router cannot prioritise, so this sits as a standing design decision Nick must make before any agent codes it.",
+    "options": [
+      {
+        "name": "Option A \u2014 simple 3-tier label (core / useful / experimental), Nick-set",
+        "upside": "Trivial to implement; full Nick control; no telemetry needed.",
+        "downside": "Manual upkeep; coarse.",
+        "when": "Nick wants a quick, controllable signal now."
+      },
+      {
+        "name": "Option B \u2014 numeric usefulness score, usage/LLM-derived",
+        "upside": "Auto-maintains; finer ranking; data-driven.",
+        "downside": "Needs usage telemetry + scoring loop; more build.",
+        "when": "Nick wants it to self-tune over time."
+      },
+      {
+        "name": "Defer \u2014 no tiers yet",
+        "upside": "Zero work; router stays as-is.",
+        "downside": "Router keeps treating all skills equally.",
+        "when": "Skill count is not yet a real problem."
+      }
+    ],
+    "recommendation": "**Option A (3-tier, Nick-set) as a pilot** \u2014 lowest cost, immediate control; revisit Option B once there is real skill-usage telemetry to drive a score.",
+    "what_nick_must_do": "Reply A / B / defer (and the tier labels if A). CEO appends decision_resolved for ISSUE-15."
   }
 }
