@@ -1,22 +1,22 @@
 {
-  "generated_at": "2026-06-30T12:12:01Z",
+  "generated_at": "2026-06-30T12:15:01Z",
   "running": [
+    {
+      "job_id": "JOB-20260630-102",
+      "display_name": "replace-wip-execution-brief-template-wit [dashboard] \u00b7 executing",
+      "lane": "dashboard",
+      "repo": "nick2-dashboard",
+      "to_session": "dashboard_worker",
+      "worker_status": "executing",
+      "hold_reason": "",
+      "status": "running"
+    },
     {
       "job_id": "JOB-20260630-163",
       "display_name": "auto-heal-gate-bus-zombie-jobs-no-manual [coder] \u00b7 executing",
       "lane": "coder",
       "repo": "ai-agents-workspace",
       "to_session": "coding_worker",
-      "worker_status": "executing",
-      "hold_reason": "",
-      "status": "running"
-    },
-    {
-      "job_id": "JOB-20260630-924",
-      "display_name": "dashboard-live-sync-no-react-fix-memo-le [dashboard] \u00b7 executing",
-      "lane": "dashboard",
-      "repo": "nick2-dashboard",
-      "to_session": "dashboard_worker",
       "worker_status": "executing",
       "hold_reason": "",
       "status": "running"
@@ -54,19 +54,18 @@
       "status": "queued"
     }
   ],
-  "held": [
+  "held": [],
+  "recent_completed": [
     {
-      "job_id": "JOB-20260630-102",
-      "display_name": "replace-wip-execution-brief-template-wit [dashboard] \u00b7 queued",
+      "job_id": "JOB-20260630-924",
+      "display_name": "dashboard-live-sync-no-react-fix-memo-le [dashboard] \u00b7 completed",
       "lane": "dashboard",
       "repo": "nick2-dashboard",
       "to_session": "dashboard_worker",
-      "worker_status": "queued",
-      "hold_reason": "waiting for JOB-20260630-924 (running)",
-      "status": "held"
-    }
-  ],
-  "recent_completed": [
+      "worker_status": "done",
+      "hold_reason": "",
+      "status": "completed"
+    },
     {
       "job_id": "JOB-20260630-034",
       "display_name": "ops-clear-zombie-job-755-and-unblock-pmo [pmo] \u00b7 executing",
@@ -113,16 +112,6 @@
       "lane": "dashboard",
       "repo": "nick2-dashboard",
       "to_session": "dashboard_worker",
-      "worker_status": "done",
-      "hold_reason": "",
-      "status": "completed"
-    },
-    {
-      "job_id": "JOB-20260630-143",
-      "display_name": "add-agent-bus-live-fleet-json-export-for [coder] \u00b7 completed",
-      "lane": "coder",
-      "repo": "ai-agents-workspace",
-      "to_session": "coding_worker",
       "worker_status": "done",
       "hold_reason": "",
       "status": "completed"
