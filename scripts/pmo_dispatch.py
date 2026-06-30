@@ -232,6 +232,7 @@ def submit_bus_job(
     dry_run: bool = False,
     task_id: str = "",
     item: dict | None = None,
+    from_harness: str = "pmo-dispatch",
 ) -> dict | None:
     if dry_run or not BUS.is_file():
         return {"dry_run": True, "session": session, "repo": repo, "objective": objective[:120]}
@@ -253,7 +254,7 @@ def submit_bus_job(
         "--task-type",
         task_type,
         "--from-harness",
-        "pmo-dispatch",
+        from_harness,
         "--repo",
         repo,
         "--objective",

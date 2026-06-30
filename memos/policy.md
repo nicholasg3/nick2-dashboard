@@ -180,3 +180,19 @@ Before dispatch/retry (`job_catalog.py` via `ceo_supervisor.py` / `pmo_dispatch.
 Decision-gated issues (`needs-nick`, Nick's queue, p3 decide-if/when) are never auto-landed.
 
 Manual: `python3 scripts/job_catalog.py --audit-landed` / `--enrich`
+
+## CEO reflection + bounded delegation (POL-010)
+
+**CEO uses idle supervisor cycles to reflect, unstick, and delegate within capacity** — not to flood the bus.
+
+Each `ceo_supervisor.py` cycle ends with `ceo_reflect.py`:
+
+1. **Gather** — `bus-live.json`, `jobs.sqlite`, ledger tail, `pmo_001_result.json`, CEO memories
+2. **Detect bottlenecks** — repo claims, held chains, capacity full, coding saturation, dispatch_blocked, stale WIP, ledger drift
+3. **Admission** — default caps: `max_new_delegations=1`, `max_retries=1` only when budget OK, `running < BUS_MAX_PARALLEL`, and `coding_worker < CEO_MAX_CODING_PARALLEL` (default 2). Zero slots when bus full, budget exhausted, or held jobs blocked behind active repo claims.
+4. **Unstick (mechanical)** — janitor repass (promote/release), retry one undispatched ISSUE-*, optional single new ISSUE dispatch after PMO dispatch already ran
+5. **Artifacts** — `reports/ceo-queue.json`, `memos/ceo-reflect/latest.md`, ledger `ceo_reflect` event
+
+Bus submits from CEO use `--from-harness ceo-reflect` (POL-006 still applies).
+
+Manual: `python3 scripts/ceo_reflect.py` / `--dry-run` / `--ledger`

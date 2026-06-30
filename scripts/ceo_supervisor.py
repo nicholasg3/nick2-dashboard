@@ -6,6 +6,7 @@ Runs before frontier check-in / PMO dispatch:
   2. COO bus janitor
   3. Dashboard honesty witness (non-fatal)
   4. Fleet check-in summary
+  5. CEO reflection — bottleneck detect, unstick, bounded delegation (POL-010)
 """
 from __future__ import annotations
 
@@ -22,6 +23,7 @@ SCRIPTS = ROOT / "scripts"
 sys.path.insert(0, str(SCRIPTS))
 
 import coo_janitor as cj  # noqa: E402
+import ceo_reflect as cr  # noqa: E402
 import job_catalog as jc  # noqa: E402
 import pmo_dispatch as pd  # noqa: E402
 
@@ -95,11 +97,16 @@ def run_cycle(
 
     honesty = run_witness_honesty() if not dry_run else {"skipped": dry_run}
     checkin = run_checkin_summary()
+    reflect = cr.run_reflect(
+        dry_run=dry_run,
+        append_ledger=append_ledger and not dry_run,
+    )
 
     corrective = (
         int(landed.get("updated") or 0)
         + int(enriched.get("enriched") or 0)
         + int(janitor.get("total") or 0)
+        + len(reflect.get("actions") or [])
     )
 
     report = {
@@ -110,6 +117,7 @@ def run_cycle(
         "janitor": janitor,
         "witness_honesty": honesty,
         "checkin": checkin,
+        "reflect": reflect,
         "corrective_actions": corrective,
     }
 
@@ -125,6 +133,9 @@ def run_cycle(
         issues.append("dashboard witness failed")
     if checkin.get("issues"):
         issues.append("fleet check-in flagged issues")
+    high_bn = [b for b in (reflect.get("bottlenecks") or []) if b.get("severity") == "high"]
+    if high_bn:
+        issues.append("reflect: %d high-severity bottleneck(s)" % len(high_bn))
 
     report["issues"] = issues
     report["healthy"] = not issues
@@ -139,6 +150,8 @@ def run_cycle(
             parts.append(f"enriched={enriched['enriched']}")
         if janitor.get("total"):
             parts.append(f"janitor={janitor['total']}")
+        if reflect.get("actions"):
+            parts.append(f"reflect_actions={len(reflect['actions'])}")
         pd.append_ledger(
             {
                 **base,
