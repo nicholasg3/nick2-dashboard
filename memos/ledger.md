@@ -4,6 +4,10 @@ Read-only view of `logs/ceo-ledger.jsonl`.
 
 | Time | Actor | Event | Task ID | Task |
 |------|-------|-------|---------|------|
+| 2026-07-01T01:45:11 | CEO | supervisor_cycle | FOCUS-001 | CEO supervisor corrective cycle |
+| 2026-07-01T01:45:11 | CEO | ceo_reflect | FOCUS-001 | CEO reflection and bottleneck pass |
+| 2026-07-01T01:45:11 | CEO | focus_snapshot | FOCUS-001 | CEO supervision |
+| 2026-07-01T01:45:11 | CEO | ceo_reflect_llm | FOCUS-001 | CEO LLM reflection |
 | 2026-07-01T01:30:06 | CEO | focus_snapshot | FOCUS-001 | CEO supervision |
 | 2026-07-01T01:15:06 | CEO | focus_snapshot | FOCUS-001 | CEO supervision |
 | 2026-07-01T01:00:07 | CEO | focus_snapshot | FOCUS-001 | CEO supervision |
@@ -40,7 +44,3 @@ Read-only view of `logs/ceo-ledger.jsonl`.
 | 2026-06-30T22:30:08 | PMO | focus_snapshot | FOCUS-001 | Fix agent-bus worker_model crash |
 | 2026-06-30T22:30:08 | PMO | task_updated | ISSUE-15 | FEATURE: optional skill usefulness tiers |
 | 2026-06-30T22:30:08 | PMO | task_queued | ISSUE-15 | FEATURE: optional skill usefulness tiers |
-| 2026-06-30T22:30:08 | PMO | task_updated | ISSUE-80 | Nick2 dashboard: hourly ledger reconcile + memo ge |
-| 2026-06-30T22:30:07 | PMO | task_queued | ISSUE-80 | Nick2 dashboard: hourly ledger reconcile + memo ge |
-| 2026-06-30T22:30:07 | PMO | task_updated | ISSUE-BUS-001 | Fix agent-bus worker_model crash |
-| 2026-06-30T22:30:06 | PMO | task_queued | ISSUE-BUS-001 | Fix agent-bus worker_model crash |
