@@ -97,6 +97,51 @@ def load_pmo_index() -> dict[str, dict]:
     return out
 
 
+def resolve_ledger_task(
+    job_id: str,
+    objective: str,
+    events: list[dict],
+    tasks: dict[str, dict],
+    pmo_item: dict | None,
+    feature: str,
+) -> tuple[str | None, dict]:
+    """Best-effort ledger row for this bus job (artifact link, PMO index, or objective match)."""
+    tid = ledger_task_for_job(job_id, events)
+    if tid:
+        return tid, tasks.get(tid, {})
+    if pmo_item:
+        if pmo_item.get("task_id") and pmo_item["task_id"] in tasks:
+            return str(pmo_item["task_id"]), tasks[str(pmo_item["task_id"])]
+        num = pmo_item.get("issue_number")
+        if num is not None:
+            cand = f"ISSUE-{int(num)}"
+            if cand in tasks:
+                return cand, tasks[cand]
+    m = re.search(r"ISSUE-([A-Z0-9-]+)", objective, re.I)
+    if m:
+        for cand in (f"ISSUE-{m.group(1).upper()}", f"ISSUE-{m.group(1)}"):
+            if cand in tasks:
+                return cand, tasks[cand]
+        num_m = re.match(r"^(\d+)$", m.group(1))
+        if num_m:
+            cand = f"ISSUE-{int(num_m.group(1))}"
+            if cand in tasks:
+                return cand, tasks[cand]
+    if feature:
+        fm = re.search(r"issue-(\d+)", feature)
+        if fm:
+            cand = f"ISSUE-{int(fm.group(1))}"
+            if cand in tasks:
+                return cand, tasks[cand]
+    obj_head = objective.split("\n")[0][:60]
+    for tid, t in tasks.items():
+        if not tid.startswith("ISSUE-"):
+            continue
+        if obj_head and obj_head in (t.get("output") or ""):
+            return tid, t
+    return None, {}
+
+
 def pmo_item_for_job(objective: str, ledger_tid: str | None, pmo_index: dict) -> dict | None:
     if ledger_tid and ledger_tid in pmo_index:
         return pmo_index[ledger_tid]
@@ -351,9 +396,12 @@ def job_memo_body(
     short = short_job_id(job_id)
     feature = row["feature_name"] or packet.get("feature_name") or "job"
     objective = objective_text(row, packet)
-    ledger_tid = ledger_task_for_job(job_id, events)
-    ledger_task = tasks.get(ledger_tid or "", {})
-    pmo_item = pmo_item_for_job(objective, ledger_tid, pmo_index)
+    pmo_item = pmo_item_for_job(objective, None, pmo_index)
+    ledger_tid, ledger_task = resolve_ledger_task(
+        job_id, objective, events, tasks, pmo_item, feature
+    )
+    if not pmo_item and ledger_tid:
+        pmo_item = pmo_item_for_job(objective, ledger_tid, pmo_index)
     parent_dispatch = tasks.get("DISPATCH-001", {})
     title = spoken_title(objective, feature, pmo_item)
     started = running_started_at(job_id) if row["status"] == "running" else None
