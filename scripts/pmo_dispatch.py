@@ -14,6 +14,8 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import re
+import sqlite3
 import subprocess
 import sys
 from datetime import datetime, timedelta, timezone
@@ -34,7 +36,9 @@ BUS_ROOT = Path(
     )
 )
 BUS = BUS_ROOT / "scripts" / "bus.py"
+BUS_DB = BUS_ROOT / "jobs.sqlite"
 WORKSPACE = BUS_ROOT.parent
+ACTIVE_BUS = ("running", "queued", "held")
 
 SGT = timezone(timedelta(hours=8))
 DISPATCH_MARKER = "pmo-dispatch:"
@@ -149,6 +153,33 @@ def append_ledger(event: dict, append_fn: Callable[[dict], bool] | None = None) 
     return True
 
 
+def _feature_slug(text: str, max_len: int = 40) -> str:
+    s = re.sub(r"[^a-z0-9]+", "-", (text or "").lower()).strip("-")
+    return (s[:max_len] or "job").strip("-")
+
+
+def active_bus_job(*, repo: str, objective: str) -> str | None:
+    """POL-006 — return existing active job_id for same repo+objective slug."""
+    if not BUS_DB.is_file():
+        return None
+    slug = _feature_slug(objective.split("\n")[0])
+    conn = sqlite3.connect(BUS_DB)
+    try:
+        row = conn.execute(
+            f"""SELECT job_id FROM jobs
+                WHERE repo=? AND status IN ({",".join("?" * len(ACTIVE_BUS))})
+                  AND (objective=? OR feature_name=?)
+                ORDER BY CASE status
+                  WHEN 'running' THEN 0 WHEN 'queued' THEN 1 ELSE 2 END,
+                  created_at ASC
+                LIMIT 1""",
+            (repo, *ACTIVE_BUS, objective, slug),
+        ).fetchone()
+        return row[0] if row else None
+    finally:
+        conn.close()
+
+
 def submit_bus_job(
     *,
     session: str,
@@ -160,6 +191,13 @@ def submit_bus_job(
 ) -> dict | None:
     if dry_run or not BUS.is_file():
         return {"dry_run": True, "session": session, "repo": repo, "objective": objective[:120]}
+    existing = active_bus_job(repo=repo, objective=objective)
+    if existing:
+        return {
+            "job_id": existing,
+            "status": "skipped-duplicate",
+            "reason": "POL-006 active bus packet already exists",
+        }
     cmd = [
         "python3",
         str(BUS),

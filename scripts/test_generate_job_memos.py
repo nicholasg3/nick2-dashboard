@@ -169,5 +169,20 @@ class GenerateJobMemosTests(unittest.TestCase):
             conn.close()
 
 
+    def test_validate_job_memo_rejects_boilerplate(self):
+        bad = "# JOB-1\n\n## STATUS\n\n- **Bus status:** running\n"
+        errs = gjm.validate_job_memo(bad, "JOB-1")
+        self.assertTrue(any("missing" in e for e in errs))
+
+    def test_validate_job_memo_accepts_rich_body(self):
+        good = (
+            "# JOB-1\n\n## SITUATION\n\n"
+            + "PMO-001 triage ranked this #2 after analysis completed.\n\n"
+            "## WHERE IT STANDS\n\nExecuting on nick2-dashboard.\n\n"
+            "## EFFORT & COST\n\n- **Time:** x\n\n## LINKS\n\n- ledger\n"
+        )
+        self.assertEqual(gjm.validate_job_memo(good, "JOB-1"), [])
+
+
 if __name__ == "__main__":
     unittest.main()

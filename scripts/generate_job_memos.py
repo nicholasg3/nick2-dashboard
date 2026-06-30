@@ -508,6 +508,35 @@ def active_job_ids(conn: sqlite3.Connection) -> list[str]:
     return out
 
 
+JOB_MEMO_REQUIRED = (
+    "## SITUATION",
+    "## WHERE IT STANDS",
+    "## EFFORT & COST",
+    "## LINKS",
+)
+JOB_MEMO_FORBIDDEN = (
+    "## STATUS\n\n- **Bus status:**",
+    "(no objective text in bus record)",
+)
+
+
+def validate_job_memo(body: str, job_id: str) -> list[str]:
+    """POL-005 gate — refuse empty/boilerplate job briefs."""
+    errors: list[str] = []
+    for section in JOB_MEMO_REQUIRED:
+        if section not in body:
+            errors.append(f"{job_id}: missing {section}")
+    for bad in JOB_MEMO_FORBIDDEN:
+        if bad in body:
+            errors.append(f"{job_id}: boilerplate marker {bad!r}")
+    situation = ""
+    if "## SITUATION" in body:
+        situation = body.split("## SITUATION", 1)[1].split("##", 1)[0].strip()
+    if len(situation) < 40:
+        errors.append(f"{job_id}: SITUATION too thin ({len(situation)} chars)")
+    return errors
+
+
 def main() -> int:
     if not BUS_DB.is_file():
         print("generate_job_memos: no jobs.sqlite — skipped")
@@ -519,6 +548,7 @@ def main() -> int:
     conn.row_factory = sqlite3.Row
     MEMOS.mkdir(parents=True, exist_ok=True)
     keep: set[str] = set()
+    validation_errors: list[str] = []
     for job_id in active_job_ids(conn):
         row = conn.execute("SELECT * FROM jobs WHERE job_id=?", (job_id,)).fetchone()
         if not row:
@@ -532,9 +562,15 @@ def main() -> int:
             pmo_index=pmo_index,
             conn=conn,
         )
+        validation_errors.extend(validate_job_memo(body, job_id))
         path = MEMOS / f"{job_id}.md"
         path.write_text(body + "\n", encoding="utf-8")
         keep.add(job_id)
+    if validation_errors:
+        for err in validation_errors:
+            print(f"generate_job_memos: POL-005 {err}", file=sys.stderr)
+        conn.close()
+        return 1
     for path in MEMOS.glob("JOB-*.md"):
         if path.stem not in keep:
             path.unlink(missing_ok=True)
