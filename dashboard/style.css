@@ -556,6 +556,110 @@ tr:hover td { background: rgba(79, 156, 249, 0.05); }
   color: var(--text);
 }
 
+/* Live Agent Bus panel */
+.bus-live-board {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.bus-section-title {
+  font-size: 0.82rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+  margin: 0 0 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.bus-section-count {
+  font-size: 0.75rem;
+  background: var(--surface-2);
+  padding: 0.1rem 0.45rem;
+  border-radius: 999px;
+}
+
+.bus-card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(14rem, 1fr));
+  gap: 0.55rem;
+}
+
+.bus-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 0.65rem 0.75rem;
+  min-width: 0;
+}
+
+.bus-card-held {
+  border-color: var(--warning);
+  background: rgba(245, 166, 35, 0.06);
+}
+
+.bus-card-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.35rem;
+}
+
+.bus-card-title {
+  margin: 0;
+  font-size: 0.82rem;
+  font-weight: 600;
+  line-height: 1.35;
+  word-break: break-word;
+}
+
+.bus-card-lane {
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  color: var(--accent);
+  background: var(--surface-2);
+  padding: 0.1rem 0.4rem;
+  border-radius: 4px;
+  flex-shrink: 0;
+}
+
+.bus-card-repo {
+  display: block;
+  font-size: 0.72rem;
+  color: var(--muted);
+  margin-top: 0.25rem;
+}
+
+.bus-card-hold {
+  margin: 0.4rem 0 0;
+  font-size: 0.74rem;
+  color: var(--warning);
+  line-height: 1.35;
+}
+
+.bus-section-empty {
+  font-size: 0.8rem;
+  color: var(--muted);
+  margin: 0;
+}
+
+.bus-done-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+.bus-done-list li {
+  padding: 0.2rem 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.bus-done-list li:last-child { border-bottom: none; }
+
 .gate-room-body .gate-room-main { max-width: 1400px; }
 
 .gate-room-layout {

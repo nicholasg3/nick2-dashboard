@@ -5,8 +5,10 @@
 
 const LEDGER_URL = 'logs/ceo-ledger.jsonl';
 const ORG_FLEET_URL = 'reports/org-fleet.json';
+const BUS_LIVE_URL = 'reports/bus-live.json';
 const GATED_URL = 'reports/gated.json';
 const GATED_POLL_MS = 20000;
+const BUS_LIVE_POLL_MS = 8000;
 const ROADMAP_LANES = {
   near_term: 'Near-term',
   capability: 'Capability-building',
@@ -777,6 +779,86 @@ async function loadOrgFleet() {
   }
 }
 
+function busJobCard(job, { held = false } = {}) {
+  const lane = job.lane ? `<span class="bus-card-lane">${esc(job.lane)}</span>` : '';
+  const repo = job.repo ? `<span class="bus-card-repo">${esc(job.repo)}</span>` : '';
+  const hold = held && job.hold_reason
+    ? `<p class="bus-card-hold">⏸ ${esc(job.hold_reason)}</p>`
+    : '';
+  return `<article class="bus-card${held ? ' bus-card-held' : ''}">
+    <div class="bus-card-head">
+      <h4 class="bus-card-title">${esc(job.display_name || job.job_id || 'Job')}</h4>
+      ${lane}
+    </div>
+    ${repo}
+    ${hold}
+  </article>`;
+}
+
+function renderBusLive(data) {
+  const board = $('bus-live-board');
+  const updated = $('bus-live-updated');
+  if (!board) return;
+  if (!data) {
+    board.innerHTML = '<p class="empty">Agent bus snapshot not available yet.</p>';
+    return;
+  }
+  const running = data.running || [];
+  const queued = data.queued || [];
+  const held = data.held || [];
+  const done = data.recent_completed || [];
+
+  const section = (title, jobs, opts = {}) => {
+    if (!jobs.length && !opts.showEmpty) return '';
+    const cards = jobs.length
+      ? `<div class="bus-card-grid">${jobs.map((j) => busJobCard(j, opts)).join('')}</div>`
+      : '<p class="bus-section-empty">None</p>';
+    return `<div class="bus-section">
+      <h3 class="bus-section-title">${esc(title)} <span class="bus-section-count">${jobs.length}</span></h3>
+      ${cards}
+    </div>`;
+  };
+
+  board.innerHTML = [
+    section('Running', running),
+    section('Queued', queued),
+    section('Held', held, { held: true, showEmpty: true }),
+    done.length
+      ? `<div class="bus-section bus-section-done">
+          <h3 class="bus-section-title">Recently completed <span class="bus-section-count">${done.length}</span></h3>
+          <ul class="bus-done-list">${done
+            .map(
+              (j) =>
+                `<li><span class="bus-done-name">${esc(j.display_name || j.job_id)}</span></li>`
+            )
+            .join('')}</ul>
+        </div>`
+      : '',
+  ].join('');
+
+  if (updated) {
+    updated.textContent = data.generated_at
+      ? `Snapshot ${fmtTs(data.generated_at)}`
+      : 'Snapshot';
+  }
+}
+
+async function loadBusLive() {
+  try {
+    const res = await fetch(`${BUS_LIVE_URL}?t=${Date.now()}`);
+    if (!res.ok) return null;
+    return await res.json();
+  } catch (e) {
+    console.warn('bus-live load failed', e);
+    return null;
+  }
+}
+
+async function refreshBusLive() {
+  const data = await loadBusLive();
+  renderBusLive(data);
+}
+
 function renderAll(state) {
   renderCurrentFocus(state);
   renderSnapshot(state);
@@ -806,8 +888,13 @@ async function refresh() {
   document.querySelector('.error-banner')?.remove();
   let events;
   let orgFleet = null;
+  let busLive = null;
   try {
-    [events, orgFleet] = await Promise.all([loadLedger(), loadOrgFleet()]);
+    [events, orgFleet, busLive] = await Promise.all([
+      loadLedger(),
+      loadOrgFleet(),
+      loadBusLive(),
+    ]);
     allEvents = events;
   } catch (err) {
     showError(`Could not load ledger: ${err.message}. Ensure logs/ceo-ledger.jsonl is deployed alongside the dashboard.`);
@@ -815,6 +902,7 @@ async function refresh() {
     return;
   }
   try {
+    renderBusLive(busLive);
     renderOrgFleet(orgFleet);
     renderAll(buildState(events));
   } catch (err) {
@@ -875,3 +963,4 @@ window.addEventListener('message', (ev) => {
 refresh();
 setInterval(refresh, 5 * 60 * 1000);
 setInterval(refreshGatedSection, GATED_POLL_MS);
+setInterval(refreshBusLive, BUS_LIVE_POLL_MS);

@@ -32,6 +32,16 @@
       </div>
     </section>
 
+    <section id="agent-bus-live" class="panel bus-live-panel">
+      <div class="panel-head">
+        <div>
+          <h2>Live Agent Bus</h2>
+          <p class="panel-policy">Real-time workers on the droplet — running, queued, and held jobs. <span id="bus-live-updated" class="meta-pill">Loading…</span></p>
+        </div>
+      </div>
+      <div id="bus-live-board" class="bus-live-board" aria-live="polite"></div>
+    </section>
+
     <section id="org-fleet" class="panel org-fleet-panel">
       <div class="panel-head">
         <div>
@@ -121,6 +131,6 @@
     <p>Source of truth: <code>logs/ceo-ledger.jsonl</code> · Append-only · SGT timestamps</p>
   </footer>
 
-  <script src="app.js?v=8"></script>
+  <script src="app.js?v=9"></script>
 </body>
 </html>

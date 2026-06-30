@@ -1,0 +1,44 @@
+{
+  "generated_at": "2026-06-30T11:12:03Z",
+  "running": [
+    {
+      "job_id": "JOB-20260630-453",
+      "display_name": "gate-room-live-agent-bus-dispatch-auto-c [heavy] · executing",
+      "lane": "heavy",
+      "repo": "nick2-dashboard",
+      "to_session": "heavy_coder",
+      "worker_status": "executing"
+    }
+  ],
+  "queued": [
+    {
+      "job_id": "JOB-20260630-755",
+      "display_name": "gate-dec-002-approve-pmo-scoring-framewo [pmo] · queued",
+      "lane": "pmo",
+      "repo": "nick2-dashboard",
+      "to_session": "pmo",
+      "worker_status": "queued"
+    }
+  ],
+  "held": [],
+  "recent_completed": [
+    {
+      "job_id": "JOB-20260630-139",
+      "display_name": "dashboard-live-agent-bus-panel-real-time [dashboard] · completed",
+      "lane": "dashboard",
+      "repo": "nick2-dashboard"
+    },
+    {
+      "job_id": "JOB-20260630-143",
+      "display_name": "add-agent-bus-live-fleet-json-export-for [coder] · completed",
+      "lane": "coder",
+      "repo": "ai-agents-workspace"
+    },
+    {
+      "job_id": "JOB-20260630-647",
+      "display_name": "redesign-agent-fleet-org-tree-panel-for [dashboard] · completed",
+      "lane": "dashboard",
+      "repo": "nick2-dashboard"
+    }
+  ]
+}
