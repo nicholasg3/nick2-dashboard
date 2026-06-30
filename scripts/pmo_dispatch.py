@@ -279,7 +279,7 @@ def run_dispatch(
             append_fn,
         )
 
-    prior_job: str | None = None
+    prior_by_repo: dict[str, str] = {}
     job_rows: list[dict] = []
     for item in queued:
         tid = item["task_id"]
@@ -287,6 +287,7 @@ def run_dispatch(
         worker = (item.get("worker") or "coding_worker").strip()
         repo = (item.get("repo") or "ai-agents-workspace").strip()
         objective = build_objective(item, tid)
+        after = prior_by_repo.get(repo)
 
         if not dry_run:
             append_ledger(
@@ -316,7 +317,7 @@ def run_dispatch(
             objective=objective,
             repo=repo,
             task_type="implementation" if worker == "coding_worker" else "research",
-            after=prior_job,
+            after=after,
             dry_run=dry_run,
         )
         job_id = None
@@ -325,10 +326,13 @@ def run_dispatch(
             if bus_out.get("jobs"):
                 job_id = bus_out["jobs"][-1].get("job_id")
         if job_id:
-            prior_job = job_id
+            prior_by_repo[repo] = job_id
         job_rows.append({"task_id": tid, "job_id": job_id, "bus": bus_out})
 
         if not dry_run and job_id:
+            status = "in_progress" if (bus_out or {}).get("status") == "running" else "queued"
+            if (bus_out or {}).get("status") == "held":
+                status = "queued"
             append_ledger(
                 {
                     **base,
@@ -337,10 +341,26 @@ def run_dispatch(
                     "event": "task_updated",
                     "task_id": tid,
                     "task": title,
-                    "status": "in_progress",
+                    "status": status,
                     "owner": worker.replace("_worker", ""),
-                    "output": f"{DISPATCH_MARKER}dispatched {job_id} to {worker}.",
+                    "output": f"{DISPATCH_MARKER}dispatched {job_id} to {worker} ({(bus_out or {}).get('status', 'queued')}).",
                     "artifacts": [f"agent-bus {job_id}"],
+                },
+                append_fn,
+            )
+        elif not dry_run and isinstance(bus_out, dict) and bus_out.get("error"):
+            append_ledger(
+                {
+                    **base,
+                    "actor": "PMO",
+                    "role": "Program Management Office",
+                    "event": "task_updated",
+                    "task_id": tid,
+                    "task": title,
+                    "status": "blocked",
+                    "owner": worker.replace("_worker", ""),
+                    "output": f"{DISPATCH_MARKER}bus submit failed: {str(bus_out.get('error'))[:200]}",
+                    "artifacts": [],
                 },
                 append_fn,
             )
@@ -376,16 +396,93 @@ def run_dispatch(
     }
 
 
+def _item_lookup() -> dict[str, dict]:
+    data = load_triage_result() or {}
+    out: dict[str, dict] = {}
+    for item in data.get("top_issues") or []:
+        out[issue_task_id(item)] = item
+    return out
+
+
+def retry_undispatched(*, dry_run: bool = False) -> dict:
+    """Submit bus jobs for ISSUE-* rows queued/blocked without agent-bus artifacts."""
+    events = load_events()
+    tasks = task_state(events)
+    base = ledger_base(events)
+    retried: list[dict] = []
+    prior_by_repo: dict[str, str] = {}
+    catalog = _item_lookup()
+
+    for tid in sorted(tasks):
+        if not tid.startswith("ISSUE-"):
+            continue
+        t = tasks[tid]
+        if (t.get("status") or "") not in ("queued", "blocked"):
+            continue
+        arts = t.get("artifacts") or []
+        if any("agent-bus JOB-" in str(a) for a in arts):
+            continue
+        out_txt = t.get("output") or ""
+        if DISPATCH_MARKER not in out_txt:
+            continue
+
+        item = catalog.get(tid, {})
+        owner = (t.get("owner") or "coding").lower()
+        worker = (item.get("worker") or ("research_worker" if owner == "research" else "coding_worker"))
+        repo = (item.get("repo") or "ai-agents-workspace").strip()
+        item = {
+            **item,
+            "task_id": tid,
+            "title": t.get("task") or item.get("title"),
+            "issue_number": t.get("issue_number") if t.get("issue_number") is not None else item.get("issue_number"),
+            "roi": t.get("roi") if t.get("roi") is not None else item.get("roi"),
+            "worker": worker,
+            "repo": repo,
+        }
+        bus_out = submit_bus_job(
+            session=worker,
+            objective=build_objective(item, tid),
+            repo=repo,
+            task_type="implementation" if worker == "coding_worker" else "research",
+            after=prior_by_repo.get(repo),
+            dry_run=dry_run,
+        )
+        job_id = (bus_out or {}).get("job_id") if isinstance(bus_out, dict) else None
+        if job_id:
+            prior_by_repo[repo] = job_id
+            if not dry_run:
+                append_ledger(
+                    {
+                        **base,
+                        "actor": "PMO",
+                        "role": "Program Management Office",
+                        "event": "task_updated",
+                        "task_id": tid,
+                        "task": t.get("task"),
+                        "status": "queued",
+                        "owner": t.get("owner"),
+                        "output": f"{DISPATCH_MARKER}retry dispatched {job_id}.",
+                        "artifacts": [f"agent-bus {job_id}"],
+                    }
+                )
+        retried.append({"task_id": tid, "job_id": job_id, "bus": bus_out})
+    return {"retried": len(retried), "jobs": retried}
+
+
 def main() -> int:
     p = argparse.ArgumentParser(description="PMO post-triage dispatch")
     p.add_argument("--dry-run", action="store_true")
     p.add_argument("--max-issues", type=int, default=None)
+    p.add_argument("--retry", action="store_true", help="Retry ISSUE-* without bus jobs")
     args = p.parse_args()
-    out = run_dispatch(dry_run=args.dry_run, max_issues=args.max_issues)
+    if args.retry:
+        out = retry_undispatched(dry_run=args.dry_run)
+    else:
+        out = run_dispatch(dry_run=args.dry_run, max_issues=args.max_issues)
     print(json.dumps(out, indent=2))
     if out.get("skipped"):
         return 0
-    if out.get("dispatched", 0) == 0:
+    if out.get("dispatched", 0) == 0 and out.get("retried", 0) == 0:
         return 1
     return 0
 

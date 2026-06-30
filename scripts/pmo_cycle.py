@@ -34,6 +34,11 @@ def main() -> int:
         if out.get("dispatched"):
             return 0
 
+    retry = pd.retry_undispatched(dry_run=False)
+    if retry.get("retried"):
+        print("pmo_cycle: retry", json.dumps(retry))
+        return 0
+
     if pmo_status == "completed" and not active_dispatch:
         print("pmo_cycle: portfolio idle (triage done, dispatch recorded or no result file)")
         return 0
