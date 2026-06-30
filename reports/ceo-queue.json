@@ -1,5 +1,5 @@
 {
-  "ts": "2026-06-30T15:52:51Z",
+  "ts": "2026-06-30T16:00:15Z",
   "mode": "ceo_reflect",
   "context": {
     "counts": {
@@ -51,7 +51,7 @@
   "llm": {
     "enabled": true,
     "ran": false,
-    "skip_reason": "interval not elapsed (23m < 60m)",
+    "skip_reason": "interval not elapsed (30m < 60m)",
     "execute": true
   }
 }

@@ -1,21 +1,21 @@
-# FOCUS-001: Triage 13 ready-for-agent GitHub issues — Completed
+# FOCUS-001: CEO supervisor corrective cycle — Completed
 
-**Owner:** PMO · **Status:** completed · **Updated:** 2026-06-30T21:30 · **Cost:** $0.00
+**Owner:** CEO · **Status:** completed · **Updated:** 2026-07-01T00:00 · **Cost:** $0.00
 
 
 ## 1. Executive Framing
 
-**Objective:** Advance: Triage 13 ready-for-agent GitHub issues  
-**Outcome:** PMO-001 triage done (JOB-792). Top-5 ranked; ready to dispatch issue workers.
+**Objective:** Advance: CEO supervisor corrective cycle  
+**Outcome:** ceo-supervisor: check-in only
 
 ## 2. What shipped (MECE)
 
 | Bucket | Scope | Current state |
 |--------|-------|---------------|
-| Work unit | Triage 13 ready-for-agent GitHub issues | PMO-001 triage done (JOB-792). Top-5 ranked; ready to dispatch issue workers. |
-| Status & owner | completed / PMO | 2026-06-30T21:30 |
+| Work unit | CEO supervisor corrective cycle | ceo-supervisor: check-in only |
+| Status & owner | completed / CEO | 2026-07-01T00:00 |
 | Dependencies | Gates, budget, worker | See dashboard Gated queue and budget panel |
-| Deliverable | Ledger event + artifacts | Not listed |
+| Deliverable | Ledger event + artifacts | scripts/ceo_supervisor.py, scripts/job_catalog.py |
 
 ## 3. Root cause addressed
 
@@ -27,4 +27,5 @@ Work item reached completed status in ledger.
 
 ## Artifacts
 
-_None listed._
+- `scripts/ceo_supervisor.py`
+- `scripts/job_catalog.py`

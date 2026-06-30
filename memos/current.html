@@ -30,61 +30,26 @@ strong { color: #fff; }
 <body>
   <div class="wrap">
     <p class="nav"><a href="../index.html">← Dashboard</a></p>
-    <p>_Current focus → <a href="queue/DISPATCH-001.html">DISPATCH-001</a> · 0 gated · 2026-06-30 23:45 SGT_</p>
+    <p>_Current focus → <a href="queue/SYS-002.html">SYS-002</a> · 0 gated · 2026-07-01 00:00 SGT_</p>
 <p><strong>CEO supervision — portfolio idle</strong></p>
-<p>[Tue Jun 30, 2026]</p>
-<h1>DISPATCH-001: Dispatch top-3 from PMO-001 triage</h1>
-<p><strong>Owner:</strong> PMO  </p>
-<p><strong>Status:</strong> 🟠 Stale — no update in 30+ min (POL-002)  </p>
-<p><strong>Last Updated:</strong> 2026-06-30 22:30</p>
-<p>&gt; <strong>WIP policy (POL-002):</strong> Last ledger touch was <strong>75 minutes</strong> ago. Agents must append <code>task_updated</code> every 30 minutes or set <code>idle</code>/<code>completed</code>.</p>
-<p>────────────────────────────────────────────</p>
-<h2>MISSION</h2>
-<h3>Objective</h3>
-<p>pmo-dispatch:queued 3 issues within $3.0 planned spend. Queue: ISSUE-BUS-001(#None), ISSUE-80(#80), ISSUE-15(#15)</p>
-<h3>Success Criteria</h3>
-<p>☐ Mission completed per ledger</p>
-<h3>Mission Decomposition (MECE)</h3>
-<ol><li>1. Execute</li></ol>
-<p>Progress: █░░░░░░░░░</p>
-<p>• pmo-dispatch:queued 3 issues within $3.0 planned spend. Queue: ISSUE-BUS-001(#None), ISSUE-80(#80), ISSUE-15(#15)</p>
-<p>────────────────────────────────────────────</p>
-<h2>EXECUTION STATUS</h2>
-<h3>Overall Progress</h3>
-<p>██░░░░░░░░ 15%</p>
-<h3>Budget</h3>
-<p>Spent: $0.00</p>
-<p>Remaining: $20.00</p>
-<p>Limit: $20.00/week</p>
-<h3>Critical Path</h3>
-<p>Start</p>
-<p>      ↓</p>
-<p>Execute</p>
-<p>      ↓</p>
-<p>Verify</p>
-<p>      ↓</p>
-<p>Report</p>
-<p>────────────────────────────────────────────</p>
-<h2>CURRENT WORKSTREAMS</h2>
-<p>██░░░░░░░░</p>
-<p>Primary workstream</p>
-<p>────────────────────────────────────────────</p>
-<h2>BLOCKERS</h2>
-<p>• _None._</p>
-<p>────────────────────────────────────────────</p>
-<h2>NEXT MILESTONES</h2>
-<p>—</p>
-<p>_TBD_</p>
-<p>────────────────────────────────────────────</p>
-<h2>WAITING ON</h2>
-<p>• _None._</p>
-<p>────────────────────────────────────────────</p>
-<h2>RECENT EVENTS</h2>
-<p>22:30</p>
-<p>task_queued: pmo-dispatch:queued 3 issues within $3.0 planned spend. Queue: ISSUE-BUS-001(#No</p>
-<p>────────────────────────────────────────────</p>
+<p>[Wed Jul 1, 2026]</p>
+<p><a href="https://nicholasg3.github.io/nick2-dashboard/index.html">← Dashboard</a></p>
+<p><strong>SYS-002: Make the dashboard live</strong></p>
+<h2>SITUATION</h2>
+<p>The operating dashboard still reads ledger and agent-bus state from GitHub Pages snapshots that can lag minutes behind reality. POL-002 needs server-side stale detection so workers cannot sit at Executing while asleep.</p>
+<h2>MECE DECOMPOSITION</h2>
+<ul><li><strong>Live read path</strong> — Add droplet API for ledger tail + bus SQLite — in flight via JOB-924</li><li><strong>Honest reconcile</strong> — Auto-flag or transition tasks with no heartbeat in 30+ minutes</li><li><strong>Publish cadence</strong> — 15-minute cron to reconcile, regenerate memos, and push</li><li><strong>Client wiring</strong> — dashboard app polls live API when configured, static JSON fallback</li></ul>
+<h2>PATHS CONSIDERED</h2>
+<ul><li>Full React/Node rewrite on GitHub Pages</li><li>Extend existing Python gate server with /api/live/* + vanilla JS polling</li><li>Static-only: shorter cron and hope agents heartbeats</li></ul>
+<h2>CHOSEN PATH + WHY</h2>
+<p>We chose extending the gate server and vanilla JS because it fixes latency and honesty without a framework migration. React would improve DX but would not stop agents from going quiet without the reconcile layer; static-only leaves the phone and dashboard blind during the export gap. The gate server already runs on the droplet beside the ledger — adding live endpoints is the cheapest path that unifies memo and panel reads.</p>
+<h2>WHERE IT STANDS</h2>
+<p>JOB-924 is <strong>executing now</strong> on the droplet (not blocked). One harness crash earlier required a requeue; repo-lock zombies (JOB-755/453) are cleared. Worker is implementing live ledger/bus API, POL-002 reconcile, and 15m sync cron on branch job/20260630-924. JOB-102 waits for 924 to finish. No Nick gate.</p>
+<h2>EFFORT &amp; COST</h2>
+<ul><li><strong>Time:</strong> Now: executing since ~19:50 SGT · Mission age ~2h · Past stalls (resolved): ~45m repo locks + ~15m harness retry — not current blockers</li><li><strong>Work:</strong> JOB-924 attempt 2 executing; attempt 1 blocked (harness); JOB-102 held; JOB-438 parallel</li><li><strong>Budget:</strong> spent $0.00 · remaining $20.00 · limit $20/week</li></ul>
 <h2>LINKS</h2>
-<ul><li><a href="https://nicholasg3.github.io/nick2-dashboard/">Dashboard</a></li><li><a href="https://nicholasg3.github.io/nick2-dashboard/memos/ledger.html">CEO Ledger</a></li><li>Ledger: <code>logs/ceo-ledger.jsonl</code> (<code>DISPATCH-001</code>)</li></ul>
+<ul><li><a href="https://nicholasg3.github.io/nick2-dashboard/">Dashboard</a></li><li><a href="https://nicholasg3.github.io/nick2-dashboard/memos/ledger.html">CEO Ledger</a></li></ul>
+<p>_Last updated 2026-06-30 20:34 SGT_</p>
   </div>
 </body>
 </html>

@@ -1,94 +1,30 @@
-[Tue Jun 30, 2026]
+# ISSUE-15: FEATURE: optional skill usefulness tiers — Completed
 
-# ISSUE-15: FEATURE: optional skill usefulness tiers
+**Owner:** coding · **Status:** completed · **Updated:** 2026-06-30T23:56 · **Cost:** $0.00
 
-**Owner:** coding  
-**Status:** 💤 Idle  
-**Last Updated:** 2026-06-30 22:30
 
-────────────────────────────────────────────
+## 1. Executive Framing
 
-## MISSION
+**Objective:** Advance: FEATURE: optional skill usefulness tiers  
+**Outcome:** Option A (pilot). Skill usefulness = simple 3-tier label, Nick-set: core / useful / experimental. Router filters/ranks by tier; no telemetry or scoring loop yet. Revisit Option B (usage/LLM-derived numeric score) once real skill-usage telemetry exists.
 
-### Objective
+## 2. What shipped (MECE)
 
-pmo-dispatch:dispatched JOB-20260630-808 to coding_worker (held).
+| Bucket | Scope | Current state |
+|--------|-------|---------------|
+| Work unit | FEATURE: optional skill usefulness tiers | Option A (pilot). Skill usefulness = simple 3-tier label, Nick-set: core / useful / experimental. Router filters/ranks b |
+| Status & owner | completed / coding | 2026-06-30T23:56 |
+| Dependencies | Gates, budget, worker | See dashboard Gated queue and budget panel |
+| Deliverable | Ledger event + artifacts | Not listed |
 
-### Success Criteria
+## 3. Root cause addressed
 
-☐ Mission completed per ledger
+Work item reached completed status in ledger.
 
-### Mission Decomposition (MECE)
+## 5. Recommendation
 
-1. Execute
-Progress: ░░░░░░░░░░
+**Done.** No further action unless regression.
 
-• pmo-dispatch:dispatched JOB-20260630-808 to coding_worker (held).
+## Artifacts
 
-────────────────────────────────────────────
-
-## EXECUTION STATUS
-
-### Overall Progress
-
-░░░░░░░░░░ 5%
-
-### Budget
-
-Spent: $0.00
-Remaining: $20.00
-Limit: $20.00/week
-
-### Critical Path
-
-Start
-      ↓
-Execute
-      ↓
-Verify
-      ↓
-Report
-
-────────────────────────────────────────────
-
-## CURRENT WORKSTREAMS
-
-░░░░░░░░░░
-Primary workstream
-
-────────────────────────────────────────────
-
-## BLOCKERS
-
-• _None._
-
-────────────────────────────────────────────
-
-## NEXT MILESTONES
-
-—
-_TBD_
-
-────────────────────────────────────────────
-
-## WAITING ON
-
-• _None._
-
-────────────────────────────────────────────
-
-## RECENT EVENTS
-
-22:30
-task_updated: pmo-dispatch:dispatched JOB-20260630-808 to coding_worker (held).
-
-22:30
-task_queued: pmo-dispatch:rank 4 queued for coding_worker. Est $1.0.
-
-────────────────────────────────────────────
-
-## LINKS
-
-- [Dashboard](https://nicholasg3.github.io/nick2-dashboard/)
-- [CEO Ledger](https://nicholasg3.github.io/nick2-dashboard/memos/ledger.html)
-- Ledger: `logs/ceo-ledger.jsonl` (`ISSUE-15`)
+_None listed._

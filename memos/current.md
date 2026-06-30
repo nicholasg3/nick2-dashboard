@@ -1,98 +1,47 @@
-_Current focus → [DISPATCH-001](queue/DISPATCH-001.html) · 0 gated · 2026-06-30 23:45 SGT_
+_Current focus → [SYS-002](queue/SYS-002.html) · 0 gated · 2026-07-01 00:00 SGT_
 
 **CEO supervision — portfolio idle**
 
-[Tue Jun 30, 2026]
+[Wed Jul 1, 2026]
 
-# DISPATCH-001: Dispatch top-3 from PMO-001 triage
+[← Dashboard](https://nicholasg3.github.io/nick2-dashboard/index.html)
 
-**Owner:** PMO  
-**Status:** 🟠 Stale — no update in 30+ min (POL-002)  
-**Last Updated:** 2026-06-30 22:30
+**SYS-002: Make the dashboard live**
 
-> **WIP policy (POL-002):** Last ledger touch was **75 minutes** ago. Agents must append `task_updated` every 30 minutes or set `idle`/`completed`.
+## SITUATION
 
+The operating dashboard still reads ledger and agent-bus state from GitHub Pages snapshots that can lag minutes behind reality. POL-002 needs server-side stale detection so workers cannot sit at Executing while asleep.
 
-────────────────────────────────────────────
+## MECE DECOMPOSITION
 
-## MISSION
+- **Live read path** — Add droplet API for ledger tail + bus SQLite — in flight via JOB-924
+- **Honest reconcile** — Auto-flag or transition tasks with no heartbeat in 30+ minutes
+- **Publish cadence** — 15-minute cron to reconcile, regenerate memos, and push
+- **Client wiring** — dashboard app polls live API when configured, static JSON fallback
 
-### Objective
+## PATHS CONSIDERED
 
-pmo-dispatch:queued 3 issues within $3.0 planned spend. Queue: ISSUE-BUS-001(#None), ISSUE-80(#80), ISSUE-15(#15)
+- Full React/Node rewrite on GitHub Pages
+- Extend existing Python gate server with /api/live/* + vanilla JS polling
+- Static-only: shorter cron and hope agents heartbeats
 
-### Success Criteria
+## CHOSEN PATH + WHY
 
-☐ Mission completed per ledger
+We chose extending the gate server and vanilla JS because it fixes latency and honesty without a framework migration. React would improve DX but would not stop agents from going quiet without the reconcile layer; static-only leaves the phone and dashboard blind during the export gap. The gate server already runs on the droplet beside the ledger — adding live endpoints is the cheapest path that unifies memo and panel reads.
 
-### Mission Decomposition (MECE)
+## WHERE IT STANDS
 
-1. Execute
-Progress: █░░░░░░░░░
+JOB-924 is **executing now** on the droplet (not blocked). One harness crash earlier required a requeue; repo-lock zombies (JOB-755/453) are cleared. Worker is implementing live ledger/bus API, POL-002 reconcile, and 15m sync cron on branch job/20260630-924. JOB-102 waits for 924 to finish. No Nick gate.
 
-• pmo-dispatch:queued 3 issues within $3.0 planned spend. Queue: ISSUE-BUS-001(#None), ISSUE-80(#80), ISSUE-15(#15)
+## EFFORT & COST
 
-────────────────────────────────────────────
-
-## EXECUTION STATUS
-
-### Overall Progress
-
-██░░░░░░░░ 15%
-
-### Budget
-
-Spent: $0.00
-Remaining: $20.00
-Limit: $20.00/week
-
-### Critical Path
-
-Start
-      ↓
-Execute
-      ↓
-Verify
-      ↓
-Report
-
-────────────────────────────────────────────
-
-## CURRENT WORKSTREAMS
-
-██░░░░░░░░
-Primary workstream
-
-────────────────────────────────────────────
-
-## BLOCKERS
-
-• _None._
-
-────────────────────────────────────────────
-
-## NEXT MILESTONES
-
-—
-_TBD_
-
-────────────────────────────────────────────
-
-## WAITING ON
-
-• _None._
-
-────────────────────────────────────────────
-
-## RECENT EVENTS
-
-22:30
-task_queued: pmo-dispatch:queued 3 issues within $3.0 planned spend. Queue: ISSUE-BUS-001(#No
-
-────────────────────────────────────────────
+- **Time:** Now: executing since ~19:50 SGT · Mission age ~2h · Past stalls (resolved): ~45m repo locks + ~15m harness retry — not current blockers
+- **Work:** JOB-924 attempt 2 executing; attempt 1 blocked (harness); JOB-102 held; JOB-438 parallel
+- **Budget:** spent $0.00 · remaining $20.00 · limit $20/week
 
 ## LINKS
 
 - [Dashboard](https://nicholasg3.github.io/nick2-dashboard/)
 - [CEO Ledger](https://nicholasg3.github.io/nick2-dashboard/memos/ledger.html)
-- Ledger: `logs/ceo-ledger.jsonl` (`DISPATCH-001`)
+
+_Last updated 2026-06-30 20:34 SGT_
