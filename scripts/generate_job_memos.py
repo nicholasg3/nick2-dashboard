@@ -6,6 +6,7 @@ import json
 import os
 import re
 import sqlite3
+import subprocess
 import sys
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
@@ -14,6 +15,7 @@ ROOT = Path(__file__).resolve().parents[1]
 MEMOS = ROOT / "memos" / "jobs"
 LEDGER = ROOT / "logs" / "ceo-ledger.jsonl"
 PMO_RESULT = ROOT / "pmo_001_result.json"
+WORK_CATALOG = ROOT / "job_work_catalog.json"
 BUS_DB = Path(
     os.environ.get(
         "AGENT_BUS_DB",
@@ -75,6 +77,31 @@ def ledger_task_for_job(job_id: str, events: list[dict]) -> str | None:
 
 def mission_for_job(job_id: str, events: list[dict]) -> str | None:
     return ledger_task_for_job(job_id, events)
+
+
+def load_work_catalog() -> dict[str, dict]:
+    if not WORK_CATALOG.is_file():
+        return {}
+    try:
+        data = json.loads(WORK_CATALOG.read_text(encoding="utf-8"))
+    except (json.JSONDecodeError, OSError):
+        return {}
+    return dict(data.get("tasks") or {})
+
+
+def work_catalog_entry(
+    ledger_tid: str | None, pmo_item: dict | None, catalog: dict[str, dict]
+) -> dict | None:
+    if ledger_tid and ledger_tid in catalog:
+        return catalog[ledger_tid]
+    if pmo_item:
+        tid = pmo_item.get("task_id")
+        if tid and tid in catalog:
+            return catalog[tid]
+        num = pmo_item.get("issue_number")
+        if num is not None and f"ISSUE-{int(num)}" in catalog:
+            return catalog[f"ISSUE-{int(num)}"]
+    return None
 
 
 def load_pmo_index() -> dict[str, dict]:
@@ -217,6 +244,7 @@ def duplicate_siblings(
     rows = conn.execute(
         """SELECT job_id, status FROM jobs
            WHERE feature_name=? AND job_id!=?
+             AND status IN ('running','queued','held')
            ORDER BY CASE status WHEN 'running' THEN 0 WHEN 'held' THEN 1
                                 WHEN 'queued' THEN 2 ELSE 3 END, updated_at DESC""",
         (feature, job_id),
@@ -269,38 +297,102 @@ def spoken_title(objective: str, feature: str, pmo_item: dict | None) -> str:
 
 def situation_paragraph(
     *,
-    objective: str,
     pmo_item: dict | None,
     ledger_tid: str | None,
-    ledger_task: dict | None,
-    parent_dispatch: dict | None,
+    work: dict | None,
 ) -> str:
-    parts: list[str] = []
+    """One-line why this packet exists — not the work plan (see WHAT IT'S DOING)."""
+    if work and work.get("problem"):
+        lead = str(work["problem"]).split(".")[0].strip() + "."
+    elif pmo_item and pmo_item.get("title"):
+        lead = f"PMO dispatched: {pmo_item['title']}."
+    elif ledger_tid:
+        lead = f"Portfolio mission {ledger_tid} on the agent-bus."
+    else:
+        lead = "Agent-bus coding/research worker packet."
     if pmo_item:
         rank = pmo_item.get("rank")
         roi = pmo_item.get("roi")
-        area = pmo_item.get("area") or "—"
-        parts.append(
-            f"PMO-001 triage ranked this **#{rank}** (ROI {roi:.2f}, area `{area}`) "
-            f"after JOB-792 completed analysis."
-        )
-    elif ledger_tid:
-        parts.append(f"Ledger mission **{ledger_tid}** was dispatched to the agent-bus.")
+        lead += f" Rank **#{rank}** (ROI {roi:.2f})."
+    return lead
+
+
+def what_its_doing_section(
+    *,
+    work: dict | None,
+    objective: str,
+    live: str | None,
+) -> str:
+    lines: list[str] = []
+    if work:
+        if work.get("doing"):
+            lines.append(str(work["doing"]))
+        steps = work.get("steps") or []
+        if steps:
+            lines.append("")
+            lines.append("**Steps:**")
+            lines.extend(f"{i}. {s}" for i, s in enumerate(steps, 1))
+        if work.get("witness"):
+            lines.append("")
+            lines.append(f"**Done when:** `{work['witness']}`")
+        paths = work.get("touch_paths") or []
+        if paths:
+            lines.append("")
+            lines.append("**Files in scope:** " + ", ".join(f"`{p}`" for p in paths[:6]))
     else:
-        parts.append("Agent-bus worker job — see objective for scope.")
+        gist = objective.split("\n")[0].strip()
+        lines.append(gist or "See objective below.")
+        verbs = re.findall(r"\b(reproduce|patch|implement|witness|research|harden)\b", objective, re.I)
+        if verbs:
+            lines.append("")
+            lines.append("**Steps (from objective):** " + " → ".join(dict.fromkeys(v.title() for v in verbs)))
+    if live:
+        lines.append("")
+        lines.append("**Live worktree (now):**")
+        lines.append(live)
+    return "\n".join(lines)
 
-    if parent_dispatch:
-        out = (parent_dispatch.get("output") or "")[:120]
-        parts.append(f"Part of **DISPATCH-001** batch ({out or 'PMO post-triage dispatch'}).")
 
-    if ledger_task:
-        task_name = ledger_task.get("task") or ledger_tid
-        parts.append(f"Portfolio task: *{task_name}*.")
-
-    gist = objective.split("\n\n")[0].replace("\n", " ").strip()
-    if gist and gist != "(no objective text in bus record)":
-        parts.append(gist)
-    return " ".join(parts)
+def live_worktree_progress(row: sqlite3.Row) -> str | None:
+    """Best-effort git status from branch worktree — what the worker has touched."""
+    if (row["status"] or "") != "running":
+        return None
+    job_id = row["job_id"]
+    wt = row["worktree_path"] if "worktree_path" in row.keys() else None
+    root = Path(wt) if wt else BUS_ROOT / "worktrees" / job_id
+    if not root.is_dir():
+        return None
+    try:
+        r = subprocess.run(
+            ["git", "-C", str(root), "diff", "--stat", "HEAD"],
+            capture_output=True,
+            text=True,
+            timeout=8,
+        )
+        diff = (r.stdout or "").strip()
+        r2 = subprocess.run(
+            ["git", "-C", str(root), "status", "--porcelain"],
+            capture_output=True,
+            text=True,
+            timeout=8,
+        )
+        porcelain = (r2.stdout or "").strip()
+    except (subprocess.TimeoutExpired, OSError):
+        return None
+    parts: list[str] = []
+    if diff:
+        parts.append("```")
+        parts.append(diff[:800] + ("…" if len(diff) > 800 else ""))
+        parts.append("```")
+    untracked = [ln.split()[-1] for ln in porcelain.splitlines() if ln.startswith("??")]
+    modified = [ln.split()[-1] for ln in porcelain.splitlines() if ln and not ln.startswith("??")]
+    if modified and not diff:
+        parts.append("Modified: " + ", ".join(f"`{p}`" for p in modified[:8]))
+    if untracked:
+        parts.append("New (untracked): " + ", ".join(f"`{p}`" for p in untracked[:8]))
+    if not parts:
+        return "No file changes in worktree yet — worker may still be planning or reproducing."
+    return "\n".join(parts)
 
 
 def where_it_stands(
@@ -402,8 +494,10 @@ def job_memo_body(
     )
     if not pmo_item and ledger_tid:
         pmo_item = pmo_item_for_job(objective, ledger_tid, pmo_index)
-    parent_dispatch = tasks.get("DISPATCH-001", {})
     title = spoken_title(objective, feature, pmo_item)
+    catalog = load_work_catalog()
+    work = work_catalog_entry(ledger_tid, pmo_item, catalog)
+    live = live_worktree_progress(row)
     started = running_started_at(job_id) if row["status"] == "running" else None
     siblings = duplicate_siblings(conn, feature, job_id)
     repo_claim = repo_claim_job(conn, row["repo"] or "", job_id)
@@ -419,12 +513,14 @@ def job_memo_body(
         "## SITUATION",
         "",
         situation_paragraph(
-            objective=objective,
             pmo_item=pmo_item,
             ledger_tid=ledger_tid,
-            ledger_task=ledger_task,
-            parent_dispatch=parent_dispatch,
+            work=work,
         ),
+        "",
+        "## WHAT IT'S DOING",
+        "",
+        what_its_doing_section(work=work, objective=objective, live=live),
         "",
         "## WHERE IT STANDS",
         "",
@@ -510,6 +606,7 @@ def active_job_ids(conn: sqlite3.Connection) -> list[str]:
 
 JOB_MEMO_REQUIRED = (
     "## SITUATION",
+    "## WHAT IT'S DOING",
     "## WHERE IT STANDS",
     "## EFFORT & COST",
     "## LINKS",
@@ -532,8 +629,15 @@ def validate_job_memo(body: str, job_id: str) -> list[str]:
     situation = ""
     if "## SITUATION" in body:
         situation = body.split("## SITUATION", 1)[1].split("##", 1)[0].strip()
-    if len(situation) < 40:
+    if len(situation) < 20:
         errors.append(f"{job_id}: SITUATION too thin ({len(situation)} chars)")
+    doing = ""
+    if "## WHAT IT'S DOING" in body:
+        doing = body.split("## WHAT IT'S DOING", 1)[1].split("##", 1)[0].strip()
+    if len(doing) < 80:
+        errors.append(f"{job_id}: WHAT IT'S DOING too thin ({len(doing)} chars)")
+    if "**Steps:**" not in doing and "**Done when:**" not in doing:
+        errors.append(f"{job_id}: WHAT IT'S DOING missing steps or done-when")
     return errors
 
 

@@ -234,6 +234,78 @@ EXECUTION_BRIEFS: dict[str, dict[str, Any]] = {
             ("CEO Ledger", "ledger.html"),
         ],
     },
+    "ISSUE-BUS-001": {
+        "title": "Fix agent-bus worker_model crash",
+        "situation": (
+            "Coding workers cannot reliably spawn: `bus.py` calls `worker_model.py` to pick an "
+            "OpenRouter slug, but an empty-string registry model breaks resolution. Until this "
+            "lands, DISPATCH-001 jobs pile up held/queued behind dead harnesses."
+        ),
+        "mece": [
+            ("Reproduce", "Scratch tests in worktree exercising resolve_or_ccr_default — in flight"),
+            ("Patch", "bus.py passes None not \"\" when session meta has no model — patched in JOB-549 worktree"),
+            ("Unit test", "Permanent test_worker_model.py under agent-bus/scripts — not merged yet"),
+            ("Witness", "Tests exit 0; worker spawn shows model: line without traceback — open"),
+        ],
+        "paths_considered": [
+            "Patch bus.py only (minimal — empty string → None)",
+            "Rewrite worker_model tier routing (ISSUE-ROUTING-001 scope — defer)",
+            "Bypass worker_model and hardcode CCR default (hides bug)",
+        ],
+        "chosen_path_why": (
+            "Minimal bus.py fix first because the crash is an integration bug (empty string is "
+            "truthy bad input), not missing routing policy. Routing policy is rank #3 separately."
+        ),
+        "where_it_stands": (
+            "JOB-549 executing on ai-agents-workspace. Worktree shows 1-line bus.py fix plus "
+            "scratch reproduce scripts; permanent test + witness still needed before complete."
+        ),
+        "effort": {
+            "time": "Executing — watch 15m coding_worker timeout",
+            "work": "coding_worker branch job/20260630-549-issue-bus-001-fix-agent-bus-wo",
+            "budget": "spent $0.00 · remaining $20.00 · limit $20.00/week",
+        },
+        "links": [
+            ("Dashboard", DASHBOARD),
+            ("worker_model.py", "agent-bus/scripts/worker_model.py"),
+            ("CEO Ledger", "ledger.html"),
+        ],
+    },
+    "ISSUE-80": {
+        "title": "Dashboard live-sync + honest memos",
+        "situation": (
+            "Nick cannot tell what workers are doing from thin job memos and lagging exports. "
+            "POL-003 requires reconcile-on-finish, bus-live export, and cron sync on the droplet."
+        ),
+        "mece": [
+            ("Live export", "export_bus_live.py + generate_job_memos on sync tick"),
+            ("Reconcile", "reconcile-ledger.py flags stale in_progress per POL-002"),
+            ("Cron", "sync-dashboard-live.sh every 15m on droplet"),
+            ("Witness", "witness_dashboard_honesty.py exits 0"),
+        ],
+        "paths_considered": [
+            "React rewrite",
+            "Extend gate server + vanilla JS (chosen for SYS-002)",
+            "Static-only shorter cron",
+        ],
+        "chosen_path_why": (
+            "Extend existing Python gate server — same path as SYS-002 live mission; add POL-005 "
+            "narrative job memos so Nick sees what each worker is actually doing."
+        ),
+        "where_it_stands": (
+            "JOB-573 executing on nick2-dashboard in parallel with ISSUE-BUS-001 on workspace repo."
+        ),
+        "effort": {
+            "time": "Parallel lane #2 after PMO triage",
+            "work": "coding_worker on nick2-dashboard",
+            "budget": "spent $0.00 · remaining $20.00 · limit $20.00/week",
+        },
+        "links": [
+            ("Dashboard", DASHBOARD),
+            ("GitHub #80", "https://github.com/nicholasg3/ai-agents-workspace/issues/80"),
+            ("CEO Ledger", "ledger.html"),
+        ],
+    },
 }
 
 

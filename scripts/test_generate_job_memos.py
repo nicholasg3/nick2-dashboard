@@ -22,16 +22,22 @@ class GenerateJobMemosTests(unittest.TestCase):
                 "objective": "ISSUE-080: Harden POL-003",
             }
         }
+        catalog = {
+            "ISSUE-80": {
+                "problem": "Dashboard lags reality and memos are too thin.",
+                "doing": "Harden live sync.",
+                "steps": ["Reconcile", "Export bus-live", "Witness"],
+                "witness": "witness exits 0",
+            }
+        }
         text = gjm.situation_paragraph(
-            objective="ISSUE-080: Harden POL-003 dashboard-live sync",
             pmo_item=pmo["ISSUE-80"],
             ledger_tid="ISSUE-80",
-            ledger_task={"task": "Nick2 dashboard reconcile"},
-            parent_dispatch={"output": "pmo-dispatch:queued 3 issues"},
+            work=catalog["ISSUE-80"],
         )
         self.assertIn("#2", text)
         self.assertIn("0.75", text)
-        self.assertIn("DISPATCH-001", text)
+        self.assertIn("Dashboard lags", text)
 
     def test_where_it_stands_flags_duplicates(self):
         row = {
@@ -97,6 +103,23 @@ class GenerateJobMemosTests(unittest.TestCase):
                 + "\n",
                 encoding="utf-8",
             )
+            catalog = root / "job_work_catalog.json"
+            catalog.write_text(
+                json.dumps(
+                    {
+                        "tasks": {
+                            "ISSUE-80": {
+                                "problem": "Dashboard sync lags.",
+                                "doing": "Harden reconcile path.",
+                                "steps": ["Reconcile", "Export", "Witness"],
+                                "witness": "witness exits 0",
+                                "touch_paths": ["scripts/reconcile-ledger.py"],
+                            }
+                        }
+                    }
+                ),
+                encoding="utf-8",
+            )
             pmo = root / "pmo_001_result.json"
             pmo.write_text(
                 json.dumps(
@@ -146,10 +169,16 @@ class GenerateJobMemosTests(unittest.TestCase):
             conn.row_factory = sqlite3.Row
             row = conn.execute("SELECT * FROM jobs").fetchone()
 
-            old_ledger, old_pmo, old_db = gjm.LEDGER, gjm.PMO_RESULT, gjm.BUS_DB
+            old_ledger, old_pmo, old_db, old_cat = (
+                gjm.LEDGER,
+                gjm.PMO_RESULT,
+                gjm.BUS_DB,
+                gjm.WORK_CATALOG,
+            )
             gjm.LEDGER = ledger
             gjm.PMO_RESULT = pmo
             gjm.BUS_DB = db
+            gjm.WORK_CATALOG = catalog
             try:
                 events = gjm.load_ledger()
                 body = gjm.job_memo_body(
@@ -161,9 +190,15 @@ class GenerateJobMemosTests(unittest.TestCase):
                     conn=conn,
                 )
             finally:
-                gjm.LEDGER, gjm.PMO_RESULT, gjm.BUS_DB = old_ledger, old_pmo, old_db
+                gjm.LEDGER, gjm.PMO_RESULT, gjm.BUS_DB, gjm.WORK_CATALOG = (
+                    old_ledger,
+                    old_pmo,
+                    old_db,
+                    old_cat,
+                )
 
-            self.assertIn("PMO-001 triage ranked this **#2**", body)
+            self.assertIn("WHAT IT'S DOING", body)
+            self.assertIn("Harden reconcile", body)
             self.assertIn("ISSUE-80", body)
             self.assertIn("WHERE IT STANDS", body)
             conn.close()
@@ -177,7 +212,10 @@ class GenerateJobMemosTests(unittest.TestCase):
     def test_validate_job_memo_accepts_rich_body(self):
         good = (
             "# JOB-1\n\n## SITUATION\n\n"
-            + "PMO-001 triage ranked this #2 after analysis completed.\n\n"
+            + "PMO dispatched worker_model fix. Rank #1.\n\n"
+            "## WHAT IT'S DOING\n\n"
+            + "Patch bus.py model resolution.\n\n**Steps:**\n1. Reproduce\n2. Patch\n\n"
+            + "**Done when:** `pytest exits 0`\n\n"
             "## WHERE IT STANDS\n\nExecuting on nick2-dashboard.\n\n"
             "## EFFORT & COST\n\n- **Time:** x\n\n## LINKS\n\n- ledger\n"
         )

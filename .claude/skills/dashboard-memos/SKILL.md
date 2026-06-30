@@ -17,7 +17,9 @@ Canonical policy: `nick2-dashboard/memos/policy.md`.
 | Portfolio / WIP | `memos/queue/{task_id}.md` | `generate-memos.py` + `execution_brief.py` | POL-004 |
 | Bus job packet | `memos/jobs/{job_id}.md` | `generate_job_memos.py` | POL-005 |
 
-Nick reads **SITUATION** + **WHERE IT STANDS** first. Raw objectives and bus status bullets alone are a policy violation.
+Nick reads **WHAT IT'S DOING** first (plain steps + done-when + live worktree diff), then **WHERE IT STANDS**. Raw objectives and bus status bullets alone are a policy violation.
+
+**Catalog:** maintain `job_work_catalog.json` alongside `pmo_001_result.json` — every dispatched `ISSUE-*` needs `problem`, `doing`, `steps`, `witness`, `touch_paths`.
 
 ## POL-004 — queue / current briefs
 
@@ -31,7 +33,7 @@ cd nick2-dashboard && python3 scripts/generate-memos.py
 
 ## POL-005 — bus job briefs
 
-Each running/held/queued job gets a narrative memo: PMO rank, duplicate warnings, portfolio link to `ISSUE-*`, stall watch.
+Each running/held/queued job gets: **WHAT IT'S DOING** (from catalog + live git diff in worktree), WHERE IT STANDS, portfolio link to `ISSUE-*`.
 
 ```bash
 cd nick2-dashboard && python3 scripts/generate_job_memos.py

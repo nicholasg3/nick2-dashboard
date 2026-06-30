@@ -1,0 +1,76 @@
+{
+  "version": 1,
+  "note": "Plain-language work intent for PMO-dispatched issues. generate_job_memos.py reads this — update when triage dispatches.",
+  "tasks": {
+    "ISSUE-BUS-001": {
+      "problem": "When the agent-bus starts a coding worker, it calls `worker_model.py` to pick an OpenRouter model slug. `bus.py` was passing an empty string as the registry model when none is configured; that breaks resolution and can crash worker spawn — jobs then stall as held/queued behind a dead harness.",
+      "doing": "Reproduce the crash, patch model resolution in `agent-bus/scripts/bus.py` and/or `worker_model.py`, add a unit test, and prove the witness exits 0 so workers can spawn again.",
+      "steps": [
+        "Reproduce — exercise `resolve_or_ccr_default()` with coding_worker / PMO packets (empty registry model)",
+        "Patch — pass `None` instead of `\"\"` when no model in session meta (bus.py ~line 992)",
+        "Test — add `test_worker_model.py` under agent-bus/scripts and run it",
+        "Witness — job completes only when tests pass and a worker can spawn without model error"
+      ],
+      "witness": "python3 agent-bus/scripts/test_worker_model.py (or test_dispatch_policy.py) exits 0",
+      "touch_paths": [
+        "agent-bus/scripts/worker_model.py",
+        "agent-bus/scripts/bus.py",
+        "agent-bus/scripts/test_worker_model.py"
+      ]
+    },
+    "ISSUE-80": {
+      "problem": "The Nick2 dashboard can lag reality: ledger and bus state are exported on a schedule, and job memos were too thin for Nick to see what workers are actually doing.",
+      "doing": "Harden POL-003 live-sync: reconcile ledger vs bus on finish, export bus-live.json, regenerate memos on cron, and add a witness that the droplet sync path stays green.",
+      "steps": [
+        "Wire reconcile-ledger + export_bus_live into sync-dashboard-live.sh cron",
+        "Ensure generate_job_memos runs on every bus-live export",
+        "Add/strengthen witness_dashboard_honesty.py checks",
+        "Prove 15m cron + manual sync keep dashboard honest"
+      ],
+      "witness": "python3 scripts/witness_dashboard_honesty.py exits 0 on droplet",
+      "touch_paths": [
+        "scripts/sync-dashboard-live.sh",
+        "scripts/export_bus_live.py",
+        "scripts/generate_job_memos.py",
+        "scripts/reconcile-ledger.py"
+      ]
+    },
+    "ISSUE-ROUTING-001": {
+      "problem": "Workers pick models via ad-hoc defaults; cost-aware routing policy exists as a skill but is not fully wired into worker_model.",
+      "doing": "Implement OpenRouter routing per model-routing-policy skill — tier selection, escalate on retry, document in registry.",
+      "steps": [
+        "Read model-routing-policy skill + references/model-routing.yaml",
+        "Extend worker_model.py tier/escalate logic",
+        "Unit tests for tier picks per session/task_type",
+        "Witness exits 0"
+      ],
+      "witness": "agent-bus unit tests green after routing change",
+      "touch_paths": [
+        "agent-bus/scripts/worker_model.py",
+        "references/model-routing.yaml"
+      ]
+    },
+    "ISSUE-15": {
+      "problem": "Skill-radar digest has no usefulness tiers — hard to prioritize which skills to improve.",
+      "doing": "Add optional usefulness tiers to the skill-radar digest path per GitHub issue #15.",
+      "steps": [
+        "Design tier schema",
+        "Implement in digest path",
+        "Witness on sample digest output"
+      ],
+      "witness": "Closes #15 when witness passes",
+      "touch_paths": ["Skill Library/", "agent-bus or digest scripts"]
+    },
+    "ISSUE-24": {
+      "problem": "Telegram PA bot permission posture may be too loose or too tight — needs a decision memo for Nick.",
+      "doing": "Research permission options (single-user vs multi-user, command surface, secrets) and produce a decision memo — no code unless Nick approves.",
+      "steps": [
+        "Review telegram-bridge/control.py and current auth",
+        "Draft options with risk tradeoffs",
+        "Ledger decision memo — gate only if new risk"
+      ],
+      "witness": "Decision memo in ledger or memos/queue",
+      "touch_paths": ["telegram-bridge/"]
+    }
+  }
+}

@@ -120,10 +120,13 @@ Required sections (real content only — no `TBD`, `—`, `_None_` as the whole 
 
 Required sections:
 
-1. **SITUATION** — PMO rank/ROI when from `pmo_001_result.json`, DISPATCH-001 parent, portfolio task name, objective gist
-2. **WHERE IT STANDS** — executing/held/queued narrative, duplicate-packet warning, 15m stall watch for runners
-3. **EFFORT & COST** — time in state, worker/repo/branch, budget from ledger tail
-4. **LINKS** — `ISSUE-*` queue brief, GitHub issue when known, ledger + bus packet pointers
+1. **SITUATION** — one sentence *why this packet exists* (the problem, not PMO boilerplate)
+2. **WHAT IT'S DOING** — plain-language work plan from `job_work_catalog.json` (steps + done-when + files in scope) plus **live worktree** diff when running
+3. **WHERE IT STANDS** — executing/held/queued narrative, active duplicate warning only, 15m stall watch
+4. **EFFORT & COST** — time in state, worker/repo/branch, budget from ledger tail
+5. **LINKS** — `ISSUE-*` queue brief, GitHub issue when known, ledger + bus packet pointers
+
+**Catalog:** `job_work_catalog.json` is the durable “what is it trying to do” source — update at triage/dispatch time; generators refuse thin memos without steps + done-when.
 
 Forbidden: memos that are only bus status bullets + raw objective dump.
 
