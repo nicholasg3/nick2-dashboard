@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-30T12:48:01Z",
+  "generated_at": "2026-06-30T12:51:01Z",
   "running": [],
   "queued": [
     {
@@ -162,7 +162,7 @@
     "task_id": "PMO-001",
     "task": "Triage 13 ready-for-agent GitHub issues",
     "ledger_status": "blocked",
-    "since": "2026-06-30T20:44:55+08:00",
+    "since": "2026-06-30T20:50:15+08:00",
     "bus_state": "idle"
   }
 }
