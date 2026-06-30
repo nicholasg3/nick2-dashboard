@@ -1,13 +1,9 @@
-_Current focus → [DISPATCH-001](queue/DISPATCH-001.html) · 0 gated · 2026-06-30 22:30 SGT_
-
-**Dispatching ISSUE-BUS-001 — Fix agent-bus worker_model crash**
-
 [Tue Jun 30, 2026]
 
-# DISPATCH-001: Dispatch top-3 from PMO-001 triage
+# ISSUE-80: Nick2 dashboard: hourly ledger reconcile + memo generation on droplet
 
-**Owner:** PMO  
-**Status:** 🟢 Executing  
+**Owner:** coding  
+**Status:** 🔴 Blocked  
 **Last Updated:** 2026-06-30 22:30
 
 ────────────────────────────────────────────
@@ -16,7 +12,11 @@ _Current focus → [DISPATCH-001](queue/DISPATCH-001.html) · 0 gated · 2026-06
 
 ### Objective
 
-pmo-dispatch:queued 3 issues within $3.0 planned spend. Queue: ISSUE-BUS-001(#None), ISSUE-80(#80), ISSUE-15(#15)
+pmo-dispatch:bus submit failed: Traceback (most recent call last):
+  File "/home/nicholas/ai-agents-workspace/agent-bus/scripts/bus.py", line 1305, in <module>
+    raise SystemExit(main())
+                     ^^^^^^
+  File "/home/n
 
 ### Success Criteria
 
@@ -25,9 +25,13 @@ pmo-dispatch:queued 3 issues within $3.0 planned spend. Queue: ISSUE-BUS-001(#No
 ### Mission Decomposition (MECE)
 
 1. Execute
-Progress: █░░░░░░░░░
+Progress: ░░░░░░░░░░
 
-• pmo-dispatch:queued 3 issues within $3.0 planned spend. Queue: ISSUE-BUS-001(#None), ISSUE-80(#80), ISSUE-15(#15)
+• pmo-dispatch:bus submit failed: Traceback (most recent call last):
+  File "/home/nicholas/ai-agents-workspace/agent-bus/scripts/bus.py", line 1305, in <module>
+    raise SystemExit(main())
+                     ^^^^^^
+  File "/home/n
 
 ────────────────────────────────────────────
 
@@ -35,7 +39,7 @@ Progress: █░░░░░░░░░
 
 ### Overall Progress
 
-██░░░░░░░░ 15%
+░░░░░░░░░░ 5%
 
 ### Budget
 
@@ -57,14 +61,18 @@ Report
 
 ## CURRENT WORKSTREAMS
 
-██░░░░░░░░
+░░░░░░░░░░
 Primary workstream
 
 ────────────────────────────────────────────
 
 ## BLOCKERS
 
-• _None._
+• pmo-dispatch:bus submit failed: Traceback (most recent call last):
+  File "/home/nicholas/ai-agents-workspace/agent-bus/scripts/bus.py", line 1305, in <module>
+    raise SystemExit(main())
+                     ^^^^^^
+  File "/home/n
 
 ────────────────────────────────────────────
 
@@ -84,7 +92,11 @@ _TBD_
 ## RECENT EVENTS
 
 22:30
-task_queued: pmo-dispatch:queued 3 issues within $3.0 planned spend. Queue: ISSUE-BUS-001(#No
+task_updated: pmo-dispatch:bus submit failed: Traceback (most recent call last):
+  File "/home
+
+22:30
+task_queued: pmo-dispatch:rank 2 queued for coding_worker. Est $1.0.
 
 ────────────────────────────────────────────
 
@@ -92,4 +104,4 @@ task_queued: pmo-dispatch:queued 3 issues within $3.0 planned spend. Queue: ISSU
 
 - [Dashboard](https://nicholasg3.github.io/nick2-dashboard/)
 - [CEO Ledger](https://nicholasg3.github.io/nick2-dashboard/memos/ledger.html)
-- Ledger: `logs/ceo-ledger.jsonl` (`DISPATCH-001`)
+- Ledger: `logs/ceo-ledger.jsonl` (`ISSUE-80`)

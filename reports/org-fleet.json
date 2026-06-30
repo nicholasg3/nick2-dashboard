@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-30T13:52:59Z",
+  "generated_at": "2026-06-30T14:30:08Z",
   "legend": {
     "live": "\ud83d\udfe2 Running now (24/7 service)",
     "timer": "\u23f0 Scheduled \u2014 fires on systemd timer",
@@ -12,17 +12,18 @@
   "context": {
     "gates": [],
     "focus": {
-      "task_id": "PMO-001",
-      "task": "Triage 13 ready-for-agent GitHub issues",
-      "status": "completed",
+      "task_id": "ISSUE-BUS-001",
+      "task": "Fix agent-bus worker_model crash",
+      "status": "queued",
       "owner": "PMO"
     },
     "pmo_status": "completed",
     "pmo_task": "Triage 13 ready-for-agent GitHub issues",
+    "dispatch_active": true,
     "worker_enabled": true,
     "budget": {
       "weekly_usd": 20,
-      "remaining_usd": 20,
+      "remaining_usd": 20.0,
       "mode": "capped"
     },
     "open_gate_count": 0
@@ -30,10 +31,10 @@
   "root": {
     "id": "ceo",
     "title": "CEO (Nick2)",
-    "status": "idle",
-    "icon": "\u25c6",
+    "status": "active",
+    "icon": "\ud83d\udfe1",
     "maps_to": "frontier-orchestrator",
-    "detail": "PMO-001 (completed) \u00b7 $20/wk cap ($20 left)",
+    "detail": "ISSUE-BUS-001 (queued) \u00b7 $20/wk cap ($20.0 left)",
     "schedule": "",
     "children": [
       {
@@ -69,11 +70,11 @@
       {
         "id": "coo_pmo",
         "title": "COO / PMO",
-        "status": "timer",
-        "icon": "\u23f0",
-        "maps_to": "frontier-orchestrator",
-        "detail": "Daily cycle + /nick2 run on demand \u00b7 PMO uses gpt-4.1-mini",
-        "schedule": "~07:30 SGT daily",
+        "status": "live",
+        "icon": "\ud83d\udfe2",
+        "maps_to": "PMO (agent-bus)",
+        "detail": "PMO-001 completed \u2014 worker on \u00b7 always-on worker-pmo \u00b7 gpt-4.1-mini",
+        "schedule": "24/7 worker-pmo tmux",
         "children": []
       },
       {

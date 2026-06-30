@@ -1,7 +1,3 @@
-_Current focus → [DISPATCH-001](queue/DISPATCH-001.html) · 0 gated · 2026-06-30 22:30 SGT_
-
-**Dispatching ISSUE-BUS-001 — Fix agent-bus worker_model crash**
-
 [Tue Jun 30, 2026]
 
 # DISPATCH-001: Dispatch top-3 from PMO-001 triage

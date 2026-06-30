@@ -1,13 +1,9 @@
-_Current focus → [DISPATCH-001](queue/DISPATCH-001.html) · 0 gated · 2026-06-30 22:30 SGT_
-
-**Dispatching ISSUE-BUS-001 — Fix agent-bus worker_model crash**
-
 [Tue Jun 30, 2026]
 
-# DISPATCH-001: Dispatch top-3 from PMO-001 triage
+# ISSUE-BUS-001: Fix agent-bus worker_model crash
 
-**Owner:** PMO  
-**Status:** 🟢 Executing  
+**Owner:** coding  
+**Status:** 🟡 At Risk  
 **Last Updated:** 2026-06-30 22:30
 
 ────────────────────────────────────────────
@@ -16,7 +12,7 @@ _Current focus → [DISPATCH-001](queue/DISPATCH-001.html) · 0 gated · 2026-06
 
 ### Objective
 
-pmo-dispatch:queued 3 issues within $3.0 planned spend. Queue: ISSUE-BUS-001(#None), ISSUE-80(#80), ISSUE-15(#15)
+pmo-dispatch:dispatched JOB-20260630-807 to coding_worker (held).
 
 ### Success Criteria
 
@@ -25,9 +21,9 @@ pmo-dispatch:queued 3 issues within $3.0 planned spend. Queue: ISSUE-BUS-001(#No
 ### Mission Decomposition (MECE)
 
 1. Execute
-Progress: █░░░░░░░░░
+Progress: ░░░░░░░░░░
 
-• pmo-dispatch:queued 3 issues within $3.0 planned spend. Queue: ISSUE-BUS-001(#None), ISSUE-80(#80), ISSUE-15(#15)
+• pmo-dispatch:dispatched JOB-20260630-807 to coding_worker (held).
 
 ────────────────────────────────────────────
 
@@ -35,7 +31,7 @@ Progress: █░░░░░░░░░
 
 ### Overall Progress
 
-██░░░░░░░░ 15%
+░░░░░░░░░░ 5%
 
 ### Budget
 
@@ -57,7 +53,7 @@ Report
 
 ## CURRENT WORKSTREAMS
 
-██░░░░░░░░
+░░░░░░░░░░
 Primary workstream
 
 ────────────────────────────────────────────
@@ -84,7 +80,10 @@ _TBD_
 ## RECENT EVENTS
 
 22:30
-task_queued: pmo-dispatch:queued 3 issues within $3.0 planned spend. Queue: ISSUE-BUS-001(#No
+task_updated: pmo-dispatch:dispatched JOB-20260630-807 to coding_worker (held).
+
+22:30
+task_queued: pmo-dispatch:rank 1 queued for coding_worker. Est $1.0.
 
 ────────────────────────────────────────────
 
@@ -92,4 +91,4 @@ task_queued: pmo-dispatch:queued 3 issues within $3.0 planned spend. Queue: ISSU
 
 - [Dashboard](https://nicholasg3.github.io/nick2-dashboard/)
 - [CEO Ledger](https://nicholasg3.github.io/nick2-dashboard/memos/ledger.html)
-- Ledger: `logs/ceo-ledger.jsonl` (`DISPATCH-001`)
+- Ledger: `logs/ceo-ledger.jsonl` (`ISSUE-BUS-001`)

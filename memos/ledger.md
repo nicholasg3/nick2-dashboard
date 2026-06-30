@@ -4,6 +4,16 @@ Read-only view of `logs/ceo-ledger.jsonl`.
 
 | Time | Actor | Event | Task ID | Task |
 |------|-------|-------|---------|------|
+| 2026-06-30T22:30:08 | PMO | focus_snapshot | FOCUS-001 | Fix agent-bus worker_model crash |
+| 2026-06-30T22:30:08 | PMO | task_updated | ISSUE-15 | FEATURE: optional skill usefulness tiers |
+| 2026-06-30T22:30:08 | PMO | task_queued | ISSUE-15 | FEATURE: optional skill usefulness tiers |
+| 2026-06-30T22:30:08 | PMO | task_updated | ISSUE-80 | Nick2 dashboard: hourly ledger reconcile + memo ge |
+| 2026-06-30T22:30:07 | PMO | task_queued | ISSUE-80 | Nick2 dashboard: hourly ledger reconcile + memo ge |
+| 2026-06-30T22:30:07 | PMO | task_updated | ISSUE-BUS-001 | Fix agent-bus worker_model crash |
+| 2026-06-30T22:30:06 | PMO | task_queued | ISSUE-BUS-001 | Fix agent-bus worker_model crash |
+| 2026-06-30T22:30:06 | PMO | task_queued | DISPATCH-001 | Dispatch top-3 from PMO-001 triage |
+| 2026-06-30T22:30:05 | PMO | task_updated | ISSUE-ROUTING-001 | OpenRouter model routing policy in worker_model |
+| 2026-06-30T22:30:04 | PMO | task_updated | ISSUE-24 | DECISION: revisit Telegram bot permission posture |
 | 2026-06-30T21:30:34 | COO | focus_snapshot | FOCUS-001 | Triage 13 ready-for-agent GitHub issues |
 | 2026-06-30T21:30:34 | COO | task_updated | PMO-001 | Triage 13 ready-for-agent GitHub issues |
 | 2026-06-30T20:34:57 | COO | task_updated | P-001 | PMO triage of 13 ready-for-agent GitHub issues |
@@ -34,13 +44,3 @@ Read-only view of `logs/ceo-ledger.jsonl`.
 | 2026-06-30T16:22:52 | CEO | policy_set | POL-001 | Nick gate queue convention |
 | 2026-06-30T16:18:18 | COO | focus_snapshot | FOCUS-001 | Triage 13 ready-for-agent GitHub issues |
 | 2026-06-30T16:18:18 | COO | task_updated | SYS-001 | Frontier worker configuration |
-| 2026-06-30T16:18:18 | COO | task_updated | PMO-001 | Triage 13 ready-for-agent GitHub issues |
-| 2026-06-30T16:18:18 | COO | decision_resolved | DEC-001 | Confirm budget convention: 0 = OFF |
-| 2026-06-30T16:05:08 | CEO | budget_authorized | BUD-002 | Set weekly OpenRouter budget to $20 |
-| 2026-06-30T15:15:00 | CTO | task_completed | DASH-001 | Build Nick2 GitHub Pages operating dashboard |
-| 2026-06-30T15:10:00 | CTO | task_started | DASH-001 | Build Nick2 GitHub Pages operating dashboard |
-| 2026-06-30T15:05:00 | CEO | roadmap_item | RM-004 | Revenue: Strategic publishing pipeline |
-| 2026-06-30T15:04:00 | CEO | roadmap_item | RM-003 | Experimental: Capital Allocation Framework |
-| 2026-06-30T15:03:00 | CEO | roadmap_item | RM-002 | Capability: Model Routing Policy skill |
-| 2026-06-30T15:02:00 | CEO | roadmap_item | RM-001 | Near-term: PMO triage + budget fix |
-| 2026-06-30T15:00:00 | CHRO | trust_snapshot | TRUST-001 | Initialize agent trust ledger |
