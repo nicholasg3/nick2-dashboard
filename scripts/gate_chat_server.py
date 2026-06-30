@@ -197,7 +197,10 @@ def resolve_static_path(url_path: str) -> Path | None:
     if rel.startswith("api/"):
         return None
     for base in (DASHBOARD, ROOT / "logs", REPORTS, ROOT / "memos"):
-        candidate = (base / rel).resolve()
+        sub = rel
+        if base == ROOT / "memos" and sub.startswith("memos/"):
+            sub = sub[len("memos/") :]
+        candidate = (base / sub).resolve()
         try:
             candidate.relative_to(base.resolve())
         except ValueError:
