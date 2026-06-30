@@ -16,8 +16,14 @@ sys.path.insert(0, str(SCRIPTS))
 
 import pmo_dispatch as pd  # noqa: E402
 
+import coo_janitor as cj  # noqa: E402
+
 
 def main() -> int:
+    janitor = cj.run_janitor(dry_run=False, append_fn=pd.append_ledger)
+    if int(janitor.get("total") or 0):
+        print("pmo_cycle: janitor", json.dumps(janitor))
+
     events = pd.load_events()
     tasks = pd.task_state(events)
     pmo_status = (tasks.get("PMO-001", {}).get("status") or "").lower()

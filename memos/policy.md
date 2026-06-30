@@ -150,3 +150,19 @@ One active bus packet per `(repo, feature_name)`:
 - **Do not:** `bus.py submit` with `smoke` in the objective (rejected at submit unless `--allow-smoke` for infra harness only).
 - **Dashboard:** `export_bus_live.py` and `generate_job_memos.py` hide smoke packets entirely.
 - **Cleanup:** `python3 agent-bus/scripts/cancel_duplicate_jobs.py --smoke-only` on the droplet.
+
+## Bus queue hygiene (POL-008)
+
+**COO janitor runs before every PMO dispatch/retry** (`coo_janitor.py` via `pmo_cycle.py` and `reconcile-ledger.py`):
+
+1. Close smoke packets (`cancel_duplicate_jobs.py --smoke-only`)
+2. Deduplicate active `(repo, feature_name)` groups
+3. Supersede active jobs for `dispatch: false` rows in `pmo_001_result.json`
+4. Release repo claims held by terminal/blocked-done jobs
+5. Supersede jobs held behind terminal/blocked dependencies (default 10m stale)
+6. Remove orphan `hold/*.json` when SQLite status is not `held`
+7. `promote_held` — move cleared jobs from hold → inbox
+
+Manual escape hatch: `python3 nick2-dashboard/scripts/coo_janitor.py --ledger`
+
+`bus.py supersede` also clears `hold_reason` and deletes matching hold files.
