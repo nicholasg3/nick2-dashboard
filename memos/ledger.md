@@ -4,6 +4,10 @@ Read-only view of `logs/ceo-ledger.jsonl`.
 
 | Time | Actor | Event | Task ID | Task |
 |------|-------|-------|---------|------|
+| 2026-07-01T04:15:05 | CEO | focus_snapshot | FOCUS-001 | CEO supervision |
+| 2026-07-01T04:12:09 | CEO | focus_snapshot | FOCUS-001 | CEO supervision |
+| 2026-07-01T04:07:06 | CEO | focus_snapshot | FOCUS-001 | CEO supervision |
+| 2026-07-01T04:02:03 | CEO | focus_snapshot | FOCUS-001 | CEO supervision |
 | 2026-07-01T04:00:06 | CEO | focus_snapshot | FOCUS-001 | CEO supervision |
 | 2026-07-01T03:57:00 | CEO | focus_snapshot | FOCUS-001 | CEO supervision |
 | 2026-07-01T03:51:58 | CEO | focus_snapshot | FOCUS-001 | CEO supervision |
@@ -40,7 +44,3 @@ Read-only view of `logs/ceo-ledger.jsonl`.
 | 2026-07-01T02:35:09 | COO | role_chat_reply | ROLE-COO | Talk with COO Office |
 | 2026-07-01T02:35:03 | Nicholas | role_chat_instruction | ROLE-COO | Talk with COO Office |
 | 2026-07-01T02:31:35 | CEO | focus_snapshot | FOCUS-001 | CEO supervision |
-| 2026-07-01T02:30:49 | CEO | role_chat_reply | ROLE-CEO | Talk with CEO Office |
-| 2026-07-01T02:30:45 | CEO | focus_snapshot | FOCUS-001 | CEO supervision |
-| 2026-07-01T02:30:43 | Nicholas | role_chat_instruction | ROLE-CEO | Talk with CEO Office |
-| 2026-07-01T02:30:08 | CEO | focus_snapshot | FOCUS-001 | CEO supervision |
