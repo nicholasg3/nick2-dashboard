@@ -91,6 +91,10 @@ with `env ANTHROPIC_BASE_URL=http://127.0.0.1:3456` + `ANTHROPIC_AUTH_TOKEN=ccr-
 - Keep `--permission-mode acceptEdits`, branch-per-job, witness exit 0.
 - **🔴 Nick/lead decision:** confirm the per-tier model choices and the $20/wk cap behavior (drop a tier before burning frontier tokens). Subscription/Sonnet-reviewer only as a rare, explicit last resort — never the default.
 
+**Model-selection criteria for coding workers (from Nick's Grok experience):** the dominant failure mode of cheap coders is **weak long-context coherence** ("shorter memory") — a change in file A is forgotten by the time file B is edited, producing locally-plausible but globally-inconsistent edits (bug litter). Two levers, which compound:
+1. **Pick for coherence, not just price.** For multi-file / tool-heavy work prefer the large-context agentic tier (**Kimi k2.5/k2.6**) over bare `qwen3-coder`; reserve Opus/premium for genuinely hard, high-stakes tasks only.
+2. **Contain the blast radius (the stronger, free lever).** Have the orchestrator **decompose into small, single-concern jobs** that fit a cheap model's working set, and **always gate output** (witness exit 0 + a `/code-review` pass) so an incoherent edit is caught before merge. A weak-memory model on a tiny, reviewed task is fine — cheaper and more robust than paying for a bigger model on everything.
+
 **Part B — surface real errors. 🟢**
 - In `_run_claude`, when `p.returncode != 0` or `data.get("is_error")`, capture **full** `stderr` + `stdout` + envelope `result`/`error`/`subtype` into the failure report and ledger (truncate generously, e.g. 2000 chars). Kill the empty `"Worker failed: "`.
 - Add a `failure_detail` field to the outbox report and a `worker_error` event to the ledger so the dashboard/orchestrator can show *why*.
