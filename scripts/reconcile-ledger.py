@@ -102,6 +102,7 @@ def reconcile(events: list[dict]) -> int:
         weekly_budget > 0
         and dec.get("event") == "decision_needed"
         and not has_event(events, event="decision_resolved", task_id="DEC-001")
+        and not has_event(events, event="nick_gate_resolved", task_id="DEC-001")
     ):
         append({
             **base,

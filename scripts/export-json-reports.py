@@ -79,10 +79,52 @@ def main() -> None:
         "transactions": transactions,
     }
 
+    resolved = {ev.get("task_id") for ev in events if ev.get("event") in ("decision_resolved", "nick_gate_resolved")}
+
+    def gated(tid: str, t: dict) -> bool:
+        if tid in resolved:
+            return False
+        if t.get("gated_by_nick") or t.get("needs_nicholas"):
+            return True
+        if t.get("status") == "awaiting_nicholas":
+            return True
+        if t.get("event") in ("nick_gate", "decision_needed"):
+            return True
+        return False
+
+    tasks = {}
+    for ev in events:
+        tid = ev.get("task_id")
+        if tid:
+            tasks[tid] = {**tasks.get(tid, {}), **ev}
+
+    gated_queue = sorted(
+        [
+            {
+                "rank": 0,
+                "task_id": tid,
+                "task": t.get("task"),
+                "priority": t.get("priority", "medium"),
+                "nick_priority": t.get("nick_priority"),
+                "what_nick_must_do": t.get("what_nick_must_do") or t.get("output"),
+                "since": t.get("ts"),
+            }
+            for tid, t in tasks.items()
+            if gated(tid, t)
+        ],
+        key=lambda x: (
+            x.get("nick_priority") if isinstance(x.get("nick_priority"), (int, float)) else {"high": 1, "medium": 2, "low": 3}.get(x.get("priority"), 99),
+            x.get("since", ""),
+        ),
+    )
+    for i, item in enumerate(gated_queue):
+        item["rank"] = i + 1
+
     (REPORTS / "trust.json").write_text(json.dumps(trust, indent=2) + "\n", encoding="utf-8")
     (REPORTS / "roadmap.json").write_text(json.dumps(roadmap, indent=2) + "\n", encoding="utf-8")
     (REPORTS / "costs.json").write_text(json.dumps(costs, indent=2) + "\n", encoding="utf-8")
-    print("Exported trust.json, roadmap.json, costs.json")
+    (REPORTS / "gated.json").write_text(json.dumps(gated_queue, indent=2) + "\n", encoding="utf-8")
+    print("Exported trust.json, roadmap.json, costs.json, gated.json")
 
 
 if __name__ == "__main__":

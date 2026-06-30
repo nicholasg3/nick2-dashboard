@@ -28,7 +28,7 @@ def task_state(events: list[dict]) -> dict[str, dict]:
     for ev in events:
         tid = ev.get("task_id")
         if tid:
-            tasks[tid] = {**tasks.get(tid, {}), **ev}
+            tasks[tid] = {**tasks.get(tid, {}), **ev, "last_event": ev.get("event")}
     return tasks
 
 
@@ -48,7 +48,28 @@ def latest(events: list[dict], key: str, default=None):
 
 
 ACTIVE = {"queued", "in_progress", "blocked", "approved"}
-SKIP_QUEUE = {"decision_needed", "decision_resolved", "roadmap_item", "trust_snapshot", "focus_snapshot"}
+SKIP_QUEUE = {
+    "decision_needed", "decision_resolved", "nick_gate", "nick_gate_resolved",
+    "roadmap_item", "trust_snapshot", "focus_snapshot", "policy_set",
+}
+
+
+def is_gated(tid: str, t: dict, resolved: set[str]) -> bool:
+    if tid in resolved:
+        return False
+    if t.get("gated_by_nick") or t.get("needs_nicholas"):
+        return True
+    if t.get("status") == "awaiting_nicholas":
+        return True
+    if t.get("event") in {"nick_gate", "decision_needed"}:
+        return True
+    return False
+
+
+def nick_rank(t: dict) -> int:
+    if isinstance(t.get("nick_priority"), (int, float)):
+        return int(t["nick_priority"])
+    return {"high": 1, "medium": 2, "low": 3}.get(t.get("priority", ""), 99)
 
 
 def write(path: Path, body: str) -> None:
@@ -114,23 +135,31 @@ def completed_memo(tid: str, t: dict) -> str:
 """
 
 
-def decision_memo(tid: str, t: dict) -> str:
-    return f"""# {tid}: Decision needed
+def gated_memo(tid: str, t: dict, rank: int) -> str:
+    what = t.get("what_nick_must_do") or t.get("output", "Review and respond.")
+    return f"""# {tid}: Gated by Nick (priority #{rank})
 
 **Priority:** {t.get('priority', 'medium')}  
-**Status:** {t.get('status', 'awaiting_nicholas')}
+**Status:** {t.get('status', 'awaiting_nicholas')}  
+**Queue rank:** #{rank}
 
-## Question
+## Waiting on Nicholas
 
 {t.get('task', '')}
 
-## Context
+## What Nicholas must do
 
-{t.get('output', '')}
+{what}
 
-## What Nicholas should do
+## Context for agents
 
-Reply via Telegram or close this decision in the ledger with `decision_resolved`.
+This item is **gated**. Agents must not idle on it — continue ungated work in the Active Work Queue.
+
+## How Nick clears this
+
+Append `nick_gate_resolved` or `decision_resolved` for `{tid}`.
+
+[Policy](../policy.md)
 """
 
 
@@ -138,13 +167,24 @@ def current_memo(events: list[dict], tasks: dict[str, dict], weekly: float) -> s
     focus_ev = next((e for e in reversed(events) if e.get("event") == "focus_snapshot"), None)
     focus_id = (focus_ev or {}).get("focus_task_id") or "PMO-001"
     ft = tasks.get(focus_id, {})
+    resolved = resolved_decisions(events)
+
+    def ungated(t: dict) -> bool:
+        tid = t.get("task_id", "")
+        return not is_gated(tid, t, resolved)
+
     in_prog = [
         t for t in tasks.values()
         if t.get("status") == "in_progress"
         and t.get("event") not in SKIP_QUEUE
+        and ungated(t)
     ]
-    primary = in_prog[0] if in_prog else ft
-    pid = primary.get("task_id", focus_id)
+    ungated_active = [
+        t for t in tasks.values()
+        if t.get("status") in ACTIVE and ungated(t) and t.get("last_event") not in SKIP_QUEUE
+    ]
+    primary = in_prog[0] if in_prog else (ft if ungated(ft) else (ungated_active[0] if ungated_active else {}))
+    pid = primary.get("task_id", focus_id if ungated(ft) else "—")
     now = datetime.now(SGT).strftime("%Y-%m-%d %H:%M SGT")
 
     return f"""# Current focus — Nick2
@@ -181,22 +221,37 @@ def main() -> None:
     weekly = float(latest(events, "weekly_budget_usd", 0) or 0)
     resolved = resolved_decisions(events)
 
+    gated_items = sorted(
+        [(tid, t) for tid, t in tasks.items() if is_gated(tid, t, resolved)],
+        key=lambda x: (nick_rank(x[1]), x[1].get("ts", "")),
+    )
+
     for tid, t in tasks.items():
         ev = t.get("event", "")
         status = t.get("status", "")
         if status == "completed" or ev == "task_completed":
             write(MEMOS / "completed" / f"{tid}.md", completed_memo(tid, t))
-        elif (
-            status in ACTIVE
-            and ev not in SKIP_QUEUE
-            and tid not in resolved
-            and not tid.startswith("DEC-")
-        ):
+        elif is_gated(tid, t, resolved):
+            rank = next((i + 1 for i, (g, _) in enumerate(gated_items) if g == tid), 0)
+            write(MEMOS / "gated" / f"{tid}.md", gated_memo(tid, t, rank))
+        elif status in ACTIVE and t.get("last_event", ev) not in SKIP_QUEUE:
             write(MEMOS / "queue" / f"{tid}.md", queue_memo(tid, t, weekly))
-        elif ev == "decision_needed" and tid not in resolved and t.get("needs_nicholas"):
-            write(MEMOS / "decisions" / f"{tid}.md", decision_memo(tid, t))
 
     write(MEMOS / "current.md", current_memo(events, tasks, weekly))
+    write(
+        MEMOS / "gated-queue.md",
+        "# Gated by Nick — priority queue\n\n"
+        + (
+            "\n".join(
+                f"{i + 1}. **{t.get('task', tid)}** (`{tid}`) — "
+                f"[memo](gated/{tid}.md) — {t.get('priority', 'medium')}"
+                for i, (tid, t) in enumerate(gated_items)
+            )
+            if gated_items
+            else "_No items gated. Agents: keep executing ungated work._"
+        )
+        + "\n",
+    )
     print(f"generate-memos: wrote memos under {MEMOS.relative_to(ROOT)}")
 
 

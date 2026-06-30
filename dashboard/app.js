@@ -14,8 +14,25 @@ const ROADMAP_LANES = {
 const ACTIVE_STATUSES = new Set(['queued', 'in_progress', 'blocked', 'approved']);
 const COMPLETED_STATUSES = new Set(['completed']);
 const QUEUE_SKIP_EVENTS = new Set([
-  'decision_needed', 'decision_resolved', 'roadmap_item', 'trust_snapshot', 'focus_snapshot',
+  'decision_needed', 'decision_resolved', 'nick_gate', 'nick_gate_resolved',
+  'roadmap_item', 'trust_snapshot', 'focus_snapshot', 'policy_set',
 ]);
+
+const NICK_PRIORITY = { high: 1, medium: 2, low: 3 };
+
+function isGatedByNick(t, resolvedIds) {
+  const id = t.task_id;
+  if (!id || resolvedIds.has(id)) return false;
+  if (t.gated_by_nick || t.needs_nicholas) return true;
+  if (t.status === 'awaiting_nicholas') return true;
+  if (t.last_event === 'nick_gate' || t.last_event === 'decision_needed') return true;
+  return false;
+}
+
+function nickPriorityRank(t) {
+  if (typeof t.nick_priority === 'number') return t.nick_priority;
+  return NICK_PRIORITY[t.priority] ?? NICK_PRIORITY[t.nick_priority] ?? 99;
+}
 
 let allEvents = [];
 let filterText = '';
@@ -122,7 +139,7 @@ function buildState(events) {
       trust.set(ev.actor, rec);
     }
 
-    if (ev.event === 'decision_resolved' && ev.task_id) {
+    if ((ev.event === 'decision_resolved' || ev.event === 'nick_gate_resolved') && ev.task_id) {
       resolvedDecisionIds.add(ev.task_id);
     }
 
@@ -150,20 +167,18 @@ function buildState(events) {
   }
 
   const taskList = [...tasks.values()];
+  const gatedByNick = taskList
+    .filter((t) => isGatedByNick(t, resolvedDecisionIds))
+    .sort((a, b) => nickPriorityRank(a) - nickPriorityRank(b) || new Date(a.ts) - new Date(b.ts));
+
   const active = taskList.filter(
     (t) =>
       ACTIVE_STATUSES.has(t.status) &&
       !COMPLETED_STATUSES.has(t.status) &&
       !QUEUE_SKIP_EVENTS.has(t.last_event) &&
-      !String(t.task_id || '').startsWith('DEC-')
+      !isGatedByNick(t, resolvedDecisionIds)
   );
   const completed = taskList.filter((t) => COMPLETED_STATUSES.has(t.status) || t.event === 'task_completed');
-  const decisions = taskList.filter(
-    (t) =>
-      t.last_event === 'decision_needed' &&
-      t.needs_nicholas &&
-      !resolvedDecisionIds.has(t.task_id)
-  );
 
   const spendByModel = {};
   const spendByProject = {};
@@ -194,7 +209,7 @@ function buildState(events) {
     active,
     completed,
     trust,
-    decisions,
+    gatedByNick,
     roadmap,
     artifacts: [...artifacts],
     budgetEntries,
@@ -248,10 +263,10 @@ function renderSnapshot(state) {
       sub: state.currentCeoTask ? fmtTs(state.currentCeoTask.ts) : 'No active CEO task',
     },
     {
-      label: 'Decisions',
-      value: String(state.decisions.length),
-      sub: 'Awaiting Nicholas',
-      badge: state.decisions.length ? badge('awaiting_nicholas') : '',
+      label: 'Gated by Nick',
+      value: String(state.gatedByNick.length),
+      sub: 'Parked — agents work elsewhere',
+      badge: state.gatedByNick.length ? badge('awaiting_nicholas') : '',
     },
   ];
 
@@ -437,23 +452,24 @@ function renderTrust(state) {
   );
 }
 
-function renderDecisions(state) {
-  if (!state.decisions.length) {
-    $('decisions-list').innerHTML = '<p class="empty">No decisions pending.</p>';
-    return;
-  }
-  $('decisions-list').innerHTML = state.decisions
-    .map(
-      (d) => `
-    <div class="decision-card">
-      <h3>${badge(d.priority || 'medium')} ${esc(d.task)}</h3>
-      <p>${esc(d.output || '')}</p>
-      <p style="margin-top:0.35rem;font-size:0.78rem;color:var(--muted)">
-        ${esc(d.task_id || '')} · ${fmtTs(d.ts)} · ${memoLink('decisions', d.task_id)}
-      </p>
-    </div>`
-    )
-    .join('');
+function renderNickGate(state) {
+  const rows = state.gatedByNick.map(
+    (g, i) => `<tr>
+      <td><strong>${i + 1}</strong></td>
+      <td>${badge(g.priority || 'medium')}</td>
+      <td>${esc(g.task)}</td>
+      <td>${esc(g.task_id || '')}</td>
+      <td>${esc(g.output?.slice(0, 80) || '')}</td>
+      <td>${memoLink('gated', g.task_id)}</td>
+      <td>${fmtTs(g.ts)}</td>
+    </tr>`
+  );
+  renderTable(
+    $('nick-gate-queue'),
+    ['#', 'Priority', 'Waiting on Nick', 'ID', 'What Nick must do', 'Memo', 'Since'],
+    rows,
+    'Nothing gated — all work is unblocked or agents are executing autonomously.'
+  );
 }
 
 function renderRoadmap(state) {
@@ -500,7 +516,7 @@ function renderAll(state) {
   renderCompleted(state);
   renderBudget(state);
   renderTrust(state);
-  renderDecisions(state);
+  renderNickGate(state);
   renderRoadmap(state);
   renderArtifacts(state);
 

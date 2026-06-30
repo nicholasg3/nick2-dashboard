@@ -113,9 +113,30 @@ code {
   box-shadow: var(--shadow);
 }
 
-.highlight-panel {
-  border-color: var(--accent-dim);
-  background: linear-gradient(180deg, #1e2d42 0%, var(--surface) 100%);
+.highlight-panel,
+.gate-panel {
+  border-color: #6b4a8a;
+  background: linear-gradient(180deg, #2a1f3d 0%, var(--surface) 100%);
+}
+
+.gate-panel h2 {
+  color: #e0c8ff;
+  text-transform: none;
+  letter-spacing: -0.01em;
+  font-size: 1rem;
+  margin-bottom: 0.35rem;
+}
+
+.panel-policy {
+  color: var(--muted);
+  font-size: 0.84rem;
+  max-width: 42rem;
+  margin-top: 0.25rem;
+}
+
+.panel-policy strong {
+  color: #e0c8ff;
+  font-weight: 600;
 }
 
 .panel h2 {

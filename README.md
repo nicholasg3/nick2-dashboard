@@ -24,6 +24,12 @@ Public operations console for the Nick2 AI-native company.
 
 Agents never rewrite history. They append one JSON line per action.
 
+## Nick gate rule
+
+**If anything needs Nicholas → park it in the Gated by Nick queue (`nick_gate` event + `memos/gated/{id}.md`) and keep working on ungated items.**
+
+See `memos/policy.md`. Do not idle waiting on Nick.
+
 ## Update the dashboard
 
 ```bash

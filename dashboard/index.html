@@ -79,15 +79,31 @@
       </section>
     </div>
 
-    <div class="two-col">
-      <section id="decisions" class="panel highlight-panel">
-        <h2>Decisions Needed From Nicholas</h2>
-        <div id="decisions-list" class="decisions"></div>
-      </section>
+    <section id="nick-gate" class="panel gate-panel">
+      <div class="panel-head">
+        <div>
+          <h2>Gated by Nick — Priority Queue</h2>
+          <p class="panel-policy">If work needs Nicholas, agents park it here and <strong>keep executing ungated work</strong>. Do not idle waiting on Nick.</p>
+        </div>
+        <a class="focus-link" href="memos/policy.md" target="_blank" rel="noopener">Agent policy →</a>
+      </div>
+      <div id="nick-gate-queue" class="table-wrap"></div>
+    </section>
 
+    <div class="two-col">
       <section id="roadmap" class="panel">
         <h2>Strategic Roadmap</h2>
         <div id="roadmap-list" class="roadmap"></div>
+      </section>
+
+      <section id="artifacts-secondary" class="panel">
+        <h2>Quick Links</h2>
+        <div class="artifacts">
+          <a class="artifact-item memo-link" href="memos/current.md">Current focus memo</a>
+          <a class="artifact-item memo-link" href="memos/policy.md">Nick gate policy</a>
+          <a class="artifact-item memo-link" href="memos/gated-queue.md">Gated queue index</a>
+          <a class="artifact-item memo-link" href="logs/ceo-ledger.jsonl">Raw ledger (JSONL)</a>
+        </div>
       </section>
     </div>
   </main>
