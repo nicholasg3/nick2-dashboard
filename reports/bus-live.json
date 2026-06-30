@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-30T11:27:01Z",
+  "generated_at": "2026-06-30T11:30:01Z",
   "running": [
     {
       "job_id": "JOB-20260630-755",
@@ -44,7 +44,18 @@
       "status": "queued"
     }
   ],
-  "held": [],
+  "held": [
+    {
+      "job_id": "JOB-20260630-924",
+      "display_name": "dashboard-live-sync-no-react-fix-memo-le [dashboard] \u00b7 queued",
+      "lane": "dashboard",
+      "repo": "nick2-dashboard",
+      "to_session": "dashboard_worker",
+      "worker_status": "queued",
+      "hold_reason": "repo nick2-dashboard claimed by JOB-20260630-755",
+      "status": "held"
+    }
+  ],
   "recent_completed": [
     {
       "job_id": "JOB-20260630-453",
@@ -100,8 +111,8 @@
   "pmo_focus": {
     "task_id": "PMO-001",
     "task": "Triage 13 ready-for-agent GitHub issues",
-    "ledger_status": "in_progress",
-    "since": "2026-06-30T16:35:52+08:00",
+    "ledger_status": "blocked",
+    "since": "2026-06-30T19:24:23+08:00",
     "bus_state": "executing",
     "note": "PMO worker running on agent-bus"
   }
