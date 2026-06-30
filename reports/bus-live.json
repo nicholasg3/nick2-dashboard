@@ -1,120 +1,186 @@
 {
-  "generated_at": "2026-06-30T12:15:01Z",
+  "generated_at": "2026-06-30T12:17:05Z",
   "running": [
     {
       "job_id": "JOB-20260630-102",
+      "short_job_id": "JOB-102",
       "display_name": "replace-wip-execution-brief-template-wit [dashboard] \u00b7 executing",
+      "feature_name": "replace-wip-execution-brief-template-wit",
+      "objective_preview": "Replace WIP execution brief template with McKinsey-style memo (POL-004).",
       "lane": "dashboard",
       "repo": "nick2-dashboard",
       "to_session": "dashboard_worker",
       "worker_status": "executing",
       "hold_reason": "",
-      "status": "running"
+      "status": "running",
+      "branch": "job/20260630-102-replace-wip-execution-brief-te",
+      "mission_id": "",
+      "memo_path": "memos/jobs/JOB-20260630-102.md"
     },
     {
       "job_id": "JOB-20260630-163",
+      "short_job_id": "JOB-163",
       "display_name": "auto-heal-gate-bus-zombie-jobs-no-manual [coder] \u00b7 executing",
+      "feature_name": "auto-heal-gate-bus-zombie-jobs-no-manual",
+      "objective_preview": "Auto-heal gate/bus zombie jobs (no manual CEO nudge).",
       "lane": "coder",
       "repo": "ai-agents-workspace",
       "to_session": "coding_worker",
       "worker_status": "executing",
       "hold_reason": "",
-      "status": "running"
+      "status": "running",
+      "branch": "job/20260630-163-auto-heal-gate-bus-zombie-jobs",
+      "mission_id": "",
+      "memo_path": "memos/jobs/JOB-20260630-163.md"
     }
   ],
   "queued": [
     {
       "job_id": "JOB-20260630-820",
+      "short_job_id": "JOB-820",
       "display_name": "JOB-20260630-820",
+      "feature_name": "",
+      "objective_preview": "Smoke test",
       "lane": "dashboard_worker",
       "repo": "",
       "to_session": "dashboard_worker",
       "worker_status": "queued",
       "hold_reason": "",
-      "status": "queued"
+      "status": "queued",
+      "branch": "",
+      "mission_id": "",
+      "memo_path": "memos/jobs/JOB-20260630-820.md"
     },
     {
       "job_id": "JOB-20260630-446",
+      "short_job_id": "JOB-446",
       "display_name": "scheduler-unit-test-one [coder] \u00b7 queued",
+      "feature_name": "scheduler-unit-test-one",
+      "objective_preview": "scheduler unit test one",
       "lane": "coder",
       "repo": "ai-agents-workspace",
       "to_session": "coding_worker",
       "worker_status": "queued",
       "hold_reason": "",
-      "status": "queued"
+      "status": "queued",
+      "branch": "job/20260630-446-scheduler-unit-test-one",
+      "mission_id": "",
+      "memo_path": "memos/jobs/JOB-20260630-446.md"
     },
     {
       "job_id": "JOB-20260630-438",
+      "short_job_id": "JOB-438",
       "display_name": "rewrite-telegram-job-completion-pings-gl [coder] \u00b7 blocked",
+      "feature_name": "rewrite-telegram-job-completion-pings-gl",
+      "objective_preview": "Rewrite Telegram job-completion pings: glanceable phone format + human memo.",
       "lane": "coder",
       "repo": "ai-agents-workspace",
       "to_session": "coding_worker",
       "worker_status": "queued",
       "hold_reason": "",
-      "status": "queued"
+      "status": "queued",
+      "branch": "job/20260630-438-rewrite-telegram-job-completio",
+      "mission_id": "",
+      "memo_path": "memos/jobs/JOB-20260630-438.md"
     }
   ],
   "held": [],
   "recent_completed": [
     {
       "job_id": "JOB-20260630-924",
+      "short_job_id": "JOB-924",
       "display_name": "dashboard-live-sync-no-react-fix-memo-le [dashboard] \u00b7 completed",
+      "feature_name": "dashboard-live-sync-no-react-fix-memo-le",
+      "objective_preview": "Dashboard live-sync (no React): fix memo/ledger/bus lag + POL-002 server enforcement.",
       "lane": "dashboard",
       "repo": "nick2-dashboard",
       "to_session": "dashboard_worker",
       "worker_status": "done",
       "hold_reason": "",
-      "status": "completed"
+      "status": "completed",
+      "branch": "job/20260630-924-dashboard-live-sync-no-react-f",
+      "mission_id": "SYS-002",
+      "memo_path": "memos/jobs/JOB-20260630-924.md"
     },
     {
       "job_id": "JOB-20260630-034",
+      "short_job_id": "JOB-034",
       "display_name": "ops-clear-zombie-job-755-and-unblock-pmo [pmo] \u00b7 executing",
+      "feature_name": "ops-clear-zombie-job-755-and-unblock-pmo",
+      "objective_preview": "OPS: Clear zombie JOB-755 and unblock PMO-001. DEC-002 was resolved in ledger at 19:09 SGT (nick_gate_resolved) but JOB-755 still shows executing and holds nick",
       "lane": "pmo",
       "repo": "nick2-dashboard",
       "to_session": "pmo",
       "worker_status": "done",
       "hold_reason": "",
-      "status": "completed"
+      "status": "completed",
+      "branch": "",
+      "mission_id": "PMO-001",
+      "memo_path": "memos/jobs/JOB-20260630-034.md"
     },
     {
       "job_id": "JOB-20260630-973",
+      "short_job_id": "JOB-973",
       "display_name": "gate-dec-003-confirm-telegram-alert-meth [pmo] \u00b7 completed",
+      "feature_name": "gate-dec-003-confirm-telegram-alert-meth",
+      "objective_preview": "Gate DEC-003 (Confirm Telegram alert method for $5 spend thresholds): Nick says \u2014 approved. do this Telegram alerts at $5 / $10 / $15 / $20 cumulative weekly sp",
       "lane": "pmo",
       "repo": "nick2-dashboard",
       "to_session": "pmo",
       "worker_status": "done",
       "hold_reason": "",
-      "status": "completed"
+      "status": "completed",
+      "branch": "",
+      "mission_id": "",
+      "memo_path": "memos/jobs/JOB-20260630-973.md"
     },
     {
       "job_id": "JOB-20260630-755",
+      "short_job_id": "JOB-755",
       "display_name": "gate-dec-002-approve-pmo-scoring-framewo [pmo] \u00b7 completed",
+      "feature_name": "gate-dec-002-approve-pmo-scoring-framewo",
+      "objective_preview": "Gate DEC-002 (Approve PMO scoring framework): Nick says \u2014 Approve default framework for pilot on top 3 issues",
       "lane": "pmo",
       "repo": "nick2-dashboard",
       "to_session": "pmo",
       "worker_status": "done",
       "hold_reason": "",
-      "status": "completed"
+      "status": "completed",
+      "branch": "",
+      "mission_id": "PMO-001",
+      "memo_path": "memos/jobs/JOB-20260630-755.md"
     },
     {
       "job_id": "JOB-20260630-453",
+      "short_job_id": "JOB-453",
       "display_name": "gate-room-live-agent-bus-dispatch-auto-c [heavy] \u00b7 completed",
+      "feature_name": "gate-room-live-agent-bus-dispatch-auto-c",
+      "objective_preview": "Gate room: live agent-bus dispatch, auto-clear gated queue, dashboard refresh",
       "lane": "heavy",
       "repo": "nick2-dashboard",
       "to_session": "heavy_coder",
       "worker_status": "done",
       "hold_reason": "",
-      "status": "completed"
+      "status": "completed",
+      "branch": "job/20260630-453-gate-room-live-agent-bus-dispa",
+      "mission_id": "PMO-001",
+      "memo_path": "memos/jobs/JOB-20260630-453.md"
     },
     {
       "job_id": "JOB-20260630-139",
+      "short_job_id": "JOB-139",
       "display_name": "dashboard-live-agent-bus-panel-real-time [dashboard] \u00b7 completed",
+      "feature_name": "dashboard-live-agent-bus-panel-real-time",
+      "objective_preview": "Dashboard live Agent Bus panel \u2014 real-time which workers are doing what",
       "lane": "dashboard",
       "repo": "nick2-dashboard",
       "to_session": "dashboard_worker",
       "worker_status": "done",
       "hold_reason": "",
-      "status": "completed"
+      "status": "completed",
+      "branch": "job/20260630-139-dashboard-live-agent-bus-panel",
+      "mission_id": "",
+      "memo_path": "memos/jobs/JOB-20260630-139.md"
     }
   ],
   "pmo_focus": {
