@@ -1,26 +1,6 @@
 {
-  "generated_at": "2026-06-30T13:15:03Z",
-  "running": [
-    {
-      "job_id": "JOB-20260630-792",
-      "short_job_id": "JOB-792",
-      "created_at": "2026-06-30T13:06:32Z",
-      "updated_at": "2026-06-30T13:06:32Z",
-      "started_at": "2026-06-30T13:06:32Z",
-      "display_name": "pmo-001-roi-ranked-triage-of-13-ready-fo [pmo] \u00b7 executing",
-      "feature_name": "pmo-001-roi-ranked-triage-of-13-ready-fo",
-      "objective_preview": "PMO-001: ROI-ranked triage of 13 ready-for-agent GitHub issues. Inventory all 13, score with interim rubric, rank top-5, dispatch frontier workers within $20/wk",
-      "lane": "pmo",
-      "repo": "ai-agents-workspace",
-      "to_session": "pmo",
-      "worker_status": "executing",
-      "hold_reason": "",
-      "status": "running",
-      "branch": "",
-      "mission_id": "",
-      "memo_path": "memos/jobs/JOB-20260630-792.md"
-    }
-  ],
+  "generated_at": "2026-06-30T13:18:01Z",
+  "running": [],
   "queued": [
     {
       "job_id": "JOB-20260630-820",
@@ -63,6 +43,25 @@
   ],
   "held": [],
   "recent_completed": [
+    {
+      "job_id": "JOB-20260630-792",
+      "short_job_id": "JOB-792",
+      "created_at": "2026-06-30T13:06:32Z",
+      "updated_at": "2026-06-30T13:16:01Z",
+      "started_at": "2026-06-30T13:06:32Z",
+      "display_name": "pmo-001-roi-ranked-triage-of-13-ready-fo [pmo] \u00b7 completed",
+      "feature_name": "pmo-001-roi-ranked-triage-of-13-ready-fo",
+      "objective_preview": "PMO-001: ROI-ranked triage of 13 ready-for-agent GitHub issues. Inventory all 13, score with interim rubric, rank top-5, dispatch frontier workers within $20/wk",
+      "lane": "pmo",
+      "repo": "ai-agents-workspace",
+      "to_session": "pmo",
+      "worker_status": "done",
+      "hold_reason": "",
+      "status": "completed",
+      "branch": "",
+      "mission_id": "",
+      "memo_path": "memos/jobs/JOB-20260630-792.md"
+    },
     {
       "job_id": "JOB-20260630-438",
       "short_job_id": "JOB-438",
@@ -157,25 +156,6 @@
       "branch": "",
       "mission_id": "PMO-001",
       "memo_path": "memos/jobs/JOB-20260630-034.md"
-    },
-    {
-      "job_id": "JOB-20260630-973",
-      "short_job_id": "JOB-973",
-      "created_at": "2026-06-30T11:12:53Z",
-      "updated_at": "2026-06-30T11:34:02Z",
-      "started_at": "2026-06-30T11:12:53Z",
-      "display_name": "gate-dec-003-confirm-telegram-alert-meth [pmo] \u00b7 completed",
-      "feature_name": "gate-dec-003-confirm-telegram-alert-meth",
-      "objective_preview": "Gate DEC-003 (Confirm Telegram alert method for $5 spend thresholds): Nick says \u2014 approved. do this Telegram alerts at $5 / $10 / $15 / $20 cumulative weekly sp",
-      "lane": "pmo",
-      "repo": "nick2-dashboard",
-      "to_session": "pmo",
-      "worker_status": "done",
-      "hold_reason": "",
-      "status": "completed",
-      "branch": "",
-      "mission_id": "",
-      "memo_path": "memos/jobs/JOB-20260630-973.md"
     }
   ],
   "pmo_focus": {
@@ -183,7 +163,6 @@
     "task": "Triage 13 ready-for-agent GitHub issues",
     "ledger_status": "blocked",
     "since": "2026-06-30T20:34:57+08:00",
-    "bus_state": "executing",
-    "note": "PMO worker running on agent-bus"
+    "bus_state": "idle"
   }
 }
