@@ -12,6 +12,36 @@ SEP = "────────────────────────�
 DASHBOARD = "https://nicholasg3.github.io/nick2-dashboard/"
 WIP_MEMO_MAX_AGE_MIN = 30
 
+# Pages under memos/ — use absolute URLs so links work from work-room, memo.html, and queue HTML.
+_SITE_MEMO_PAGES = {
+    "ledger.html": "memos/ledger.html",
+    "gated-queue.html": "memos/gated-queue.html",
+    "current.html": "memos/current.html",
+    "policy.html": "memos/policy.html",
+    "index.html": "index.html",
+}
+
+
+def resolve_link_href(href: str, *, memo_context: str = "queue") -> str:
+    """Resolve dashboard links for any viewer (work-room, memo.html, memos/queue/*.html)."""
+    if not href:
+        return href
+    if href.startswith("http"):
+        return href
+    if href in _SITE_MEMO_PAGES:
+        return DASHBOARD + _SITE_MEMO_PAGES[href]
+    if href.startswith("queue/"):
+        return DASHBOARD + "memos/" + href
+    if href in {"../index.html", "index.html"}:
+        return DASHBOARD + "index.html"
+    if href.startswith("../") and href.endswith(".html"):
+        name = href.removeprefix("../")
+        if name in _SITE_MEMO_PAGES:
+            return DASHBOARD + _SITE_MEMO_PAGES[name]
+    if memo_context == "queue" and href.endswith(".html") and "/" not in href:
+        return DASHBOARD + f"memos/queue/{href}"
+    return href
+
 # Rich execution state keyed by task_id. Agents update via ledger + regenerate-memos.
 EXECUTION_BRIEFS: dict[str, dict[str, Any]] = {
     "PMO-001": {
@@ -266,9 +296,10 @@ def mckinsey_brief_body(
         f"- **Budget:** {effort.get('budget', '—')}"
     )
 
-    back = "../index.html"
+    back = DASHBOARD + "index.html"
     links = "\n".join(
-        f"- [{label}]({href})" for label, href in brief.get("links", [("Dashboard", DASHBOARD)])
+        f"- [{label}]({resolve_link_href(href, memo_context=memo_context)})"
+        for label, href in brief.get("links", [("Dashboard", DASHBOARD)])
     )
     alias_note = ""
     if brief.get("_alias_from"):
@@ -493,20 +524,8 @@ def execution_brief_body(
         f"Limit: ${weekly:.2f}/week" if weekly > 0 else "Spent: $0.00\nRemaining: —\nLimit: OFF"
     )
 
-    def resolve_href(href: str) -> str:
-        if href.startswith("http"):
-            return href
-        if href.startswith("queue/"):
-            return href.replace("queue/", queue_peer) if memo_ctx == "current" else href.split("/")[-1]
-        root_pages = {"ledger.html", "gated-queue.html", "current.html", "policy.html"}
-        if href in root_pages:
-            return f"../{href}" if memo_ctx == "queue" else href
-        return href
-
-    queue_peer = ""
-    memo_ctx = memo_context
     links = "\n".join(
-        f"- [{label}]({resolve_href(href)})"
+        f"- [{label}]({resolve_link_href(href, memo_context=memo_context)})"
         if href.startswith("http") or href.endswith(".html") or href.startswith("queue/")
         else f"- `{href}`"
         for label, href in brief["links"]

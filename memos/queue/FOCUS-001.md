@@ -1,6 +1,6 @@
 [Tue Jun 30, 2026]
 
-[← Dashboard](../index.html)
+[← Dashboard](https://nicholasg3.github.io/nick2-dashboard/index.html)
 
 **FOCUS-001: Make the dashboard live**
 
@@ -32,6 +32,9 @@ We chose extending the gate server and vanilla JS because it fixes latency and h
 
 JOB-924 is **executing now** on the droplet (not blocked). One harness crash earlier required a requeue; repo-lock zombies (JOB-755/453) are cleared. Worker is implementing live ledger/bus API, POL-002 reconcile, and 15m sync cron on branch job/20260630-924. JOB-102 waits for 924 to finish. No Nick gate.
 
+> POL-002: last ledger touch **35m** ago — heartbeat or status transition due.
+
+
 ## EFFORT & COST
 
 - **Time:** Now: executing since ~19:50 SGT · Mission age ~2h · Past stalls (resolved): ~45m repo locks + ~15m harness retry — not current blockers
@@ -41,6 +44,6 @@ JOB-924 is **executing now** on the droplet (not blocked). One harness crash ear
 ## LINKS
 
 - [Dashboard](https://nicholasg3.github.io/nick2-dashboard/)
-- [CEO Ledger](ledger.html)
+- [CEO Ledger](https://nicholasg3.github.io/nick2-dashboard/memos/ledger.html)
 
 _Last updated 2026-06-30 19:54 SGT_

@@ -31,7 +31,7 @@ strong { color: #fff; }
   <div class="wrap">
     <p class="nav"><a href="../../index.html">← Dashboard</a></p>
     <p>[Tue Jun 30, 2026]</p>
-<p><a href="../index.html">← Dashboard</a></p>
+<p><a href="https://nicholasg3.github.io/nick2-dashboard/index.html">← Dashboard</a></p>
 <p><strong>FOCUS-001: Make the dashboard live</strong></p>
 <p>_Focus memo sourced from <strong>SYS-002</strong>._</p>
 <h2>SITUATION</h2>
@@ -44,10 +44,11 @@ strong { color: #fff; }
 <p>We chose extending the gate server and vanilla JS because it fixes latency and honesty without a framework migration. React would improve DX but would not stop agents from going quiet without the reconcile layer; static-only leaves the phone and dashboard blind during the export gap. The gate server already runs on the droplet beside the ledger — adding live endpoints is the cheapest path that unifies memo and panel reads.</p>
 <h2>WHERE IT STANDS</h2>
 <p>JOB-924 is <strong>executing now</strong> on the droplet (not blocked). One harness crash earlier required a requeue; repo-lock zombies (JOB-755/453) are cleared. Worker is implementing live ledger/bus API, POL-002 reconcile, and 15m sync cron on branch job/20260630-924. JOB-102 waits for 924 to finish. No Nick gate.</p>
+<p>&gt; POL-002: last ledger touch <strong>35m</strong> ago — heartbeat or status transition due.</p>
 <h2>EFFORT &amp; COST</h2>
 <ul><li><strong>Time:</strong> Now: executing since ~19:50 SGT · Mission age ~2h · Past stalls (resolved): ~45m repo locks + ~15m harness retry — not current blockers</li><li><strong>Work:</strong> JOB-924 attempt 2 executing; attempt 1 blocked (harness); JOB-102 held; JOB-438 parallel</li><li><strong>Budget:</strong> spent $0.00 · remaining $20.00 · limit $20/week</li></ul>
 <h2>LINKS</h2>
-<ul><li><a href="https://nicholasg3.github.io/nick2-dashboard/">Dashboard</a></li><li><a href="ledger.html">CEO Ledger</a></li></ul>
+<ul><li><a href="https://nicholasg3.github.io/nick2-dashboard/">Dashboard</a></li><li><a href="https://nicholasg3.github.io/nick2-dashboard/memos/ledger.html">CEO Ledger</a></li></ul>
 <p>_Last updated 2026-06-30 19:54 SGT_</p>
   </div>
 </body>

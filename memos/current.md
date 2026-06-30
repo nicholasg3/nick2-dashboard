@@ -1,10 +1,10 @@
-_Current focus → [PMO-001](queue/PMO-001.html) · 0 gated · 2026-06-30 20:22 SGT_
+_Current focus → [PMO-001](queue/PMO-001.html) · 0 gated · 2026-06-30 20:29 SGT_
 
 **Make the dashboard live — executing on droplet (JOB-924), live API + reconcile path**
 
 [Tue Jun 30, 2026]
 
-[← Dashboard](../index.html)
+[← Dashboard](https://nicholasg3.github.io/nick2-dashboard/index.html)
 
 **PMO-001: Triage 13 ready-for-agent GitHub issues**
 
@@ -33,7 +33,7 @@ ROI-ranked batch with interim rubric wins because FIFO would waste slots on doc-
 
 Issue inventory ~35% complete. Dependency mapping started. nick2-dashboard repo lock (JOB-453) cleared on main but PMO dispatch still needs a clean ranked top-5. DEC-002 scoring framework pending — interim rubric in use, not a hard block. No Nick gate.
 
-> POL-002: last ledger touch **51m** ago — heartbeat or status transition due.
+> POL-002: last ledger touch **58m** ago — heartbeat or status transition due.
 
 
 ## EFFORT & COST
@@ -46,7 +46,7 @@ Issue inventory ~35% complete. Dependency mapping started. nick2-dashboard repo 
 
 - [Dashboard](https://nicholasg3.github.io/nick2-dashboard/)
 - [GitHub Issues](https://github.com/nicholasg3/ai-agents-workspace/issues)
-- [CEO Ledger](ledger.html)
+- [CEO Ledger](https://nicholasg3.github.io/nick2-dashboard/memos/ledger.html)
 - [lane.json](Projects-for-agents/frontier-orchestrator/lane.json)
 
 _Last updated 2026-06-30 19:30 SGT_

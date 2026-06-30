@@ -413,6 +413,24 @@
     return { path, markdown: await res.text() };
   }
 
+  /** Fix legacy memo links when brief was generated before absolute URL resolver. */
+  function rewriteMemoLinks(root) {
+    if (!root) return;
+    const map = {
+      'ledger.html': 'memos/ledger.html',
+      '../ledger.html': 'memos/ledger.html',
+      'gated-queue.html': 'memos/gated-queue.html',
+      '../gated-queue.html': 'memos/gated-queue.html',
+      'policy.html': 'memos/policy.html',
+      '../policy.html': 'memos/policy.html',
+      '../index.html': 'index.html',
+    };
+    root.querySelectorAll('a[href]').forEach((a) => {
+      const fixed = map[a.getAttribute('href')];
+      if (fixed) a.setAttribute('href', fixed);
+    });
+  }
+
   function renderWorkMemo(el, markdown, taskMeta) {
     const parse = global.marked?.parse;
     if (!parse) {
@@ -422,6 +440,7 @@
     el.innerHTML = `
       <div class="work-brief-tag">Execution Brief</div>
       <div class="work-memo-body">${parse(markdown)}</div>`;
+    rewriteMemoLinks(el.querySelector('.work-memo-body'));
     if (taskMeta.memo_task_id && taskMeta.memo_task_id !== taskMeta.task_id) {
       const note = document.createElement('p');
       note.className = 'muted work-memo-alias';
