@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-30T13:12:01Z",
+  "generated_at": "2026-06-30T13:15:01Z",
   "running": [
     {
       "job_id": "JOB-20260630-792",
@@ -182,7 +182,7 @@
     "task_id": "PMO-001",
     "task": "Triage 13 ready-for-agent GitHub issues",
     "ledger_status": "blocked",
-    "since": "2026-06-30T20:55:39+08:00",
+    "since": "2026-06-30T20:34:57+08:00",
     "bus_state": "executing",
     "note": "PMO worker running on agent-bus"
   }
