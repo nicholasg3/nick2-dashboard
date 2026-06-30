@@ -1,0 +1,30 @@
+{
+  "CEO": {
+    "runs": 0,
+    "successes": 0,
+    "failures": 0,
+    "autonomy": "recommend_only",
+    "last_reviewed": "2026-06-30"
+  },
+  "PMO": {
+    "runs": 0,
+    "successes": 0,
+    "failures": 0,
+    "autonomy": "analysis_only",
+    "last_reviewed": "2026-06-30"
+  },
+  "COO": {
+    "runs": 0,
+    "successes": 0,
+    "failures": 0,
+    "autonomy": "recommend_only",
+    "last_reviewed": "2026-06-30"
+  },
+  "CFO": {
+    "runs": 0,
+    "successes": 0,
+    "failures": 0,
+    "autonomy": "recommend_only",
+    "last_reviewed": "2026-06-30"
+  }
+}

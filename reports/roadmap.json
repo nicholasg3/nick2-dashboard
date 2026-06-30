@@ -1,0 +1,30 @@
+[
+  {
+    "task_id": "RM-001",
+    "lane": "near_term",
+    "task": "Near-term: PMO triage + budget fix",
+    "status": "planned",
+    "priority": 1
+  },
+  {
+    "task_id": "RM-002",
+    "lane": "capability",
+    "task": "Capability: Model Routing Policy skill",
+    "status": "planned",
+    "priority": 2
+  },
+  {
+    "task_id": "RM-003",
+    "lane": "experimental",
+    "task": "Experimental: Capital Allocation Framework",
+    "status": "planned",
+    "priority": 3
+  },
+  {
+    "task_id": "RM-004",
+    "lane": "revenue",
+    "task": "Revenue: Strategic publishing pipeline",
+    "status": "planned",
+    "priority": 4
+  }
+]
