@@ -73,6 +73,15 @@ function fmtUsd(n) {
   return `$${Number(n).toFixed(2)}`;
 }
 
+function fmtTaskCost(total, tracked) {
+  const n = Number(total) || 0;
+  if (n > 0) return fmtUsd(n);
+  if (tracked) return fmtUsd(0);
+  return '<span class="cost-untracked" title="No API spend logged in ledger for this task">—</span>';
+}
+
+const COMPLETED_SKIP_TASK_RE = /^FOCUS-/;
+
 function parseIso(ts) {
   if (!ts) return null;
   try {
@@ -187,6 +196,9 @@ function buildState(events) {
   let autonomyMode = null;
   let currentCeoTask = null;
   let focusSnapshot = null;
+  const taskCostTotal = new Map();
+  const taskCostTracked = new Set();
+  const taskArtifactsAll = new Map();
 
   for (const ev of sorted) {
     if (ev.weekly_budget_usd != null) weeklyBudget = ev.weekly_budget_usd;
@@ -197,6 +209,17 @@ function buildState(events) {
     if (ev.task_id) {
       const prev = tasks.get(ev.task_id) || {};
       tasks.set(ev.task_id, { ...prev, ...ev, last_event: ev.event });
+      const tid = ev.task_id;
+      const cost = Number(ev.cost_usd) || 0;
+      if (cost > 0) {
+        taskCostTotal.set(tid, (taskCostTotal.get(tid) || 0) + cost);
+        taskCostTracked.add(tid);
+      }
+      if (Array.isArray(ev.artifacts)) {
+        const bag = taskArtifactsAll.get(tid) || new Set();
+        for (const a of ev.artifacts) if (a) bag.add(a);
+        taskArtifactsAll.set(tid, bag);
+      }
     }
 
     if (ev.trust && typeof ev.trust === 'object') {
@@ -260,7 +283,20 @@ function buildState(events) {
       !QUEUE_SKIP_EVENTS.has(t.last_event) &&
       !isGatedByNick(t, resolvedDecisionIds)
   );
-  const completed = taskList.filter((t) => COMPLETED_STATUSES.has(t.status) || t.event === 'task_completed');
+  const completed = taskList
+    .filter(
+      (t) =>
+        t.task_id &&
+        !COMPLETED_SKIP_TASK_RE.test(t.task_id) &&
+        (COMPLETED_STATUSES.has(t.status) || t.event === 'task_completed')
+    )
+    .map((t) => ({
+      ...t,
+      total_cost_usd: taskCostTotal.get(t.task_id) || 0,
+      cost_tracked: taskCostTracked.has(t.task_id),
+      artifacts: [...(taskArtifactsAll.get(t.task_id) || new Set(t.artifacts || []))],
+    }))
+    .sort((a, b) => new Date(b.ts) - new Date(a.ts));
 
   const spendByModel = {};
   const spendByProject = {};
@@ -620,15 +656,15 @@ function renderCompleted(state) {
   const rows = state.completed.map(
     (t) => `<tr>
       <td>${fmtTs(t.ts)}</td>
-      <td>${esc(t.actor)}</td>
+      <td>${esc(t.actor || t.owner || '—')}</td>
       <td>${taskMemoLink(t.task, 'completed', t.task_id)}</td>
-      <td>${fmtUsd(t.cost_usd || 0)}</td>
+      <td>${fmtTaskCost(t.total_cost_usd, t.cost_tracked)}</td>
       <td>${esc((t.artifacts || []).join(', ') || '—')}</td>
     </tr>`
   );
   renderTable(
     $('completed-work'),
-    ['Time', 'Owner', 'Task', 'Cost', 'Artifacts'],
+    ['Time', 'Owner', 'Task', 'Cost (API)', 'Artifacts'],
     rows,
     'No completed tasks yet.'
   );

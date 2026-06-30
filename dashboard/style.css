@@ -967,6 +967,10 @@ tr:hover td { background: rgba(79, 156, 249, 0.05); }
   font-weight: 600;
 }
 
+.cost-untracked {
+  color: var(--muted, #888);
+}
+
 .queue-stale-tag {
   font-size: 0.68rem;
   text-transform: uppercase;
