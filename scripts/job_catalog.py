@@ -320,6 +320,15 @@ def enrich_catalog_entry(
             entry["witness"] = f"{task_id}: runnable witness exits 0 before done"
         changed = True
 
+    if not entry.get("landed_audit") or str(entry.get("landed_audit")).lower() in (
+        "off",
+        "false",
+        "none",
+    ):
+        if not is_decision_gated(item, entry, gh):
+            entry["landed_audit"] = "open_witness"
+            changed = True
+
     if not entry.get("touch_paths"):
         repo = str(item.get("repo") or "ai-agents-workspace")
         area = str(item.get("area") or "")

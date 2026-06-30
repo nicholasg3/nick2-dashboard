@@ -17,6 +17,7 @@ SCRIPTS = ROOT / "scripts"
 sys.path.insert(0, str(SCRIPTS))
 
 import dashboard_honesty as dh  # noqa: E402
+import sync_alert as sa  # noqa: E402
 
 LEDGER = ROOT / "logs" / "ceo-ledger.jsonl"
 BUS = Path(
@@ -28,9 +29,12 @@ BUS = Path(
 
 
 def append_ledger(event: dict) -> None:
-    event.setdefault("ts", __import__("datetime").datetime.now(
-        __import__("datetime").timezone(__import__("datetime").timedelta(hours=8))
-    ).strftime("%Y-%m-%dT%H:%M:%S+08:00"))
+    event.setdefault(
+        "ts",
+        __import__("datetime")
+        .datetime.now(__import__("datetime").timezone(__import__("datetime").timedelta(hours=8)))
+        .strftime("%Y-%m-%dT%H:%M:%S+08:00"),
+    )
     line = json.dumps(event, ensure_ascii=False, separators=(",", ":"))
     prefix = ""
     if LEDGER.exists() and LEDGER.stat().st_size > 0:
@@ -44,14 +48,51 @@ def append_ledger(event: dict) -> None:
 def load_packet_report(job_id: str) -> tuple[dict, dict]:
     packet_path = BUS / "logs" / f"{job_id}.packet.json"
     report_path = BUS / "outbox" / f"{job_id}.json"
-    packet = {}
-    report = {}
+    packet: dict = {}
+    report: dict = {}
     if packet_path.is_file():
         packet = json.loads(packet_path.read_text(encoding="utf-8"))
     if report_path.is_file():
         report = json.loads(report_path.read_text(encoding="utf-8"))
     packet.setdefault("job_id", job_id)
     return packet, report
+
+
+def _run_reconcile_pass() -> tuple[int, str]:
+    errs: list[str] = []
+    for script in ("reconcile-ledger.py", "export_bus_live.py"):
+        r = subprocess.run(
+            [sys.executable, str(SCRIPTS / script)],
+            cwd=str(ROOT),
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        if r.returncode != 0:
+            errs.append(f"{script} exit {r.returncode}: {(r.stderr or r.stdout)[:200]}")
+    return (1 if errs else 0, "; ".join(errs))
+
+
+def _fail(job_id: str, *, detail: str, alert: bool = True) -> int:
+    msg = f"bus_finish_sync FAILED {job_id}: {detail[:400]}"
+    print(msg, file=sys.stderr)
+    append_ledger(
+        {
+            "actor": "COO",
+            "role": "Chief Operating Officer",
+            "event": "bus_finish_sync_failed",
+            "task_id": "SYS-002",
+            "task": "Dashboard ledger↔bus coupling",
+            "status": "blocked",
+            "owner": "COO",
+            "output": msg,
+            "needs_nicholas": False,
+            "artifacts": [f"agent-bus {job_id}"],
+        }
+    )
+    if alert and os.environ.get("BUS_FINISH_ALERT", "1") not in ("0", "false"):
+        sa.send_alert(f"Nick2 bus_finish_sync\n\n{msg}")
+    return 1
 
 
 def main() -> int:
@@ -68,29 +109,29 @@ def main() -> int:
         append_ledger(ev)
         events = dh.load_events()
 
-    # Full reconcile pass (idempotent markers)
-    subprocess.run(
-        [sys.executable, str(SCRIPTS / "reconcile-ledger.py")],
-        cwd=str(ROOT),
-        check=False,
-    )
-    subprocess.run(
-        [sys.executable, str(SCRIPTS / "export_bus_live.py")],
-        cwd=str(ROOT),
-        check=False,
-    )
+    rc, detail = _run_reconcile_pass()
+    if rc != 0:
+        return _fail(args.job, detail=detail)
 
     if not args.skip_push and os.environ.get("BUS_FINISH_PUSH", "1") not in ("0", "false"):
         sync = SCRIPTS / "sync-dashboard-live.sh"
         if sync.is_file():
-            subprocess.run(["bash", str(sync)], cwd=str(ROOT), check=False)
+            r = subprocess.run(["bash", str(sync)], cwd=str(ROOT), check=False)
+            if r.returncode != 0:
+                return _fail(args.job, detail=f"sync-dashboard-live.sh exit {r.returncode}")
 
     issues = dh.detect_drift()
     if issues:
-        print("bus_finish_sync: residual drift after sync:", file=sys.stderr)
-        for i in issues:
-            print(f"  - {i}", file=sys.stderr)
-        return 1
+        print("bus_finish_sync: residual drift, running reconcile…", file=sys.stderr)
+        subprocess.run(
+            [sys.executable, str(SCRIPTS / "reconcile-ledger.py")],
+            cwd=str(ROOT),
+            check=False,
+        )
+        issues = dh.detect_drift()
+    if issues:
+        return _fail(args.job, detail=f"drift after sync: {'; '.join(issues[:5])}")
+
     print("bus_finish_sync: ok", args.job)
     return 0
 

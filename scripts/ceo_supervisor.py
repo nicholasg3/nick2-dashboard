@@ -24,6 +24,7 @@ sys.path.insert(0, str(SCRIPTS))
 
 import coo_janitor as cj  # noqa: E402
 import ceo_reflect as cr  # noqa: E402
+import cron_health as ch  # noqa: E402
 import job_catalog as jc  # noqa: E402
 import pmo_dispatch as pd  # noqa: E402
 
@@ -96,6 +97,10 @@ def run_cycle(
         janitor = cj.run_janitor(dry_run=True)
 
     honesty = run_witness_honesty() if not dry_run else {"skipped": dry_run}
+    cron_issues = [] if dry_run else ch.check()
+    cron_alert = False
+    if cron_issues and not dry_run:
+        cron_alert = ch.maybe_alert(cron_issues)
     checkin = run_checkin_summary()
     reflect = cr.run_reflect(
         dry_run=dry_run,
@@ -116,6 +121,7 @@ def run_cycle(
         "catalog_enriched": enriched.get("enriched", 0),
         "janitor": janitor,
         "witness_honesty": honesty,
+        "cron_health": {"issues": cron_issues, "alerted": cron_alert},
         "checkin": checkin,
         "reflect": reflect,
         "corrective_actions": corrective,
@@ -131,6 +137,8 @@ def run_cycle(
         issues.append("janitor: %s actions" % janitor["total"])
     if honesty.get("ok") is False:
         issues.append("dashboard witness failed")
+    if cron_issues:
+        issues.append("sync cron stale: " + cron_issues[0][:120])
     if checkin.get("issues"):
         issues.append("fleet check-in flagged issues")
     high_bn = [b for b in (reflect.get("bottlenecks") or []) if b.get("severity") == "high"]

@@ -3,7 +3,7 @@
   "note": "Plain-language work intent for PMO-dispatched issues. generate_job_memos.py reads this — update when triage dispatches.",
   "tasks": {
     "ISSUE-BUS-001": {
-      "landed_audit": "off",
+      "landed_audit": "open_witness",
       "problem": "When the agent-bus starts a coding worker, it calls `worker_model.py` to pick an OpenRouter model slug. `bus.py` was passing an empty string as the registry model when none is configured; that breaks resolution and can crash worker spawn — jobs then stall as held/queued behind a dead harness.",
       "doing": "Reproduce the crash, patch model resolution in `agent-bus/scripts/bus.py` and/or `worker_model.py`, add a unit test, and prove the witness exits 0 so workers can spawn again.",
       "steps": [

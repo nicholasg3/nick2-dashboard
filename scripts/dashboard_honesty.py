@@ -28,12 +28,20 @@ BUS_DB = Path(
 SGT = timezone(timedelta(hours=8))
 WIP_STALE_MIN = 30
 ACTIVE_STATUSES = frozenset({"in_progress", "queued", "approved"})
+LEDGER_TERMINAL = frozenset({"completed", "blocked", "idle", "cancelled"})
+TERMINAL_BUS_STATUSES = frozenset({"completed", "blocked", "closed-superseded"})
 EXECUTING_RE = re.compile(r"\b(executing|running|still running|in flight)\b", re.I)
 MARKER_PREFIX = "reconcile-bus:"
+DISPATCH_TASK_ID = "DISPATCH-001"
 
 
 def cited_job_suffixes(text: str) -> list[str]:
-    return list(dict.fromkeys(re.findall(r"JOB-(\d+)", text or "")))
+    """Extract numeric suffixes from JOB-YYYYMMDD-NNN (preferred) or JOB-NNN."""
+    text = text or ""
+    full = re.findall(r"JOB-\d{8}-(\d+)", text)
+    if full:
+        return list(dict.fromkeys(full))
+    return list(dict.fromkeys(re.findall(r"JOB-(\d+)", text)))
 
 
 def parse_ts(ts: str) -> datetime | None:
@@ -254,14 +262,14 @@ def detect_drift(
             continue
         for suffix in cited_job_suffixes(output):
             row = job_for_suffix(suffix)
-            if not row or row["status"] != "completed":
+            if not row or row["status"] not in TERMINAL_BUS_STATUSES:
                 continue
             marker = f"{MARKER_PREFIX}{tid}-job-{suffix}-done"
             if has_output_marker(events, tid, marker):
                 continue
             if status == "in_progress" or EXECUTING_RE.search(output):
                 issues.append(
-                    f"{tid} cites completed {row['job_id']} as still active "
+                    f"{tid} cites terminal {row['job_id']} ({row['status']}) as still active "
                     f"(ledger status={status})"
                 )
 
@@ -332,7 +340,7 @@ def reconcile_bus(
             continue
         for suffix in cited_job_suffixes(output):
             row = job_for_suffix(suffix)
-            if not row or row["status"] != "completed":
+            if not row or row["status"] not in TERMINAL_BUS_STATUSES:
                 continue
             marker = f"{MARKER_PREFIX}{tid}-job-{suffix}-done"
             if has_output_marker(events, tid, marker):
@@ -343,9 +351,11 @@ def reconcile_bus(
             owner = t.get("owner") or t.get("actor") or "worker"
             session = {
                 "dashboard_worker": "dashboard_worker",
+                "coding": "coding_worker",
                 "PMO": "pmo",
                 "CEO": "CEO",
             }.get(owner, owner)
+            bus_st = str(row["status"])
 
             replacement = conn.execute(
                 "SELECT job_id FROM jobs WHERE status='running' "
@@ -356,6 +366,11 @@ def reconcile_bus(
                 replacement = conn.execute(
                     "SELECT job_id FROM jobs WHERE status='running' "
                     "AND to_session='dashboard_worker' LIMIT 1"
+                ).fetchone()
+            if not replacement and owner == "coding":
+                replacement = conn.execute(
+                    "SELECT job_id FROM jobs WHERE status='running' "
+                    "AND to_session='coding_worker' LIMIT 1"
                 ).fetchone()
 
             if replacement:
@@ -369,19 +384,25 @@ def reconcile_bus(
                     "status": "in_progress",
                     "owner": owner,
                     "output": (
-                        f"{marker} Prior {row['job_id']} completed; now {short_id} on bus."
+                        f"{marker} Prior {row['job_id']} ({bus_st}); now {short_id} on bus."
                     ),
                 })
             else:
+                ledger_final = (
+                    "completed"
+                    if bus_st in ("completed", "closed-superseded")
+                    else "blocked"
+                )
                 append({
                     **base,
                     "event": "task_updated",
                     "task_id": tid,
                     "task": t.get("task", tid),
-                    "status": "completed",
+                    "status": ledger_final,
                     "owner": owner,
                     "output": (
-                        f"{marker} {row['job_id']} completed on bus — no {session} job running."
+                        f"{marker} {row['job_id']} {bus_st} on bus — "
+                        f"no {session} job running."
                     ),
                 })
                 if tid.startswith(("SYS-", "FOCUS-")) or tid == "SYS-002":
@@ -391,9 +412,13 @@ def reconcile_bus(
                         "task_id": "FOCUS-001",
                         "focus_task_id": tid if tid != "FOCUS-001" else "SYS-002",
                         "task": t.get("task", tid),
-                        "focus_line": f"{t.get('task', tid)} — bus job done, no worker running",
-                        "focus_detail": f"{row['job_id']} completed; reconcile updated {tid}.",
-                        "status": "completed",
+                        "focus_line": (
+                            f"{t.get('task', tid)} — bus job {bus_st}, no worker running"
+                        ),
+                        "focus_detail": (
+                            f"{row['job_id']} {bus_st}; reconcile updated {tid}."
+                        ),
+                        "status": ledger_final,
                         "owner": owner,
                         "output": marker,
                     })
@@ -480,8 +505,63 @@ def reconcile_bus(
             })
             n += 1
 
+    n += reconcile_dispatch_parent(events, tasks, base, append)
+
     conn.close()
     return n
+
+
+def reconcile_dispatch_parent(
+    events: list[dict],
+    tasks: dict[str, dict],
+    base: dict,
+    append: Callable[[dict], bool],
+) -> int:
+    """Close DISPATCH-001 when all child issues from that batch are ledger-terminal."""
+    dispatch = tasks.get(DISPATCH_TASK_ID, {})
+    if (dispatch.get("status") or "").lower() not in ACTIVE_STATUSES:
+        return 0
+
+    children: dict[str, dict] = {
+        tid: t
+        for tid, t in tasks.items()
+        if t.get("parent_task_id") == DISPATCH_TASK_ID
+    }
+    if not children:
+        out = dispatch.get("output") or ""
+        for tid in re.findall(r"(ISSUE-[A-Z0-9-]+)", out):
+            if tid in tasks:
+                children[tid] = tasks[tid]
+
+    if not children:
+        return 0
+
+    pending = [
+        tid
+        for tid, t in children.items()
+        if (t.get("status") or "").lower() not in LEDGER_TERMINAL
+    ]
+    if pending:
+        return 0
+
+    marker = f"{MARKER_PREFIX}dispatch-001-done"
+    if has_output_marker(events, DISPATCH_TASK_ID, marker):
+        return 0
+
+    summary = ", ".join(
+        f"{tid}={(children[tid].get('status') or '?')}"
+        for tid in sorted(children)
+    )
+    append({
+        **base,
+        "event": "task_updated",
+        "task_id": DISPATCH_TASK_ID,
+        "task": dispatch.get("task", "Dispatch top-3 from PMO-001 triage"),
+        "status": "completed",
+        "owner": "PMO",
+        "output": f"{marker} All dispatch children terminal: {summary}",
+    })
+    return 1
 
 
 def _latest_field(events: list[dict], key: str, default: Any = None) -> Any:

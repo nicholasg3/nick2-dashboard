@@ -4,6 +4,8 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
 export AGENT_BUS_DB="${AGENT_BUS_DB:-$HOME/ai-agents-workspace/agent-bus/jobs.sqlite}"
+mkdir -p logs
+date -u +%Y-%m-%dT%H:%M:%SZ > logs/sync-heartbeat.txt
 
 python3 scripts/pmo_cycle.py || true
 python3 scripts/reconcile-ledger.py
@@ -11,8 +13,10 @@ python3 scripts/generate-memos.py
 python3 scripts/export_bus_live.py
 python3 scripts/export-json-reports.py
 
-git add logs/ceo-ledger.jsonl reports/ memos/ 2>/dev/null || true
+git add logs/ceo-ledger.jsonl reports/ memos/ logs/sync-heartbeat.txt 2>/dev/null || true
 if git diff --staged --quiet; then
+  date -u +%Y-%m-%dT%H:%M:%SZ > logs/sync-heartbeat.txt
+  python3 scripts/cron_health.py || true
   exit 0
 fi
 
@@ -27,3 +31,6 @@ git push origin main
 if [ "$STASHED" = "1" ]; then
   git stash pop || true
 fi
+
+date -u +%Y-%m-%dT%H:%M:%SZ > logs/sync-heartbeat.txt
+python3 scripts/cron_health.py || true

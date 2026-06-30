@@ -295,6 +295,108 @@ def test_ledger_event_for_job_finish() -> None:
     assert "cost_usd" not in ev
 
 
+def test_reconcile_blocked_job_closes_in_progress_mission() -> None:
+    with tempfile.TemporaryDirectory() as td:
+        td_path = Path(td)
+        ledger = td_path / "ledger.jsonl"
+        bus = td_path / "bus.sqlite"
+        ledger.write_text(
+            json.dumps(
+                {
+                    "task_id": "ISSUE-80",
+                    "status": "in_progress",
+                    "task": "Dashboard POL-003",
+                    "output": "pmo-dispatch:retry linked existing JOB-20260630-703.",
+                    "owner": "coding",
+                    "parent_task_id": "DISPATCH-001",
+                    "ts": "2026-06-30T23:15:00+08:00",
+                }
+            )
+            + "\n",
+            encoding="utf-8",
+        )
+        _make_bus(
+            bus,
+            [
+                (
+                    "JOB-20260630-703",
+                    "blocked",
+                    "2026-06-30T15:19:00Z",
+                    "coding_worker",
+                    "nick2-dashboard",
+                ),
+            ],
+        )
+        events = dh.load_events(ledger)
+        tasks = dh.task_state(events)
+        appended: list[dict] = []
+
+        def capture(ev: dict) -> bool:
+            appended.append(ev)
+            return True
+
+        n = dh.reconcile_bus(events, tasks, {}, capture, bus_db=bus)
+        issue_updates = [e for e in appended if e.get("task_id") == "ISSUE-80"]
+        assert n >= 1, appended
+        assert issue_updates[-1]["status"] == "blocked"
+        assert "703" in issue_updates[-1]["output"]
+
+
+def test_reconcile_dispatch_parent_when_children_terminal() -> None:
+    with tempfile.TemporaryDirectory() as td:
+        td_path = Path(td)
+        ledger = td_path / "ledger.jsonl"
+        bus = td_path / "bus.sqlite"
+        rows = [
+            {
+                "task_id": "DISPATCH-001",
+                "status": "in_progress",
+                "task": "Dispatch top-3",
+                "output": "Queue: ISSUE-BUS-001, ISSUE-80",
+                "ts": "2026-06-30T22:30:00+08:00",
+            },
+            {
+                "task_id": "ISSUE-BUS-001",
+                "status": "queued",
+                "parent_task_id": "DISPATCH-001",
+                "output": "held",
+                "ts": "2026-06-30T22:30:01+08:00",
+            },
+            {
+                "task_id": "ISSUE-80",
+                "status": "blocked",
+                "parent_task_id": "DISPATCH-001",
+                "output": "JOB-703 blocked",
+                "ts": "2026-06-30T23:20:00+08:00",
+            },
+            {
+                "task_id": "ISSUE-BUS-001",
+                "status": "blocked",
+                "parent_task_id": "DISPATCH-001",
+                "output": "worker_model still broken",
+                "ts": "2026-06-30T23:21:00+08:00",
+            },
+        ]
+        ledger.write_text(
+            "\n".join(json.dumps(r) for r in rows) + "\n",
+            encoding="utf-8",
+        )
+        _make_bus(bus, [])
+        events = dh.load_events(ledger)
+        tasks = dh.task_state(events)
+        appended: list[dict] = []
+
+        def capture(ev: dict) -> bool:
+            appended.append(ev)
+            return True
+
+        n = dh.reconcile_dispatch_parent(events, tasks, {}, capture)
+        assert n == 1, appended
+        done = [e for e in appended if e.get("task_id") == "DISPATCH-001"][-1]
+        assert done["status"] == "completed"
+        assert "dispatch-001-done" in done["output"]
+
+
 def test_ledger_event_for_job_finish_with_cost() -> None:
     events = [
         {
@@ -332,6 +434,8 @@ def main() -> int:
     test_fresh_snapshot_unblocks_when_pmo_running()
     test_write_guard_blocked_vs_executing()
     test_ledger_event_for_job_finish()
+    test_reconcile_blocked_job_closes_in_progress_mission()
+    test_reconcile_dispatch_parent_when_children_terminal()
     test_ledger_event_for_job_finish_with_cost()
     print("test_dashboard_honesty: PASS")
     return 0

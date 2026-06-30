@@ -2,6 +2,7 @@
 """Runnable witness for POL-003 dashboard honesty (jesus-ralph gate)."""
 from __future__ import annotations
 
+import os
 import subprocess
 import sys
 from pathlib import Path
@@ -10,6 +11,7 @@ ROOT = Path(__file__).resolve().parents[1]
 SCRIPTS = ROOT / "scripts"
 sys.path.insert(0, str(SCRIPTS))
 
+import cron_health as ch  # noqa: E402
 import dashboard_honesty as dh  # noqa: E402
 
 REQUIRED_SNIPPETS = [
@@ -39,7 +41,11 @@ def main() -> int:
             print(f"WITNESS FAIL wiring: {e}", file=sys.stderr)
         return 1
 
-    for test_name in ("test_dashboard_honesty.py", "test_pattern_detector.py"):
+    for test_name in (
+        "test_dashboard_honesty.py",
+        "test_pattern_detector.py",
+        "test_cron_health.py",
+    ):
         test = SCRIPTS / test_name
         if test.is_file():
             r = subprocess.run([sys.executable, str(test)], cwd=str(ROOT))
@@ -56,6 +62,15 @@ def main() -> int:
         for i in issues:
             print(f"WITNESS FAIL drift: {i}", file=sys.stderr)
         return 1
+
+    cron_issues = ch.check()
+    if cron_issues:
+        for i in cron_issues:
+            print(f"WITNESS FAIL cron: {i}", file=sys.stderr)
+        if os.environ.get("CRON_HEALTH_STRICT", "0") in ("1", "true"):
+            ch.maybe_alert(cron_issues)
+            return 1
+        print("WITNESS: cron stale (non-strict — install cron on droplet)", file=sys.stderr)
 
     print("WITNESS PASS: dashboard honesty (POL-003)")
     return 0
