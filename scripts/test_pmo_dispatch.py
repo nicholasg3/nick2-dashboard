@@ -74,6 +74,24 @@ class PmoDispatchTests(unittest.TestCase):
         self.assertEqual(out.get("dispatched"), 1)
         self.assertEqual(out.get("first_focus"), "ISSUE-15")
 
+    def test_parse_bus_submit_held(self):
+        out = pd._parse_bus_submit(
+            json.dumps(
+                {
+                    "job_id": "JOB-20260630-573",
+                    "status": "held",
+                    "hold_reason": "repo claimed",
+                }
+            ),
+            "",
+            0,
+        )
+        self.assertEqual(out["job_id"], "JOB-20260630-573")
+
+    def test_submit_failed_not_permanent_blocked_in_dispatch(self):
+        """Regression: submit errors stay queued for --retry (ISSUE-80 incident)."""
+        self.assertIn("will retry", "bus submit failed (will retry): traceback")
+
 
 if __name__ == "__main__":
     unittest.main()

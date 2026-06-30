@@ -158,26 +158,68 @@ def _feature_slug(text: str, max_len: int = 40) -> str:
     return (s[:max_len] or "job").strip("-")
 
 
-def active_bus_job(*, repo: str, objective: str) -> str | None:
-    """POL-006 — return existing active job_id for same repo+objective slug."""
+def _issue_needle(task_id: str, item: dict) -> str | None:
+    """Match ledger ISSUE-80 to objective fragments (#80, ISSUE-080)."""
+    num = item.get("issue_number")
+    if num is not None:
+        return f"#{int(num)}"
+    m = re.match(r"^ISSUE-(\d+)$", task_id or "")
+    if m:
+        return f"#{int(m.group(1))}"
+    return task_id if task_id.startswith("ISSUE-") else None
+
+
+def active_bus_job(
+    *,
+    repo: str,
+    objective: str,
+    task_id: str = "",
+    item: dict | None = None,
+) -> str | None:
+    """POL-006 — return existing active job_id for same repo+objective (or same issue)."""
     if not BUS_DB.is_file():
         return None
     slug = _feature_slug(objective.split("\n")[0])
+    needle = _issue_needle(task_id, item or {})
     conn = sqlite3.connect(BUS_DB)
     try:
-        row = conn.execute(
-            f"""SELECT job_id FROM jobs
+        rows = conn.execute(
+            f"""SELECT job_id, objective FROM jobs
                 WHERE repo=? AND status IN ({",".join("?" * len(ACTIVE_BUS))})
-                  AND (objective=? OR feature_name=?)
                 ORDER BY CASE status
                   WHEN 'running' THEN 0 WHEN 'queued' THEN 1 ELSE 2 END,
-                  created_at ASC
-                LIMIT 1""",
-            (repo, *ACTIVE_BUS, objective, slug),
-        ).fetchone()
-        return row[0] if row else None
+                  created_at ASC""",
+            (repo, *ACTIVE_BUS),
+        ).fetchall()
+        for job_id, obj in rows:
+            if obj == objective or _feature_slug((obj or "").split("\n")[0]) == slug:
+                return job_id
+            if needle and needle in (obj or ""):
+                return job_id
+            if task_id and task_id in (obj or ""):
+                return job_id
+        return None
     finally:
         conn.close()
+
+
+def _parse_bus_submit(stdout: str, stderr: str, returncode: int) -> dict:
+    out = (stdout or "").strip()
+    if returncode != 0:
+        err = (stderr or out or "bus submit failed")[:800]
+        return {"error": err, "stderr": (stderr or "")[:800], "returncode": returncode}
+    if not out:
+        return {"error": (stderr or "empty bus response")[:400], "returncode": returncode}
+    try:
+        data = json.loads(out)
+    except json.JSONDecodeError:
+        return {"error": out[:400], "returncode": returncode}
+    if data.get("action") == "split_multi_repo" and data.get("jobs"):
+        jobs = data["jobs"]
+        return jobs[-1] if jobs else {"error": "split_multi_repo empty"}
+    if data.get("job_id"):
+        return data
+    return {"error": out[:400], "returncode": returncode}
 
 
 def submit_bus_job(
@@ -185,18 +227,22 @@ def submit_bus_job(
     session: str,
     objective: str,
     repo: str,
-    task_type: str = "implementation",
+    task_type: str = "repo_edit",
     after: str | None = None,
     dry_run: bool = False,
+    task_id: str = "",
+    item: dict | None = None,
 ) -> dict | None:
     if dry_run or not BUS.is_file():
         return {"dry_run": True, "session": session, "repo": repo, "objective": objective[:120]}
-    existing = active_bus_job(repo=repo, objective=objective)
+    existing = active_bus_job(
+        repo=repo, objective=objective, task_id=task_id, item=item
+    )
     if existing:
         return {
             "job_id": existing,
-            "status": "skipped-duplicate",
-            "reason": "POL-006 active bus packet already exists",
+            "status": "linked-existing",
+            "reason": "POL-006 active bus job already covers this issue",
         }
     cmd = [
         "python3",
@@ -217,19 +263,9 @@ def submit_bus_job(
         cmd.extend(["--after", after])
     try:
         r = subprocess.run(cmd, capture_output=True, text=True, timeout=90, cwd=str(WORKSPACE))
-        out = (r.stdout or "").strip()
-        if r.returncode != 0:
-            err = (r.stderr or out or "bus submit failed")[:300]
-            return {"error": err, "returncode": r.returncode}
-        if out:
-            try:
-                return json.loads(out)
-            except json.JSONDecodeError:
-                return {"error": out or (r.stderr or "")[:400], "returncode": r.returncode}
-        return {"error": (r.stderr or "empty bus response")[:400], "returncode": r.returncode}
+        return _parse_bus_submit(r.stdout or "", r.stderr or "", r.returncode)
     except Exception as e:
         return {"error": str(e)}
-    return None
 
 
 def build_objective(item: dict, task_id: str) -> str:
@@ -359,9 +395,11 @@ def run_dispatch(
             session=worker,
             objective=objective,
             repo=repo,
-            task_type="implementation" if worker == "coding_worker" else "research",
+            task_type="repo_edit" if worker == "coding_worker" else "memo_draft",
             after=after,
             dry_run=dry_run,
+            task_id=tid,
+            item=item,
         )
         job_id = None
         if isinstance(bus_out, dict):
@@ -373,9 +411,16 @@ def run_dispatch(
         job_rows.append({"task_id": tid, "job_id": job_id, "bus": bus_out})
 
         if not dry_run and job_id:
-            status = "in_progress" if (bus_out or {}).get("status") == "running" else "queued"
-            if (bus_out or {}).get("status") == "held":
+            bus_status = (bus_out or {}).get("status", "queued")
+            if bus_status in ("running", "linked-existing"):
+                status = "in_progress"
+            elif bus_status == "held":
                 status = "queued"
+            else:
+                status = "queued"
+            note = f"dispatched {job_id} to {worker} ({bus_status})"
+            if bus_status == "linked-existing":
+                note = f"linked existing {job_id} ({bus_out.get('reason', 'POL-006')})"
             append_ledger(
                 {
                     **base,
@@ -386,7 +431,7 @@ def run_dispatch(
                     "task": title,
                     "status": status,
                     "owner": worker.replace("_worker", ""),
-                    "output": f"{DISPATCH_MARKER}dispatched {job_id} to {worker} ({(bus_out or {}).get('status', 'queued')}).",
+                    "output": f"{DISPATCH_MARKER}{note}.",
                     "artifacts": [f"agent-bus {job_id}"],
                 },
                 append_fn,
@@ -400,9 +445,12 @@ def run_dispatch(
                     "event": "task_updated",
                     "task_id": tid,
                     "task": title,
-                    "status": "blocked",
+                    "status": "queued",
                     "owner": worker.replace("_worker", ""),
-                    "output": f"{DISPATCH_MARKER}bus submit failed: {str(bus_out.get('error'))[:200]}",
+                    "output": (
+                        f"{DISPATCH_MARKER}bus submit failed (will retry): "
+                        f"{str(bus_out.get('error'))[:180]}"
+                    ),
                     "artifacts": [],
                 },
                 append_fn,
@@ -466,9 +514,9 @@ def retry_undispatched(*, dry_run: bool = False) -> dict:
         if any("agent-bus JOB-" in str(a) for a in arts):
             continue
         out_txt = t.get("output") or ""
-        if DISPATCH_MARKER not in out_txt:
+        submit_failed = "bus submit failed" in out_txt
+        if not submit_failed and DISPATCH_MARKER not in out_txt:
             continue
-
         item = catalog.get(tid, {})
         owner = (t.get("owner") or "coding").lower()
         worker = (item.get("worker") or ("research_worker" if owner == "research" else "coding_worker"))
@@ -487,9 +535,11 @@ def retry_undispatched(*, dry_run: bool = False) -> dict:
             session=worker,
             objective=build_objective(item, tid),
             repo=repo,
-            task_type="implementation" if worker == "coding_worker" else "research",
+            task_type="repo_edit" if worker == "coding_worker" else "memo_draft",
             after=prior_chain.get(chain_key),
             dry_run=dry_run,
+            task_id=tid,
+            item=item,
         )
         job_id = (bus_out or {}).get("job_id") if isinstance(bus_out, dict) else None
         if job_id:
