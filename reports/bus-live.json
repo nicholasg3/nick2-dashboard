@@ -1,26 +1,6 @@
 {
-  "generated_at": "2026-06-30T15:15:13Z",
-  "running": [
-    {
-      "job_id": "JOB-20260630-703",
-      "short_job_id": "JOB-703",
-      "created_at": "2026-06-30T14:45:03Z",
-      "updated_at": "2026-06-30T15:04:20Z",
-      "started_at": "2026-06-30T15:04:20Z",
-      "display_name": "issue-080-harden-pol-003-dashboard-live [coder] \u00b7 executing",
-      "feature_name": "issue-080-harden-pol-003-dashboard-live",
-      "objective_preview": "ISSUE-080: Harden POL-003 dashboard-live sync \u2014 reconcile, memos, bus-live export, cron witness. Closes #80 when acceptance passes.",
-      "lane": "coder",
-      "repo": "nick2-dashboard",
-      "to_session": "coding_worker",
-      "worker_status": "executing",
-      "hold_reason": "",
-      "status": "running",
-      "branch": "job/20260630-703-issue-080-harden-pol-003-dashb",
-      "mission_id": "",
-      "memo_path": "memos/jobs/JOB-20260630-703.md"
-    }
-  ],
+  "generated_at": "2026-06-30T15:25:50Z",
+  "running": [],
   "queued": [],
   "held": [],
   "recent_completed": [

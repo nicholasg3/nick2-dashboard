@@ -4,6 +4,9 @@ Read-only view of `logs/ceo-ledger.jsonl`.
 
 | Time | Actor | Event | Task ID | Task |
 |------|-------|-------|---------|------|
+| 2026-06-30T23:25:50 | Nicholas | work_removed | ISSUE-80 | Nick2 dashboard: hourly ledger reconcile + memo ge |
+| 2026-06-30T23:25:38 | CEO | ceo_reflect | FOCUS-001 | CEO reflection and bottleneck pass |
+| 2026-06-30T23:25:38 | CEO | ceo_reflect_llm | FOCUS-001 | CEO LLM reflection |
 | 2026-06-30T23:17:10 | Nicholas | work_removed | ISSUE-ROUTING-001 | OpenRouter model routing policy in worker_model |
 | 2026-06-30T23:17:10 | Nicholas | work_removed | ISSUE-24 | DECISION: revisit Telegram bot permission posture |
 | 2026-06-30T22:30:08 | PMO | focus_snapshot | FOCUS-001 | Fix agent-bus worker_model crash |
@@ -41,6 +44,3 @@ Read-only view of `logs/ceo-ledger.jsonl`.
 | 2026-06-30T17:46:35 | CRO | task_updated | LIT-001 | Autonomous literature research for memory architec |
 | 2026-06-30T16:35:52 | COO | focus_snapshot | FOCUS-001 | Triage 13 ready-for-agent GitHub issues |
 | 2026-06-30T16:35:52 | PMO | task_started | PMO-001 | Triage 13 ready-for-agent GitHub issues |
-| 2026-06-30T16:35:52 | COO | worker_status | SYS-001 | Frontier worker configuration |
-| 2026-06-30T16:35:51 | Nicholas | nick_decision | PMO-001 | Triage 13 ready-for-agent GitHub issues |
-| 2026-06-30T16:22:52 | CEO | policy_set | POL-001 | Nick gate queue convention |

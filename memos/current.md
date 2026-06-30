@@ -1,98 +1,51 @@
-_Current focus → [DISPATCH-001](queue/DISPATCH-001.html) · 2 gated · 2026-06-30 23:17 SGT_
+_Current focus → [FOCUS-001](queue/FOCUS-001.html) · 3 gated · 2026-06-30 23:25 SGT_
 
 **Dispatching ISSUE-BUS-001 — Fix agent-bus worker_model crash**
 
 [Tue Jun 30, 2026]
 
-# DISPATCH-001: Dispatch top-3 from PMO-001 triage
+[← Dashboard](https://nicholasg3.github.io/nick2-dashboard/index.html)
 
-**Owner:** PMO  
-**Status:** 🟠 Stale — no update in 30+ min (POL-002)  
-**Last Updated:** 2026-06-30 22:30
+**FOCUS-001: Fix agent-bus worker_model crash**
 
-> **WIP policy (POL-002):** Last ledger touch was **47 minutes** ago. Agents must append `task_updated` every 30 minutes or set `idle`/`completed`.
+_Focus memo sourced from **ISSUE-BUS-001**._
 
 
-────────────────────────────────────────────
+## SITUATION
 
-## MISSION
+Coding workers cannot reliably spawn: `bus.py` calls `worker_model.py` to pick an OpenRouter slug, but an empty-string registry model breaks resolution. Until this lands, DISPATCH-001 jobs pile up held/queued behind dead harnesses.
 
-### Objective
+## MECE DECOMPOSITION
 
-pmo-dispatch:queued 3 issues within $3.0 planned spend. Queue: ISSUE-BUS-001(#None), ISSUE-80(#80), ISSUE-15(#15)
+- **Reproduce** — Scratch tests in worktree exercising resolve_or_ccr_default — in flight
+- **Patch** — bus.py passes None not "" when session meta has no model — patched in JOB-549 worktree
+- **Unit test** — Permanent test_worker_model.py under agent-bus/scripts — not merged yet
+- **Witness** — Tests exit 0; worker spawn shows model: line without traceback — open
 
-### Success Criteria
+## PATHS CONSIDERED
 
-☐ Mission completed per ledger
+- Patch bus.py only (minimal — empty string → None)
+- Rewrite worker_model tier routing (ISSUE-ROUTING-001 scope — defer)
+- Bypass worker_model and hardcode CCR default (hides bug)
 
-### Mission Decomposition (MECE)
+## CHOSEN PATH + WHY
 
-1. Execute
-Progress: █░░░░░░░░░
+Minimal bus.py fix first because the crash is an integration bug (empty string is truthy bad input), not missing routing policy. Routing policy is rank #3 separately.
 
-• pmo-dispatch:queued 3 issues within $3.0 planned spend. Queue: ISSUE-BUS-001(#None), ISSUE-80(#80), ISSUE-15(#15)
+## WHERE IT STANDS
 
-────────────────────────────────────────────
+JOB-549 executing on ai-agents-workspace. Worktree shows 1-line bus.py fix plus scratch reproduce scripts; permanent test + witness still needed before complete.
 
-## EXECUTION STATUS
+## EFFORT & COST
 
-### Overall Progress
-
-██░░░░░░░░ 15%
-
-### Budget
-
-Spent: $0.00
-Remaining: $20.00
-Limit: $20.00/week
-
-### Critical Path
-
-Start
-      ↓
-Execute
-      ↓
-Verify
-      ↓
-Report
-
-────────────────────────────────────────────
-
-## CURRENT WORKSTREAMS
-
-██░░░░░░░░
-Primary workstream
-
-────────────────────────────────────────────
-
-## BLOCKERS
-
-• _None._
-
-────────────────────────────────────────────
-
-## NEXT MILESTONES
-
-—
-_TBD_
-
-────────────────────────────────────────────
-
-## WAITING ON
-
-• _None._
-
-────────────────────────────────────────────
-
-## RECENT EVENTS
-
-22:30
-task_queued: pmo-dispatch:queued 3 issues within $3.0 planned spend. Queue: ISSUE-BUS-001(#No
-
-────────────────────────────────────────────
+- **Time:** Executing — watch 15m coding_worker timeout
+- **Work:** coding_worker branch job/20260630-549-issue-bus-001-fix-agent-bus-wo
+- **Budget:** spent $0.00 · remaining $20.00 · limit $20.00/week
 
 ## LINKS
 
 - [Dashboard](https://nicholasg3.github.io/nick2-dashboard/)
+- [worker_model.py](agent-bus/scripts/worker_model.py)
 - [CEO Ledger](https://nicholasg3.github.io/nick2-dashboard/memos/ledger.html)
-- Ledger: `logs/ceo-ledger.jsonl` (`DISPATCH-001`)
+
+_Last updated 2026-06-30 23:25 SGT_

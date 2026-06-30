@@ -1,0 +1,174 @@
+{
+  "ts": "2026-06-30T15:25:21Z",
+  "mode": "ceo_reflect",
+  "context": {
+    "counts": {
+      "running": 0,
+      "held": 0,
+      "queued": 0,
+      "blocked": 7,
+      "coding_running": 0
+    },
+    "budget_remaining_usd": 20.0,
+    "weekly_budget_usd": 20.0
+  },
+  "bottlenecks": [
+    {
+      "type": "dispatch_blocked",
+      "severity": "high",
+      "detail": "ISSUE-80 queued in ledger without active bus job (submit failed or never linked).",
+      "unstick": "Retry bus submit for ISSUE-80 once admission allows.",
+      "target": "ISSUE-80"
+    }
+  ],
+  "admission": {
+    "max_new_delegations": 1,
+    "max_retries": 1,
+    "budget_ok": true,
+    "capacity_ok": true,
+    "coding_ok": true,
+    "claim_block": false,
+    "reasons": [
+      "one delegation slot available",
+      "may retry one undispatched ISSUE-*"
+    ]
+  },
+  "actions": [],
+  "proposals": [
+    {
+      "kind": "unstick",
+      "bottleneck": "dispatch_blocked",
+      "detail": "ISSUE-80 queued in ledger without active bus job (submit failed or never linked).",
+      "suggested": "Retry bus submit for ISSUE-80 once admission allows.",
+      "target": "ISSUE-80",
+      "auto_eligible": true
+    },
+    {
+      "kind": "already_deferred",
+      "task_id": "ISSUE-80",
+      "detail": "POL-009 landed on main \u2014 witness green (witness_dashboard_honesty.py); touch_paths on main (4d73ceb, JOB-924)"
+    },
+    {
+      "kind": "already_deferred",
+      "task_id": "ISSUE-ROUTING-001",
+      "detail": "Landed on main \u2014 worker_model.py + model-routing.yaml wired in bus spawn (9186153, ff874d4)"
+    },
+    {
+      "kind": "already_deferred",
+      "task_id": "ISSUE-15",
+      "detail": "Nick must pick Option A vs B and tier schema before agents implement; p3 decision-gated"
+    },
+    {
+      "kind": "already_deferred",
+      "task_id": "ISSUE-24",
+      "detail": "Nick personal queue \u2014 decision on Telegram PA permissions (not agent research)"
+    },
+    {
+      "kind": "llm_unstick",
+      "detail": "Retry bus submit for ISSUE-80 once admission allows.",
+      "suggested": "Admission allows one retry and ISSUE-80 is the main blocked issue; retrying submit may clear the ledger blockage."
+    },
+    {
+      "kind": "llm_unstick",
+      "detail": "Promote any held jobs related to ISSUE-BUS-001 or ISSUE-80 if they exist.",
+      "suggested": "Currently no held jobs are reported, but if any are found, promoting them could unblock progress without new work."
+    },
+    {
+      "kind": "llm_nick_attention",
+      "detail": "ISSUE-80 is blocked due to a failed bus submit but is marked dispatch:false because of recent policy landing; Nick needs to confirm if it can be retried or force-dispatched."
+    },
+    {
+      "kind": "llm_nick_attention",
+      "detail": "ISSUE-15 and ISSUE-24 require Nick's decisions to unblock agent implementation and Telegram bot permissions respectively."
+    },
+    {
+      "kind": "llm_nick_attention",
+      "detail": "Consider reviewing the bus job blocking causes and whether manual intervention or code fixes are needed to prevent submit failures."
+    }
+  ],
+  "bottleneck_count": 1,
+  "llm": {
+    "enabled": true,
+    "ran": true,
+    "skip_reason": "forced",
+    "execute": true,
+    "meta": {
+      "model": "openai/gpt-4.1-mini",
+      "usage": {
+        "prompt_tokens": 1868,
+        "completion_tokens": 424,
+        "total_tokens": 2292,
+        "cost": 0.0014256,
+        "is_byok": false,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0,
+          "video_tokens": 0
+        },
+        "cost_details": {
+          "upstream_inference_cost": 0.0014256,
+          "upstream_inference_prompt_cost": 0.0007472,
+          "upstream_inference_completions_cost": 0.0006784
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "image_tokens": 0,
+          "audio_tokens": 0
+        }
+      },
+      "cost_usd": 0.0009
+    },
+    "reflection": {
+      "situation_summary": "The system is fully stalled with 7 blocked tasks and no running or queued jobs. The primary bottleneck is ISSUE-80, which is queued in the ledger but has no active bus job due to a failed or missing submit. Admission allows one retry or one new delegation, but ISSUE-80 is currently dispatch:false and decision-gated, limiting options.",
+      "root_causes": [
+        "ISSUE-80 is blocked because its bus job submit failed or was never linked, causing ledger queue blockage.",
+        "ISSUE-80 is marked dispatch:false due to a recent code landing and policy verification, preventing automatic retries or dispatch.",
+        "No running or held jobs exist to progress the queue, and all bus jobs related to ISSUE-80 and ISSUE-BUS-001 are blocked.",
+        "Other issues requiring decisions from Nick (ISSUE-15, ISSUE-24) are deferred and not actionable by agents."
+      ],
+      "unstick_ideas": [
+        {
+          "idea": "Retry bus submit for ISSUE-80 once admission allows.",
+          "rationale": "Admission allows one retry and ISSUE-80 is the main blocked issue; retrying submit may clear the ledger blockage."
+        },
+        {
+          "idea": "Promote any held jobs related to ISSUE-BUS-001 or ISSUE-80 if they exist.",
+          "rationale": "Currently no held jobs are reported, but if any are found, promoting them could unblock progress without new work."
+        }
+      ],
+      "delegate_recommendation": null,
+      "focus_shift": null,
+      "nick_attention": [
+        "ISSUE-80 is blocked due to a failed bus submit but is marked dispatch:false because of recent policy landing; Nick needs to confirm if it can be retried or force-dispatched.",
+        "ISSUE-15 and ISSUE-24 require Nick's decisions to unblock agent implementation and Telegram bot permissions respectively.",
+        "Consider reviewing the bus job blocking causes and whether manual intervention or code fixes are needed to prevent submit failures."
+      ]
+    },
+    "llm_proposals": [
+      {
+        "kind": "llm_unstick",
+        "detail": "Retry bus submit for ISSUE-80 once admission allows.",
+        "suggested": "Admission allows one retry and ISSUE-80 is the main blocked issue; retrying submit may clear the ledger blockage."
+      },
+      {
+        "kind": "llm_unstick",
+        "detail": "Promote any held jobs related to ISSUE-BUS-001 or ISSUE-80 if they exist.",
+        "suggested": "Currently no held jobs are reported, but if any are found, promoting them could unblock progress without new work."
+      },
+      {
+        "kind": "llm_nick_attention",
+        "detail": "ISSUE-80 is blocked due to a failed bus submit but is marked dispatch:false because of recent policy landing; Nick needs to confirm if it can be retried or force-dispatched."
+      },
+      {
+        "kind": "llm_nick_attention",
+        "detail": "ISSUE-15 and ISSUE-24 require Nick's decisions to unblock agent implementation and Telegram bot permissions respectively."
+      },
+      {
+        "kind": "llm_nick_attention",
+        "detail": "Consider reviewing the bus job blocking causes and whether manual intervention or code fixes are needed to prevent submit failures."
+      }
+    ],
+    "actions": []
+  }
+}

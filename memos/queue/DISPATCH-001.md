@@ -6,7 +6,7 @@
 **Status:** 🟠 Stale — no update in 30+ min (POL-002)  
 **Last Updated:** 2026-06-30 22:30
 
-> **WIP policy (POL-002):** Last ledger touch was **47 minutes** ago. Agents must append `task_updated` every 30 minutes or set `idle`/`completed`.
+> **WIP policy (POL-002):** Last ledger touch was **55 minutes** ago. Agents must append `task_updated` every 30 minutes or set `idle`/`completed`.
 
 
 ────────────────────────────────────────────
