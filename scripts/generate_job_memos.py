@@ -7,12 +7,13 @@ import os
 import re
 import sqlite3
 import sys
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 MEMOS = ROOT / "memos" / "jobs"
 LEDGER = ROOT / "logs" / "ceo-ledger.jsonl"
+PMO_RESULT = ROOT / "pmo_001_result.json"
 BUS_DB = Path(
     os.environ.get(
         "AGENT_BUS_DB",
@@ -20,7 +21,9 @@ BUS_DB = Path(
     )
 )
 BUS_ROOT = BUS_DB.parent
+DASHBOARD = "https://nicholasg3.github.io/nick2-dashboard/"
 ACTIVE_STATUSES = {"running", "queued", "held", "blocked"}
+MISSION_ID_RE = re.compile(r"^(SYS|PMO|P-|POL-|LIT-|DEC-|DISPATCH-|ISSUE-)")
 
 
 def short_job_id(job_id: str) -> str:
@@ -42,21 +45,68 @@ def load_ledger() -> list[dict]:
     return out
 
 
-def mission_for_job(job_id: str, events: list[dict]) -> str | None:
+def task_state(events: list[dict]) -> dict[str, dict]:
+    tasks: dict[str, dict] = {}
+    for ev in events:
+        tid = ev.get("task_id")
+        if tid:
+            tasks[tid] = {**tasks.get(tid, {}), **ev}
+    return tasks
+
+
+def ledger_task_for_job(job_id: str, events: list[dict]) -> str | None:
+    """Resolve ISSUE-* / DISPATCH-* ledger row tied to this bus job."""
     short = short_job_id(job_id)
-    needles = (job_id, short, f"`{job_id}`")
+    needles = (job_id, short, f"`{job_id}`", f"agent-bus {job_id}")
     for ev in reversed(events):
         tid = ev.get("task_id") or ""
         if not tid or tid.startswith("FOCUS-"):
             continue
-        blob = " ".join(
-            str(ev.get(k) or "")
-            for k in ("output", "task", "artifacts")
-        )
-        if not any(n in blob for n in needles):
+        if not MISSION_ID_RE.match(tid):
             continue
-        if re.match(r"^(SYS|PMO|P-|POL-|LIT-|DEC-)", tid):
+        blob = " ".join(str(ev.get(k) or "") for k in ("output", "task", "artifacts"))
+        arts = ev.get("artifacts") or []
+        if isinstance(arts, list):
+            blob += " " + " ".join(str(a) for a in arts)
+        if any(n in blob for n in needles):
             return tid
+    return None
+
+
+def mission_for_job(job_id: str, events: list[dict]) -> str | None:
+    return ledger_task_for_job(job_id, events)
+
+
+def load_pmo_index() -> dict[str, dict]:
+    if not PMO_RESULT.is_file():
+        return {}
+    try:
+        data = json.loads(PMO_RESULT.read_text(encoding="utf-8"))
+    except (json.JSONDecodeError, OSError):
+        return {}
+    out: dict[str, dict] = {}
+    for item in data.get("top_issues") or []:
+        tid = item.get("task_id")
+        if not tid:
+            num = item.get("issue_number")
+            tid = f"ISSUE-{int(num)}" if num is not None else f"ISSUE-R{item.get('rank', 0)}"
+        out[tid] = item
+        obj = (item.get("objective") or "").strip()
+        if obj:
+            out[obj[:80]] = item
+    return out
+
+
+def pmo_item_for_job(objective: str, ledger_tid: str | None, pmo_index: dict) -> dict | None:
+    if ledger_tid and ledger_tid in pmo_index:
+        return pmo_index[ledger_tid]
+    obj = objective.strip()
+    for key, item in pmo_index.items():
+        if key in obj or obj.startswith(key):
+            return item
+    for item in pmo_index.values():
+        if isinstance(item, dict) and (item.get("objective") or "").strip() in obj:
+            return item
     return None
 
 
@@ -79,56 +129,311 @@ def load_packet(job_id: str, packet_path: str | None) -> dict:
     return {}
 
 
+def running_started_at(job_id: str) -> str | None:
+    run_file = BUS_ROOT / "running" / f"{job_id}.json"
+    if not run_file.is_file():
+        return None
+    try:
+        data = json.loads(run_file.read_text(encoding="utf-8"))
+        return data.get("started_at") or None
+    except (json.JSONDecodeError, OSError):
+        return None
+
+
+def parse_utc(ts: str) -> datetime | None:
+    if not ts:
+        return None
+    try:
+        return datetime.fromisoformat(ts.replace("Z", "+00:00"))
+    except ValueError:
+        return None
+
+
+def elapsed_phrase(ts: str) -> str:
+    dt = parse_utc(ts)
+    if not dt:
+        return "—"
+    delta = datetime.now(timezone.utc) - dt.astimezone(timezone.utc)
+    mins = int(delta.total_seconds() / 60)
+    if mins < 2:
+        return "just now"
+    if mins < 60:
+        return f"{mins}m ago"
+    hours = mins // 60
+    rem = mins % 60
+    return f"{hours}h {rem}m ago" if rem else f"{hours}h ago"
+
+
+def duplicate_siblings(
+    conn: sqlite3.Connection, feature: str, job_id: str
+) -> list[tuple[str, str]]:
+    if not feature:
+        return []
+    rows = conn.execute(
+        """SELECT job_id, status FROM jobs
+           WHERE feature_name=? AND job_id!=?
+           ORDER BY CASE status WHEN 'running' THEN 0 WHEN 'held' THEN 1
+                                WHEN 'queued' THEN 2 ELSE 3 END, updated_at DESC""",
+        (feature, job_id),
+    ).fetchall()
+    return [(r[0], r[1]) for r in rows]
+
+
+def repo_claim_job(conn: sqlite3.Connection, repo: str, exclude: str) -> str | None:
+    if not repo:
+        return None
+    row = conn.execute(
+        """SELECT job_id FROM jobs
+           WHERE repo=? AND status='running' AND job_id!=?
+           ORDER BY updated_at DESC LIMIT 1""",
+        (repo, exclude),
+    ).fetchone()
+    return row[0] if row else None
+
+
+def load_report_snippet(report_path: str | None, limit: int = 600) -> str | None:
+    if not report_path:
+        return None
+    p = Path(report_path)
+    if not p.is_file():
+        p = BUS_ROOT / "reports" / f"{Path(report_path).name}"
+    if not p.is_file():
+        return None
+    try:
+        text = p.read_text(encoding="utf-8").strip()
+    except OSError:
+        return None
+    return text[:limit] + ("…" if len(text) > limit else "")
+
+
 def objective_text(row: sqlite3.Row, packet: dict) -> str:
     obj = (row["objective"] or packet.get("objective") or "").strip()
     return obj or "(no objective text in bus record)"
 
 
-def first_paragraph(text: str, limit: int = 400) -> str:
-    chunk = text.strip().split("\n\n")[0].replace("\n", " ")
-    return chunk[:limit] + ("…" if len(chunk) > limit else "")
+def spoken_title(objective: str, feature: str, pmo_item: dict | None) -> str:
+    if pmo_item and pmo_item.get("title"):
+        return str(pmo_item["title"])
+    first = objective.split("\n")[0].strip()
+    if ":" in first:
+        first = first.split(":", 1)[1].strip()
+    if first and first != "(no objective text in bus record)":
+        return first[:80] + ("…" if len(first) > 80 else "")
+    return feature.replace("-", " ")
 
 
-def job_memo_body(row: sqlite3.Row, packet: dict, mission_id: str | None) -> str:
+def situation_paragraph(
+    *,
+    objective: str,
+    pmo_item: dict | None,
+    ledger_tid: str | None,
+    ledger_task: dict | None,
+    parent_dispatch: dict | None,
+) -> str:
+    parts: list[str] = []
+    if pmo_item:
+        rank = pmo_item.get("rank")
+        roi = pmo_item.get("roi")
+        area = pmo_item.get("area") or "—"
+        parts.append(
+            f"PMO-001 triage ranked this **#{rank}** (ROI {roi:.2f}, area `{area}`) "
+            f"after JOB-792 completed analysis."
+        )
+    elif ledger_tid:
+        parts.append(f"Ledger mission **{ledger_tid}** was dispatched to the agent-bus.")
+    else:
+        parts.append("Agent-bus worker job — see objective for scope.")
+
+    if parent_dispatch:
+        out = (parent_dispatch.get("output") or "")[:120]
+        parts.append(f"Part of **DISPATCH-001** batch ({out or 'PMO post-triage dispatch'}).")
+
+    if ledger_task:
+        task_name = ledger_task.get("task") or ledger_tid
+        parts.append(f"Portfolio task: *{task_name}*.")
+
+    gist = objective.split("\n\n")[0].replace("\n", " ").strip()
+    if gist and gist != "(no objective text in bus record)":
+        parts.append(gist)
+    return " ".join(parts)
+
+
+def where_it_stands(
+    *,
+    row: sqlite3.Row,
+    started: str | None,
+    siblings: list[tuple[str, str]],
+    repo_claim: str | None,
+    report: str | None,
+) -> str:
+    status = row["status"] or "unknown"
+    worker = row["worker_status"] or status
+    updated = row["updated_at"] or ""
+    hold = (row["hold_reason"] or "").strip()
+    lines: list[str] = []
+
+    if status == "running":
+        since = started or updated
+        lines.append(
+            f"**Executing** on `{row['repo'] or '—'}` — worker phase `{worker}`, "
+            f"last bus touch **{elapsed_phrase(updated)}**"
+            + (f" (started {elapsed_phrase(since)})." if since else ".")
+        )
+        if elapsed_phrase(updated) not in ("just now",) and parse_utc(updated):
+            age = datetime.now(timezone.utc) - parse_utc(updated).astimezone(timezone.utc)
+            if age > timedelta(minutes=12):
+                lines.append(
+                    f"> **Watch:** no bus heartbeat in **{int(age.total_seconds() / 60)}m** — "
+                    "coding_worker timeout is 15m; may stall or block without report."
+                )
+    elif status == "held":
+        lines.append(f"**Held** — not executing. {hold or 'Waiting on dependency or repo lock.'}")
+    elif status == "queued":
+        if hold:
+            lines.append(f"**Queued** — {hold}")
+        elif repo_claim:
+            lines.append(
+                f"**Queued** — `{row['repo']}` is claimed by **{short_job_id(repo_claim)}** "
+                f"(`{repo_claim}`) until that job finishes."
+            )
+        else:
+            lines.append("**Queued** — waiting for scheduler slot.")
+    else:
+        lines.append(f"Bus status **{status}** (worker `{worker}`).")
+
+    if siblings:
+        dup = ", ".join(f"{short_job_id(j)} ({s})" for j, s in siblings[:6])
+        extra = f" (+{len(siblings) - 6} more)" if len(siblings) > 6 else ""
+        lines.append(
+            f"**Duplicate packets:** {len(siblings) + 1} jobs share this feature — "
+            f"this memo is `{short_job_id(row['job_id'])}`; siblings: {dup}{extra}. "
+            "Only one should run per repo; cancel extras via PMO/bus cleanup."
+        )
+
+    if report:
+        lines.append(f"**Latest worker report:**\n\n{report}")
+    return "\n\n".join(lines)
+
+
+def effort_block(row: sqlite3.Row, started: str | None, events: list[dict]) -> str:
+    updated = row["updated_at"] or ""
+    since = started or row["created_at"] or updated
+    weekly = 0.0
+    remaining = 0.0
+    for ev in reversed(events):
+        if ev.get("weekly_budget_usd"):
+            weekly = float(ev["weekly_budget_usd"])
+            remaining = float(ev.get("budget_remaining_usd") or weekly)
+            break
+    time_line = f"Time in state: **{elapsed_phrase(since)}** · last touch **{elapsed_phrase(updated)}**"
+    work_line = (
+        f"Work: `{row['to_session'] or '—'}` on `{row['repo'] or '—'}`"
+        f" · branch `{row['branch'] or '—'}`"
+    )
+    budget_line = (
+        f"Budget: spent $0.00 · remaining ${remaining:.2f} · limit ${weekly:.2f}/week"
+        if weekly > 0
+        else "Budget: weekly cap not set on ledger tail"
+    )
+    return f"- **Time:** {time_line}\n- **Work:** {work_line}\n- **Budget:** {budget_line}"
+
+
+def job_memo_body(
+    row: sqlite3.Row,
+    packet: dict,
+    *,
+    events: list[dict],
+    tasks: dict[str, dict],
+    pmo_index: dict[str, dict],
+    conn: sqlite3.Connection,
+) -> str:
     job_id = row["job_id"]
     short = short_job_id(job_id)
     feature = row["feature_name"] or packet.get("feature_name") or "job"
     objective = objective_text(row, packet)
-    status = row["status"] or "unknown"
-    worker_status = row["worker_status"] or status
-    session = row["to_session"] or packet.get("to") or "—"
-    repo = row["repo"] or packet.get("repo") or "—"
-    branch = row["branch"] or packet.get("branch") or "—"
+    ledger_tid = ledger_task_for_job(job_id, events)
+    ledger_task = tasks.get(ledger_tid or "", {})
+    pmo_item = pmo_item_for_job(objective, ledger_tid, pmo_index)
+    parent_dispatch = tasks.get("DISPATCH-001", {})
+    title = spoken_title(objective, feature, pmo_item)
+    started = running_started_at(job_id) if row["status"] == "running" else None
+    siblings = duplicate_siblings(conn, feature, job_id)
+    repo_claim = repo_claim_job(conn, row["repo"] or "", job_id)
+    report = load_report_snippet(row["report_path"])
     hold = (row["hold_reason"] or "").strip()
-    updated = row["updated_at"] or "—"
+
+    back = DASHBOARD + "index.html"
     lines = [
-        f"# {short} — {feature}",
+        f"# {short} — {title}",
         "",
-        f"**Full ID:** `{job_id}`",
+        f"**Full ID:** `{job_id}` · [← Dashboard]({back})",
         "",
         "## SITUATION",
         "",
-        first_paragraph(objective),
+        situation_paragraph(
+            objective=objective,
+            pmo_item=pmo_item,
+            ledger_tid=ledger_tid,
+            ledger_task=ledger_task,
+            parent_dispatch=parent_dispatch,
+        ),
         "",
-        "## STATUS",
+        "## WHERE IT STANDS",
         "",
-        f"- **Bus status:** {status}",
-        f"- **Worker phase:** {worker_status}",
-        f"- **Session:** {session}",
-        f"- **Repo:** {repo}",
-        f"- **Branch:** `{branch}`" if branch != "—" else "- **Branch:** —",
-        f"- **Last updated:** {updated}",
+        where_it_stands(
+            row=row,
+            started=started,
+            siblings=siblings,
+            repo_claim=repo_claim,
+            report=report,
+        ),
+        "",
+        "## EFFORT & COST",
+        "",
+        effort_block(row, started, events),
         "",
     ]
-    if hold:
+
+    if hold and row["status"] != "held":
         lines += ["## BLOCKERS", "", hold, ""]
-    if mission_id:
+
+    if ledger_tid:
+        queue_path = f"{DASHBOARD}memos/queue/{ledger_tid}.html"
         lines += [
-            "## MISSION LINK",
+            "## LINKS",
             "",
-            f"Ledger mission **[{mission_id}](memo.html?p=memos/queue/{mission_id}.md)** — see queue brief for portfolio context.",
+            f"- Portfolio brief: [{ledger_tid}]({queue_path})",
+        ]
+        if pmo_item and pmo_item.get("issue_number"):
+            num = pmo_item["issue_number"]
+            lines.append(
+                f"- GitHub issue: [nicholasg3/ai-agents-workspace#{num}]"
+                f"(https://github.com/nicholasg3/ai-agents-workspace/issues/{num})"
+            )
+        ledger_ref = (
+            str(LEDGER.relative_to(ROOT))
+            if LEDGER.is_relative_to(ROOT)
+            else str(LEDGER)
+        )
+        lines += [
+            f"- CEO ledger: `{ledger_ref}` (search `{ledger_tid}` or `{job_id}`)",
+            f"- Bus packet: `agent-bus/logs/{job_id}.packet.json`",
             "",
         ]
+    else:
+        ledger_ref = (
+            str(LEDGER.relative_to(ROOT))
+            if LEDGER.is_relative_to(ROOT)
+            else str(LEDGER)
+        )
+        lines += [
+            "## LINKS",
+            "",
+            f"- CEO ledger: `{ledger_ref}`",
+            f"- Bus packet: `agent-bus/logs/{job_id}.packet.json`",
+            "",
+        ]
+
     lines += ["## OBJECTIVE (full)", "", "```", objective, "```", ""]
     constraints = packet.get("constraints") or []
     if constraints:
@@ -160,6 +465,8 @@ def main() -> int:
         print("generate_job_memos: no jobs.sqlite — skipped")
         return 0
     events = load_ledger()
+    tasks = task_state(events)
+    pmo_index = load_pmo_index()
     conn = sqlite3.connect(BUS_DB)
     conn.row_factory = sqlite3.Row
     MEMOS.mkdir(parents=True, exist_ok=True)
@@ -169,8 +476,14 @@ def main() -> int:
         if not row:
             continue
         packet = load_packet(job_id, row["packet_path"])
-        mission_id = mission_for_job(job_id, events)
-        body = job_memo_body(row, packet, mission_id)
+        body = job_memo_body(
+            row,
+            packet,
+            events=events,
+            tasks=tasks,
+            pmo_index=pmo_index,
+            conn=conn,
+        )
         path = MEMOS / f"{job_id}.md"
         path.write_text(body + "\n", encoding="utf-8")
         keep.add(job_id)
