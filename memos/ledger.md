@@ -4,6 +4,10 @@ Read-only view of `logs/ceo-ledger.jsonl`.
 
 | Time | Actor | Event | Task ID | Task |
 |------|-------|-------|---------|------|
+| 2026-07-01T00:30:15 | CEO | supervisor_cycle | FOCUS-001 | CEO supervisor corrective cycle |
+| 2026-07-01T00:30:15 | CEO | ceo_reflect | FOCUS-001 | CEO reflection and bottleneck pass |
+| 2026-07-01T00:30:15 | CEO | focus_snapshot | FOCUS-001 | CEO supervision |
+| 2026-07-01T00:30:15 | CEO | ceo_reflect_llm | FOCUS-001 | CEO LLM reflection |
 | 2026-07-01T00:00:09 | CEO | supervisor_cycle | FOCUS-001 | CEO supervisor corrective cycle |
 | 2026-07-01T00:00:09 | CEO | focus_snapshot | FOCUS-001 | CEO supervision |
 | 2026-06-30T23:56:48 | Nicholas | nick_gate_resolved | ISSUE-15 | FEATURE: optional skill usefulness tiers |
@@ -40,7 +44,3 @@ Read-only view of `logs/ceo-ledger.jsonl`.
 | 2026-06-30T22:30:05 | PMO | task_updated | ISSUE-ROUTING-001 | OpenRouter model routing policy in worker_model |
 | 2026-06-30T22:30:04 | PMO | task_updated | ISSUE-24 | DECISION: revisit Telegram bot permission posture |
 | 2026-06-30T21:30:34 | COO | focus_snapshot | FOCUS-001 | Triage 13 ready-for-agent GitHub issues |
-| 2026-06-30T21:30:34 | COO | task_updated | PMO-001 | Triage 13 ready-for-agent GitHub issues |
-| 2026-06-30T20:34:57 | COO | task_updated | P-001 | PMO triage of 13 ready-for-agent GitHub issues |
-| 2026-06-30T20:34:57 | COO | task_updated | PMO-001 | Triage 13 ready-for-agent GitHub issues |
-| 2026-06-30T20:34:57 | COO | focus_snapshot | FOCUS-001 | Make the dashboard live |

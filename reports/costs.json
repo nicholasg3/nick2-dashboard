@@ -3,10 +3,10 @@
   "budget_mode": "capped",
   "cumulative_weekly_spend_usd": 0,
   "spend_by_model": {
-    "openai/gpt-4.1-mini": 0.0025
+    "openai/gpt-4.1-mini": 0.0036
   },
   "spend_by_actor": {
-    "CEO": 0.0025
+    "CEO": 0.0036
   },
   "transactions": [
     {
@@ -31,6 +31,14 @@
       "model": "openai/gpt-4.1-mini",
       "cost_usd": 0.0008,
       "cumulative_weekly_spend_usd": 0,
+      "task": "CEO LLM reflection"
+    },
+    {
+      "ts": "2026-07-01T00:30:15+08:00",
+      "actor": "CEO",
+      "model": "openai/gpt-4.1-mini",
+      "cost_usd": 0.0011,
+      "cumulative_weekly_spend_usd": 0.0011,
       "task": "CEO LLM reflection"
     }
   ]
