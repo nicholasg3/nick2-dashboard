@@ -228,14 +228,15 @@ EXECUTION_BRIEFS: dict[str, dict[str, Any]] = {
             "unifies memo and panel reads."
         ),
         "where_it_stands": (
-            "JOB-924 is executing on the droplet after one harness failure and a requeue. "
-            "The worker is implementing live ledger/bus endpoints, POL-002 reconcile rules, "
-            "and the 15-minute sync script. JOB-102 (full McKinsey template for all missions) "
-            "waits behind 924. No Nick gate — this is autonomous dashboard ops."
+            "JOB-924 is executing on the droplet (requeued after one harness crash). "
+            "Live ledger/bus API endpoints, POL-002 reconcile, and 15-minute sync cron are "
+            "in progress on branch job/20260630-924. Activity feed reads ledger live; memos now "
+            "load via memo.html so they track regenerate-memos output. JOB-102 will McKinsey-format "
+            "PMO-001 and remaining queue items after 924 lands. No Nick gate."
         ),
         "effort": {
-            "time": "In focus ~90m; ~45m lost to repo-lock zombies and one worker crash",
-            "work": "2 dispatches on JOB-924 (1 retry), JOB-102 held",
+            "time": "In focus ~2h; ~45m blocked on repo-lock zombies + ~15m harness retry",
+            "work": "JOB-924 dispatch 2 (1 blocked retry), JOB-102 held, JOB-438 notify rewrite parallel",
             "budget": "spent $0.00 · remaining $20.00 · limit $20/week",
         },
         "links": [

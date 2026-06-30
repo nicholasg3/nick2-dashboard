@@ -371,7 +371,9 @@ function openGateRoom(taskId) {
 function memoHref(kind, taskId) {
   if (!taskId || !kind) return null;
   if (kind === 'gated') return `gate-room.html?task=${encodeURIComponent(taskId)}`;
-  return `memos/${kind}/${taskId}.html`;
+  // Dynamic loader — always fetches fresh .md (static .html lags behind live ledger)
+  const mdPath = `memos/${kind}/${taskId}.md`;
+  return `memo.html?p=${encodeURIComponent(mdPath)}`;
 }
 
 /** Gated queue titles open the gate room popup (MKA + chat). */
