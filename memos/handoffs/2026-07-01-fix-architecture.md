@@ -73,6 +73,12 @@ Both `FailoverBackend` and `ClaudeCodexFailoverBackend` have the same latent bug
 
 ## WI-2 — Workers hang / fail with empty errors (THE prerequisite). 🟡 + 🔴 verify
 
+### ⚡ STATUS UPDATE (2026-07-01, Claude/Opus) — partially done + key finding
+- **WI-2B (surface real errors) is DONE** — commit `428005d` in `ai-agents-workspace`. `_run_claude` now raises with `rc` + **both** stderr/stdout, guards the unwrapped `json.loads`, and labels in-band errors with their subtype. No more empty `"Worker failed: "`.
+- **WI-2A diagnostic RUN (empirical):** submitted a tiny no-op `coding_worker` job (JOB-20260630-234, "report the branch, change nothing") on the **cheap CCR→qwen path** with a 150s cap. It **COMPLETED successfully** — correct branch reported, clean tree, no hang, no error.
+- **What this means:** the worker runtime is **NOT universally broken.** Small, well-scoped tasks succeed on the cheap path. The earlier hangs (ISSUE-80, ISSUE-BUS-001) were **complex / multi-file / tool-heavy** jobs — i.e. the **coherence failure mode** (weak long-context model loses the thread on big tasks), not a plumbing failure. This **reframes the fix**: the priority is *task decomposition + output gating + model escalation for complex jobs* (the blast-radius lever), NOT a runtime swap. The CCR→OpenRouter path itself is fine for bounded work.
+- **Next for delegated agents:** re-run a *complex* job (e.g. a real multi-file issue) and read the now-visible error to confirm it is a coherence/agentic-loop failure (look for max-turns, tool-call loops, or incoherent diffs), then apply WI-2A escalation (route to Kimi agentic tier) + WI-3 decomposition.
+
 ### Root cause (diagnosed 2026-07-01)
 `ai-agents-workspace/agent-bus/scripts/bus.py::_run_claude` launches workers as:
 ```
@@ -95,7 +101,7 @@ with `env ANTHROPIC_BASE_URL=http://127.0.0.1:3456` + `ANTHROPIC_AUTH_TOKEN=ccr-
 1. **Pick for coherence, not just price.** For multi-file / tool-heavy work prefer the large-context agentic tier (**Kimi k2.5/k2.6**) over bare `qwen3-coder`; reserve Opus/premium for genuinely hard, high-stakes tasks only.
 2. **Contain the blast radius (the stronger, free lever).** Have the orchestrator **decompose into small, single-concern jobs** that fit a cheap model's working set, and **always gate output** (witness exit 0 + a `/code-review` pass) so an incoherent edit is caught before merge. A weak-memory model on a tiny, reviewed task is fine — cheaper and more robust than paying for a bigger model on everything.
 
-**Part B — surface real errors. 🟢**
+**Part B — surface real errors. 🟢 ✅ DONE (commit `428005d`)**
 - In `_run_claude`, when `p.returncode != 0` or `data.get("is_error")`, capture **full** `stderr` + `stdout` + envelope `result`/`error`/`subtype` into the failure report and ledger (truncate generously, e.g. 2000 chars). Kill the empty `"Worker failed: "`.
 - Add a `failure_detail` field to the outbox report and a `worker_error` event to the ledger so the dashboard/orchestrator can show *why*.
 
@@ -246,6 +252,8 @@ worker decides within its charter
 ## Already shipped this session (context, don't redo)
 
 Dashboard honesty/plumbing fixed & pushed: ISSUE-BUS-001 closed (+regression test), gated-queue hygiene (resolved/idle items drop; `gated()` hardened), DISPATCH-001 closed, FOCUS-001 no longer pollutes the active queue (supervisor cycle = `completed`, not `blocked`), ISSUE-24 → Option B and ISSUE-15 → Option A resolved + recorded in `ai-agents-workspace/DECISIONS.md`. Memos unified on MKA style (no 404s/progress-bars). Audit C/D/F: bus-status counts live jobs; reflect blocked-count excludes finished workers; pattern_detector test isolated → `witness_dashboard_honesty.py` PASSES. Cost bug fixed (cumulative now accumulates; sub-cent shown). Sync scripts fixed (defer instead of stash-pop; 33 orphan stashes cleared).
+
+**2026-07-01 follow-ups (this doc's WIs):** WI-2B shipped (worker errors now surfaced, `428005d`). WI-2A diagnostic: a tiny `coding_worker` job completed cleanly on the cheap CCR→qwen path → runtime works for bounded tasks; hangs are the complex-task coherence mode, so prioritize decompose+gate+escalate (see WI-2 STATUS UPDATE). Coherence model-selection criteria added to WI-2.
 
 ---
 
