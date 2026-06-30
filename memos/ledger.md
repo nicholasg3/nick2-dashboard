@@ -4,6 +4,20 @@ Read-only view of `logs/ceo-ledger.jsonl`.
 
 | Time | Actor | Event | Task ID | Task |
 |------|-------|-------|---------|------|
+| 2026-07-01T02:30:08 | CEO | focus_snapshot | FOCUS-001 | CEO supervision |
+| 2026-07-01T02:29:31 | CEO | role_chat_reply | ROLE-CEO | Talk with CEO Office |
+| 2026-07-01T02:29:25 | Nicholas | role_chat_instruction | ROLE-CEO | Talk with CEO Office |
+| 2026-07-01T02:25:44 | CEO | role_chat_reply | ROLE-CEO | Talk with CEO Office |
+| 2026-07-01T02:25:41 | CEO | focus_snapshot | FOCUS-001 | CEO supervision |
+| 2026-07-01T02:25:31 | Nicholas | role_chat_instruction | ROLE-CEO | Talk with CEO Office |
+| 2026-07-01T02:24:02 | CEO | role_chat_reply | ROLE-CEO | Talk with CEO Office |
+| 2026-07-01T02:23:52 | Nicholas | role_chat_instruction | ROLE-CEO | Talk with CEO Office |
+| 2026-07-01T02:23:25 | CEO | role_chat_reply | ROLE-CEO | Talk with CEO Office |
+| 2026-07-01T02:23:19 | Nicholas | role_chat_instruction | ROLE-CEO | Talk with CEO Office |
+| 2026-07-01T02:22:57 | CEO | role_chat_reply | ROLE-CEO | Talk with CEO Office |
+| 2026-07-01T02:22:47 | Nicholas | role_chat_instruction | ROLE-CEO | Talk with CEO Office |
+| 2026-07-01T02:21:55 | CEO | role_chat_reply | ROLE-CEO | Talk with CEO Office |
+| 2026-07-01T02:21:44 | Nicholas | role_chat_instruction | ROLE-CEO | Talk with CEO Office |
 | 2026-07-01T02:15:06 | CEO | focus_snapshot | FOCUS-001 | CEO supervision |
 | 2026-07-01T02:00:07 | CEO | focus_snapshot | FOCUS-001 | CEO supervision |
 | 2026-07-01T01:45:11 | CEO | supervisor_cycle | FOCUS-001 | CEO supervisor corrective cycle |
@@ -30,17 +44,3 @@ Read-only view of `logs/ceo-ledger.jsonl`.
 | 2026-06-30T23:43:04 | Nicholas | nick_gate_resolved | ISSUE-24 | DECISION: revisit Telegram bot permission posture |
 | 2026-06-30T23:43:04 | Nicholas | decision_resolved | ISSUE-24 | DECISION: revisit Telegram bot permission posture |
 | 2026-06-30T23:40:08 | CEO | nick_gate_resolved | ISSUE-80 | Nick2 dashboard: hourly ledger reconcile + memo ge |
-| 2026-06-30T23:40:08 | CEO | nick_gate_resolved | ISSUE-ROUTING-001 | OpenRouter model routing policy in worker_model |
-| 2026-06-30T23:37:15 | CEO | work_removed | ISSUE-BUS-001 | Fix agent-bus worker_model crash |
-| 2026-06-30T23:31:34 | COO | pattern_flag | FOCUS-001 |  |
-| 2026-06-30T23:31:31 | CEO | focus_snapshot | FOCUS-001 | CEO supervision |
-| 2026-06-30T23:29:51 | CEO | ceo_reflect | FOCUS-001 | CEO reflection and bottleneck pass |
-| 2026-06-30T23:29:51 | CEO | focus_snapshot | FOCUS-001 | CEO supervision |
-| 2026-06-30T23:29:51 | CEO | ceo_reflect_llm | FOCUS-001 | CEO LLM reflection |
-| 2026-06-30T23:29:23 | CEO | ceo_reflect_llm | FOCUS-001 | CEO LLM reflection |
-| 2026-06-30T23:25:50 | Nicholas | work_removed | ISSUE-80 | Nick2 dashboard: hourly ledger reconcile + memo ge |
-| 2026-06-30T23:25:38 | CEO | ceo_reflect | FOCUS-001 | CEO reflection and bottleneck pass |
-| 2026-06-30T23:25:38 | CEO | ceo_reflect_llm | FOCUS-001 | CEO LLM reflection |
-| 2026-06-30T23:17:10 | Nicholas | work_removed | ISSUE-ROUTING-001 | OpenRouter model routing policy in worker_model |
-| 2026-06-30T23:17:10 | Nicholas | work_removed | ISSUE-24 | DECISION: revisit Telegram bot permission posture |
-| 2026-06-30T22:30:08 | PMO | focus_snapshot | FOCUS-001 | Fix agent-bus worker_model crash |
