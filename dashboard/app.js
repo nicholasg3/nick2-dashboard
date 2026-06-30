@@ -598,51 +598,167 @@ function renderArtifacts(state) {
     .join('');
 }
 
-function renderOrgNode(node) {
+const ORG_PROMINENT = new Set(['live', 'active', 'timer', 'implicit', 'passive']);
+const ORG_ASLEEP = new Set(['asleep', 'idle']);
+let orgFleetFilter = 'all';
+let orgFleetDataCache = null;
+
+function orgRoleCard(node, { compact = false } = {}) {
+  const status = node.status || 'asleep';
   const maps = node.maps_to
-    ? `<span class="org-node-maps">→ ${esc(node.maps_to)}</span>`
+    ? `<span class="org-card-maps">${esc(node.maps_to)}</span>`
     : '';
   const sched = node.schedule
-    ? `<span class="org-node-schedule">${esc(node.schedule)}</span>`
+    ? `<span class="org-card-schedule">${esc(node.schedule)}</span>`
     : '';
   const detail = node.detail
-    ? `<div class="org-node-detail">${esc(node.detail)}</div>`
+    ? `<p class="org-card-detail">${esc(node.detail)}</p>`
     : '';
-  const kids = (node.children || [])
-    .map((c) => `<li>${renderOrgNode(c)}</li>`)
-    .join('');
-  const childBlock = kids ? `<ul>${kids}</ul>` : '';
-  return `
-    <div class="org-node org-status-${esc(node.status || 'asleep')}">
-      <div class="org-node-line">
-        <span class="org-node-icon">${esc(node.icon || '·')}</span>
-        <span class="org-node-title">${esc(node.title)}</span>
+  const cls = compact ? 'org-card org-card-compact' : 'org-card';
+  return `<article class="${cls} org-status-${esc(status)}" data-status="${esc(status)}">
+    <div class="org-card-head">
+      <span class="org-card-icon" aria-hidden="true">${esc(node.icon || '·')}</span>
+      <div class="org-card-titles">
+        <h4 class="org-card-title">${esc(node.title)}</h4>
         ${maps}
-        ${sched}
       </div>
-      ${detail}
-      ${childBlock}
-    </div>`;
+      ${sched}
+    </div>
+    ${detail}
+  </article>`;
 }
 
 function renderOrgFleetLegend(legend) {
   const el = $('org-fleet-legend');
   if (!el || !legend) return;
   el.innerHTML = Object.entries(legend)
-    .map(([k, v]) => `<span title="${esc(k)}">${esc(v)}</span>`)
+    .map(
+      ([k, v]) =>
+        `<span class="org-legend-pill org-status-${esc(k)}" title="${esc(k)}">${esc(v)}</span>`
+    )
     .join('');
+}
+
+function renderOrgFleetContext(ctx) {
+  const el = $('org-fleet-context');
+  if (!el || !ctx) {
+    if (el) el.innerHTML = '';
+    return;
+  }
+  const budget = ctx.budget
+    ? `$${ctx.budget.weekly_usd}/wk · ${ctx.budget.mode} · $${ctx.budget.remaining_usd} left`
+    : '';
+  const focus = ctx.focus
+    ? `${ctx.focus.task_id}: ${ctx.focus.task} (${ctx.focus.status})`
+    : '';
+  const gates =
+    ctx.open_gate_count > 0
+      ? `${ctx.open_gate_count} gate(s) waiting on Nick`
+      : 'No Nick gates';
+  el.innerHTML = `
+    <div class="org-context-chip">${esc(focus || 'No active focus')}</div>
+    <div class="org-context-chip">${esc(gates)}</div>
+    <div class="org-context-chip">${esc(budget)}</div>
+    <div class="org-context-chip">${ctx.worker_enabled ? 'Worker on' : 'Worker off'}</div>`;
+}
+
+function bindOrgFleetFilters() {
+  const el = $('org-fleet-filters');
+  if (!el || el.dataset.bound) return;
+  el.dataset.bound = '1';
+  const filters = [
+    ['all', 'All'],
+    ['prominent', 'Live & active'],
+    ['asleep', 'Asleep'],
+  ];
+  el.innerHTML = filters
+    .map(
+      ([id, label]) =>
+        `<button type="button" class="btn btn-sm org-filter-btn${orgFleetFilter === id ? ' is-active' : ''}" data-filter="${id}">${esc(label)}</button>`
+    )
+    .join('');
+  el.addEventListener('click', (e) => {
+    const btn = e.target.closest('[data-filter]');
+    if (!btn) return;
+    orgFleetFilter = btn.dataset.filter;
+    el.querySelectorAll('.org-filter-btn').forEach((b) => {
+      b.classList.toggle('is-active', b.dataset.filter === orgFleetFilter);
+    });
+    if (orgFleetDataCache) renderOrgFleet(orgFleetDataCache);
+  });
+}
+
+function renderOrgFleetBoard(root) {
+  const children = root.children || [];
+  const prominent = [];
+  const asleepBucket = [];
+  let asleepCount = 0;
+
+  for (const child of children) {
+    if (child.id === 'asleep_bucket' || (ORG_ASLEEP.has(child.status) && (child.children || []).length)) {
+      const bucketKids = (child.children || []).filter((c) => c.id !== 'asleep_more');
+      asleepCount = bucketKids.length;
+      const moreLine = (child.children || []).find((c) => c.id === 'asleep_more');
+      if (moreLine?.title) {
+        const m = moreLine.title.match(/\+(\d+)/);
+        if (m) asleepCount += parseInt(m[1], 10);
+      }
+      asleepBucket.push(child, ...bucketKids);
+    } else if (ORG_PROMINENT.has(child.status) || child.status === 'active') {
+      prominent.push(child);
+    } else if (ORG_ASLEEP.has(child.status)) {
+      asleepBucket.push(child);
+      asleepCount += 1;
+    } else {
+      prominent.push(child);
+    }
+  }
+
+  const showProminent = orgFleetFilter === 'all' || orgFleetFilter === 'prominent';
+  const showAsleep = orgFleetFilter === 'all' || orgFleetFilter === 'asleep';
+
+  let html = `<div class="org-ceo-card">${orgRoleCard(root)}</div>`;
+
+  if (showProminent && prominent.length) {
+    html += `<div class="org-card-grid">${prominent.map((n) => orgRoleCard(n)).join('')}</div>`;
+  }
+
+  if (showAsleep && asleepBucket.length) {
+    const bucketNode = asleepBucket[0];
+    const inner = asleepBucket
+      .slice(1)
+      .map((n) => orgRoleCard(n, { compact: true }))
+      .join('');
+    const label = bucketNode.detail || `${asleepCount || asleepBucket.length - 1} roles asleep`;
+    html += `<details class="org-asleep-accordion">
+      <summary>
+        <span class="org-asleep-icon">${esc(bucketNode.icon || '💤')}</span>
+        <span class="org-asleep-label">${esc(bucketNode.title || 'Budget-gated roles')}</span>
+        <span class="org-asleep-count">${esc(label)}</span>
+      </summary>
+      <div class="org-card-grid org-card-grid-compact">${inner}</div>
+    </details>`;
+  }
+
+  if (!showProminent && !showAsleep) {
+    html += '<p class="empty">No roles match this filter.</p>';
+  }
+  return html;
 }
 
 function renderOrgFleet(data) {
   const tree = $('org-fleet-tree');
   const updated = $('org-fleet-updated');
   if (!tree) return;
+  orgFleetDataCache = data;
+  bindOrgFleetFilters();
   if (!data?.root) {
     tree.innerHTML = '<p class="empty">Org fleet data not available.</p>';
     return;
   }
   renderOrgFleetLegend(data.legend);
-  tree.innerHTML = `<ul><li>${renderOrgNode(data.root)}</li></ul>`;
+  renderOrgFleetContext(data.context);
+  tree.innerHTML = renderOrgFleetBoard(data.root);
   if (updated) {
     updated.textContent = data.generated_at
       ? `Snapshot ${fmtTs(data.generated_at)}`
