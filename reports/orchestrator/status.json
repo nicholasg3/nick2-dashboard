@@ -1,14 +1,14 @@
 {
-  "ts": "2026-06-30T22:13:30Z",
+  "ts": "2026-06-30T22:28:44Z",
   "mode": "live",
   "reason": "heartbeat",
   "healthy": true,
-  "last_tick_at": "2026-06-30T22:13:30Z",
+  "last_tick_at": "2026-06-30T22:28:44Z",
   "summary": "CEO loop checked the system; no action was needed. Bus: 0 running, 0 held, 0 queued. Bottlenecks: 0. Role chat messages: CEO 14, COO 8, PMO 0.",
   "survey": {
-    "ts": "2026-06-30T22:13:30Z",
+    "ts": "2026-06-30T22:28:44Z",
     "bus_live": {
-      "generated_at": "2026-06-30T22:13:29Z",
+      "generated_at": "2026-06-30T22:28:43Z",
       "running": [],
       "queued": [],
       "held": [],
@@ -137,7 +137,7 @@
       }
     },
     "ceo_queue": {
-      "ts": "2026-06-30T22:13:30Z",
+      "ts": "2026-06-30T22:28:43Z",
       "mode": "ceo_reflect",
       "context": {
         "counts": {
@@ -189,12 +189,12 @@
       "llm": {
         "enabled": true,
         "ran": false,
-        "skip_reason": "interval not elapsed (50m < 60m)",
+        "skip_reason": "interval not elapsed (5m < 60m)",
         "execute": true
       }
     },
     "org_fleet": {
-      "generated_at": "2026-06-30T22:13:30Z",
+      "generated_at": "2026-06-30T22:28:44Z",
       "legend": {
         "live": "🟢 Running now (24/7 service)",
         "timer": "⏰ Scheduled — fires on systemd timer",
@@ -228,7 +228,7 @@
           "age_min": 5.1,
           "healthy": true,
           "mode": "live",
-          "summary": "CEO loop checked the system; no action was needed. Bus: 0 running, 0 held, 0 queued. Bottlenecks: 0. Role chat messages: CEO 14, COO 8, PMO 0."
+          "summary": "CEO loop took 1 bounded action(s). Bus: 0 running, 0 held, 0 queued. Bottlenecks: 0. Role chat messages: CEO 14, COO 8, PMO 0."
         }
       },
       "root": {
@@ -247,7 +247,7 @@
             "status": "live",
             "icon": "🟢",
             "maps_to": "CEO role office",
-            "detail": "CEO loop checked the system; no action was needed. Bus: 0 running, 0 held, 0 queued. Bottlenecks: 0. Role chat messages: CEO 14, COO 8, PMO 0. (5.1m ago)",
+            "detail": "CEO loop took 1 bounded action(s). Bus: 0 running, 0 held, 0 queued. Bottlenecks: 0. Role chat messages: CEO 14, COO 8, PMO 0. (5.1m ago)",
             "schedule": "24/7 via dashboard bridge",
             "chat_role": "ceo",
             "children": []
@@ -477,7 +477,7 @@
     }
   },
   "last_report": {
-    "ts": "2026-06-30T22:13:30Z",
+    "ts": "2026-06-30T22:28:43Z",
     "mode": "supervisor_corrective",
     "landed": {
       "updated": 0,
@@ -514,11 +514,11 @@
     },
     "checkin": {
       "exit_code": 0,
-      "summary": "CEO check-in 2026-06-30T22:13:30Z\nRunning: 0 | Queued: 0 | Held: 0\nPMO-001: completed — \nIssues: none — workers healthy",
+      "summary": "CEO check-in 2026-06-30T22:28:43Z\nRunning: 0 | Queued: 0 | Held: 0\nPMO-001: completed — \nIssues: none — workers healthy",
       "issues": false
     },
     "reflect": {
-      "ts": "2026-06-30T22:13:30Z",
+      "ts": "2026-06-30T22:28:43Z",
       "mode": "ceo_reflect",
       "context": {
         "counts": {
@@ -570,7 +570,7 @@
       "llm": {
         "enabled": true,
         "ran": false,
-        "skip_reason": "interval not elapsed (50m < 60m)",
+        "skip_reason": "interval not elapsed (5m < 60m)",
         "execute": true
       },
       "healthy": true
