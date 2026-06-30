@@ -1,29 +1,28 @@
 {
-  "generated_at": "2026-06-30T18:09:02Z",
-  "running": [
+  "generated_at": "2026-06-30T18:12:01Z",
+  "running": [],
+  "queued": [],
+  "held": [],
+  "recent_completed": [
     {
       "job_id": "JOB-20260630-641",
       "short_job_id": "JOB-641",
       "created_at": "2026-06-30T18:04:01Z",
-      "updated_at": "2026-06-30T18:04:11Z",
-      "started_at": "2026-06-30T18:04:05Z",
-      "display_name": "diagnostic-report-current-system-idle-st [heavy] \u00b7 executing",
+      "updated_at": "2026-06-30T18:09:50Z",
+      "started_at": "2026-06-30T18:04:01Z",
+      "display_name": "diagnostic-report-current-system-idle-st [heavy] \u00b7 completed",
       "feature_name": "diagnostic-report-current-system-idle-st",
       "objective_preview": "diagnostic: report current system idle state, confirm architecture implementation status from handoff, and update CEO focus",
       "lane": "heavy",
       "repo": "ai-agents-workspace",
       "to_session": "heavy_coder",
-      "worker_status": "executing",
+      "worker_status": "done",
       "hold_reason": "",
-      "status": "running",
+      "status": "completed",
       "branch": "job/20260630-641-diagnostic-report-current-syst",
       "mission_id": "",
       "memo_path": "memos/jobs/JOB-20260630-641.md"
-    }
-  ],
-  "queued": [],
-  "held": [],
-  "recent_completed": [
+    },
     {
       "job_id": "JOB-20260630-234",
       "short_job_id": "JOB-234",
@@ -118,25 +117,6 @@
       "branch": "job/20260630-102-replace-wip-execution-brief-te",
       "mission_id": "",
       "memo_path": "memos/jobs/JOB-20260630-102.md"
-    },
-    {
-      "job_id": "JOB-20260630-163",
-      "short_job_id": "JOB-163",
-      "created_at": "2026-06-30T11:32:43Z",
-      "updated_at": "2026-06-30T12:20:29Z",
-      "started_at": "2026-06-30T11:32:43Z",
-      "display_name": "auto-heal-gate-bus-zombie-jobs-no-manual [coder] \u00b7 completed",
-      "feature_name": "auto-heal-gate-bus-zombie-jobs-no-manual",
-      "objective_preview": "Auto-heal gate/bus zombie jobs (no manual CEO nudge).",
-      "lane": "coder",
-      "repo": "ai-agents-workspace",
-      "to_session": "coding_worker",
-      "worker_status": "done",
-      "hold_reason": "",
-      "status": "completed",
-      "branch": "job/20260630-163-auto-heal-gate-bus-zombie-jobs",
-      "mission_id": "",
-      "memo_path": "memos/jobs/JOB-20260630-163.md"
     }
   ],
   "pmo_focus": {
