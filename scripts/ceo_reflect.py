@@ -661,9 +661,10 @@ def _focus_from_report(report: dict, ctx: dict) -> tuple[str, str, str]:
             line = (row.get("feature_name") or row.get("objective") or tid)[:100]
             return tid, line, (row.get("objective") or "")[:220]
 
+    issue_tasks = ctx.get("issue_tasks") or {}
     active = sorted(
-        ctx.get("issue_tasks") or {},
-        key=lambda kv: kv[1].get("ts") or "",
+        issue_tasks.items(),
+        key=lambda kv: (kv[1].get("ts") or "") if isinstance(kv[1], dict) else "",
         reverse=True,
     )
     for tid, _t in active:
