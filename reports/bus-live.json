@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-30T12:09:01Z",
+  "generated_at": "2026-06-30T12:12:01Z",
   "running": [
     {
       "job_id": "JOB-20260630-163",
@@ -36,6 +36,16 @@
     {
       "job_id": "JOB-20260630-446",
       "display_name": "scheduler-unit-test-one [coder] \u00b7 queued",
+      "lane": "coder",
+      "repo": "ai-agents-workspace",
+      "to_session": "coding_worker",
+      "worker_status": "queued",
+      "hold_reason": "",
+      "status": "queued"
+    },
+    {
+      "job_id": "JOB-20260630-438",
+      "display_name": "rewrite-telegram-job-completion-pings-gl [coder] \u00b7 blocked",
       "lane": "coder",
       "repo": "ai-agents-workspace",
       "to_session": "coding_worker",
