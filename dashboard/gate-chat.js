@@ -571,6 +571,138 @@
     stopPolling();
   }
 
+  async function fetchRoleMessages(role) {
+    const roleKey = (role || 'ceo').toLowerCase();
+    const api = gateApi();
+    if (api) {
+      try {
+        const res = await fetch(`${api}/api/role/${encodeURIComponent(roleKey)}/messages?t=${Date.now()}`);
+        if (res.ok) {
+          const data = await res.json();
+          return (data.messages || []).sort((a, b) => new Date(a.ts) - new Date(b.ts));
+        }
+      } catch (_) { /* fall through */ }
+    }
+    let server = [];
+    try {
+      const res = await fetch(`logs/role-chats/${roleKey}.jsonl?t=${Date.now()}`);
+      if (res.ok) {
+        const text = await res.text();
+        server = text
+          .trim()
+          .split('\n')
+          .filter(Boolean)
+          .map((line) => {
+            try {
+              return JSON.parse(line);
+            } catch {
+              return null;
+            }
+          })
+          .filter(Boolean);
+      }
+    } catch (_) { /* offline */ }
+    const pending = loadPending(`role-${roleKey}`).map((p) => ({
+      ts: p.ts,
+      role: 'nick',
+      actor: p.actor || 'Nicholas',
+      text: p.text,
+      pending: true,
+    }));
+    return [...server, ...pending].sort((a, b) => new Date(a.ts) - new Date(b.ts));
+  }
+
+  async function sendRoleMessage(role, text, statusEl, messagesEl) {
+    const roleKey = (role || 'ceo').toLowerCase();
+    const api = gateApi();
+    if (api) {
+      statusEl.textContent = 'Sending to role office…';
+      try {
+        const res = await fetch(`${api}/api/role/${encodeURIComponent(roleKey)}/message`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ text, actor: 'Nicholas' }),
+        });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        clearPending(`role-${roleKey}`);
+        statusEl.textContent = 'Sent — role office replied with live context.';
+        const msgs = await fetchRoleMessages(roleKey);
+        renderMessages(messagesEl, msgs);
+        notifyGateUpdate(`ROLE-${roleKey.toUpperCase()}`);
+        return true;
+      } catch (err) {
+        statusEl.textContent = `Bridge error: ${err.message}. Saving locally.`;
+      }
+    }
+    savePending(`role-${roleKey}`, text);
+    const msgs = await fetchRoleMessages(roleKey);
+    renderMessages(messagesEl, msgs);
+    return false;
+  }
+
+  function startRolePolling(role, messagesEl) {
+    const roleKey = (role || 'ceo').toLowerCase();
+    stopPolling();
+    const tick = async () => {
+      if (activeTaskId !== `role:${roleKey}`) return;
+      try {
+        const msgs = await fetchRoleMessages(roleKey);
+        renderMessages(messagesEl, msgs);
+      } catch (_) { /* ignore */ }
+    };
+    tick();
+    pollTimer = setInterval(tick, config.pollIntervalMs || 8000);
+  }
+
+  async function mountRoleChat(root, roleMeta) {
+    await loadConfig();
+    const role = (roleMeta.role || 'ceo').toLowerCase();
+    activeTaskId = `role:${role}`;
+    root.innerHTML = `
+      <div class="role-room-layout">
+        <div class="gate-chat-panel role-chat-panel">
+          <p class="gate-bridge-banner" id="role-bridge-banner"></p>
+          <div class="gate-chat-head">
+            <h3>${esc(roleMeta.title || `${role.toUpperCase()} Office`)}</h3>
+            <p class="muted">${esc(roleMeta.summary || 'Talk to this role with current dashboard context.')}</p>
+          </div>
+          <div class="gate-chat-messages role-chat-messages" id="role-chat-messages"></div>
+          <form class="gate-chat-form" id="role-chat-form">
+            <textarea id="role-chat-input" rows="5" placeholder="Ask what is going on, what is stuck, or what this role recommends next…" required></textarea>
+            <div class="gate-chat-actions">
+              <button type="submit" class="btn btn-primary">Send to ${esc(roleMeta.owner || role.toUpperCase())}</button>
+            </div>
+          </form>
+          <p class="gate-chat-status" id="role-chat-status"></p>
+        </div>
+      </div>`;
+
+    const messagesEl = root.querySelector('#role-chat-messages');
+    const form = root.querySelector('#role-chat-form');
+    const input = root.querySelector('#role-chat-input');
+    const statusEl = root.querySelector('#role-chat-status');
+    const bannerEl = root.querySelector('#role-bridge-banner');
+
+    renderBridgeBanner(bannerEl);
+    const msgs = await fetchRoleMessages(role);
+    renderMessages(messagesEl, msgs);
+    startRolePolling(role, messagesEl);
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const text = input.value.trim();
+      if (!text) return;
+      input.value = '';
+      await sendRoleMessage(role, text, statusEl, messagesEl);
+    });
+  }
+
+  function unmountRoleChat() {
+    activeTaskId = null;
+    stopPolling();
+  }
+
   global.Nick2GateChat = { mountGateChat, unmountGateChat, loadConfig, openGateRoom: null };
   global.Nick2WorkChat = { mountWorkChat, unmountWorkChat, loadConfig };
+  global.Nick2RoleChat = { mountRoleChat, unmountRoleChat, loadConfig };
 })(window);

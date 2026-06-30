@@ -12,7 +12,9 @@ OUT = ROOT / "reports" / "org-fleet.json"
 
 # Curated dashboard tree (matches org.json maps_to + droplet services)
 SERVICE_SCHEDULES = {
-    "pmo": {"schedule": "24/7 worker-pmo tmux", "label": "PMO (agent-bus)"},
+    "ceo-office": {"schedule": "24/7 via dashboard bridge", "label": "CEO role office"},
+    "coo-office": {"schedule": "24/7 via dashboard bridge", "label": "COO role office"},
+    "pmo": {"schedule": "24/7 via dashboard bridge + agent-bus", "label": "PMO role office"},
     "telegram-bridge": {"schedule": "24/7 systemd", "label": "Hermes (telegram-bridge)"},
     "skill-radar": {"schedule": "~06:02 SGT daily", "label": "skill-radar"},
     "sp-trend-scout": {"schedule": "~05:32 SGT daily", "label": "sp-trend-scout"},
@@ -113,6 +115,7 @@ def _node(
     maps_to: str = "",
     detail: str = "",
     schedule: str = "",
+    chat_role: str = "",
     children: list | None = None,
 ) -> dict:
     return {
@@ -123,6 +126,7 @@ def _node(
         "maps_to": maps_to,
         "detail": detail,
         "schedule": schedule,
+        "chat_role": chat_role,
         "children": children or [],
     }
 
@@ -154,6 +158,36 @@ def build_tree(ctx: dict) -> dict:
 
     children = [
         _node(
+            "ceo_office",
+            "CEO Office",
+            status="live",
+            icon="🟢",
+            maps_to=SERVICE_SCHEDULES["ceo-office"]["label"],
+            detail="Talkable executive supervisor via the live dashboard bridge; reads ledger, bus, and CEO memo context.",
+            schedule=SERVICE_SCHEDULES["ceo-office"]["schedule"],
+            chat_role="ceo",
+        ),
+        _node(
+            "coo_office",
+            "COO Office",
+            status="live",
+            icon="🟢",
+            maps_to=SERVICE_SCHEDULES["coo-office"]["label"],
+            detail="Talkable operations role for services, stuck work, and handoffs.",
+            schedule=SERVICE_SCHEDULES["coo-office"]["schedule"],
+            chat_role="coo",
+        ),
+        _node(
+            "pmo_office",
+            "PMO Office",
+            status="live",
+            icon="🟢",
+            maps_to=SERVICE_SCHEDULES["pmo"]["label"],
+            detail=frontier_detail + " · talkable PMO role; dispatch still runs through agent-bus when needed.",
+            schedule=SERVICE_SCHEDULES["pmo"]["schedule"],
+            chat_role="pmo",
+        ),
+        _node(
             "chief_of_staff",
             "Chief of Staff",
             status="live",
@@ -179,15 +213,6 @@ def build_tree(ctx: dict) -> dict:
             maps_to=SERVICE_SCHEDULES["sp-trend-scout"]["label"],
             detail="Trend scout signals",
             schedule=SERVICE_SCHEDULES["sp-trend-scout"]["schedule"],
-        ),
-        _node(
-            "coo_pmo",
-            "COO / PMO",
-            status="live",
-            icon="🟢",
-            maps_to=SERVICE_SCHEDULES["pmo"]["label"],
-            detail=frontier_detail + " · always-on worker-pmo · gpt-4.1-mini",
-            schedule=SERVICE_SCHEDULES["pmo"]["schedule"],
         ),
         _node(
             "cio",

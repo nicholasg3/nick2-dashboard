@@ -856,6 +856,20 @@ tr:hover td { background: rgba(79, 156, 249, 0.05); }
 
 .gate-room-panel { padding: 0; background: transparent; border: none; }
 
+.role-room-layout {
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.role-chat-panel {
+  max-height: calc(100vh - 140px);
+}
+
+.role-chat-messages {
+  min-height: 320px;
+  max-height: 45vh;
+}
+
 /* Org fleet — executive card layout */
 .org-fleet-panel .panel-head {
   display: flex;
@@ -870,6 +884,17 @@ tr:hover td { background: rgba(79, 156, 249, 0.05); }
   display: flex;
   flex-wrap: wrap;
   gap: 0.35rem;
+}
+
+.org-card-actions {
+  margin: 0.55rem 0 0;
+}
+
+.org-chat-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 56px;
 }
 
 .org-filter-btn.is-active {

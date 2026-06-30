@@ -916,6 +916,9 @@ function orgRoleCard(node, { compact = false } = {}) {
   const detail = node.detail
     ? `<p class="org-card-detail">${esc(node.detail)}</p>`
     : '';
+  const actions = node.chat_role
+    ? `<p class="org-card-actions"><a class="btn btn-sm org-chat-link" href="role-room.html?role=${encodeURIComponent(node.chat_role)}" target="_blank" rel="noopener">Talk</a></p>`
+    : '';
   const cls = compact ? 'org-card org-card-compact' : 'org-card';
   return `<article class="${cls} org-status-${esc(status)}" data-status="${esc(status)}">
     <div class="org-card-head">
@@ -927,6 +930,7 @@ function orgRoleCard(node, { compact = false } = {}) {
       ${sched}
     </div>
     ${detail}
+    ${actions}
   </article>`;
 }
 

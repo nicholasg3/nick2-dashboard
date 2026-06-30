@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-30T18:15:10Z",
+  "generated_at": "2026-06-30T18:20:15Z",
   "legend": {
     "live": "\ud83d\udfe2 Running now (24/7 service)",
     "timer": "\u23f0 Scheduled \u2014 fires on systemd timer",
@@ -36,7 +36,41 @@
     "maps_to": "frontier-orchestrator",
     "detail": "SYS-002 (completed) \u00b7 $20/wk cap ($20.0 left)",
     "schedule": "",
+    "chat_role": "",
     "children": [
+      {
+        "id": "ceo_office",
+        "title": "CEO Office",
+        "status": "live",
+        "icon": "\ud83d\udfe2",
+        "maps_to": "CEO role office",
+        "detail": "Talkable executive supervisor via the live dashboard bridge; reads ledger, bus, and CEO memo context.",
+        "schedule": "24/7 via dashboard bridge",
+        "chat_role": "ceo",
+        "children": []
+      },
+      {
+        "id": "coo_office",
+        "title": "COO Office",
+        "status": "live",
+        "icon": "\ud83d\udfe2",
+        "maps_to": "COO role office",
+        "detail": "Talkable operations role for services, stuck work, and handoffs.",
+        "schedule": "24/7 via dashboard bridge",
+        "chat_role": "coo",
+        "children": []
+      },
+      {
+        "id": "pmo_office",
+        "title": "PMO Office",
+        "status": "live",
+        "icon": "\ud83d\udfe2",
+        "maps_to": "PMO role office",
+        "detail": "Daily cycle + /nick2 run on demand \u00b7 talkable PMO role; dispatch still runs through agent-bus when needed.",
+        "schedule": "24/7 via dashboard bridge + agent-bus",
+        "chat_role": "pmo",
+        "children": []
+      },
       {
         "id": "chief_of_staff",
         "title": "Chief of Staff",
@@ -45,6 +79,7 @@
         "maps_to": "Hermes (telegram-bridge)",
         "detail": "Router only (Gemini Flash Lite) \u2014 NOT PMO; wakes PMO for assessments",
         "schedule": "24/7 systemd",
+        "chat_role": "",
         "children": []
       },
       {
@@ -55,6 +90,7 @@
         "maps_to": "skill-radar",
         "detail": "Skill crawl + digest",
         "schedule": "~06:02 SGT daily",
+        "chat_role": "",
         "children": []
       },
       {
@@ -65,16 +101,7 @@
         "maps_to": "sp-trend-scout",
         "detail": "Trend scout signals",
         "schedule": "~05:32 SGT daily",
-        "children": []
-      },
-      {
-        "id": "coo_pmo",
-        "title": "COO / PMO",
-        "status": "live",
-        "icon": "\ud83d\udfe2",
-        "maps_to": "PMO (agent-bus)",
-        "detail": "Daily cycle + /nick2 run on demand \u00b7 always-on worker-pmo \u00b7 gpt-4.1-mini",
-        "schedule": "24/7 worker-pmo tmux",
+        "chat_role": "",
         "children": []
       },
       {
@@ -85,6 +112,7 @@
         "maps_to": "notion-bridge",
         "detail": "Not running \u2014 notion-bridge on demand",
         "schedule": "on demand",
+        "chat_role": "",
         "children": []
       },
       {
@@ -95,6 +123,7 @@
         "maps_to": "droplet-infra",
         "detail": "systemd services, CCR :3456, GitHub Actions",
         "schedule": "systemd + CCR",
+        "chat_role": "",
         "children": []
       },
       {
@@ -105,6 +134,7 @@
         "maps_to": "trust-ledger",
         "detail": "Trust scores from ledger events",
         "schedule": "ledger-derived",
+        "chat_role": "",
         "children": []
       },
       {
@@ -115,6 +145,7 @@
         "maps_to": "",
         "detail": "25 roles asleep until CEO admits + budget",
         "schedule": "budget-gated",
+        "chat_role": "",
         "children": [
           {
             "id": "asleep_0",
@@ -124,6 +155,7 @@
             "maps_to": "",
             "detail": "Awaiting portfolio admission",
             "schedule": "",
+            "chat_role": "",
             "children": []
           },
           {
@@ -134,6 +166,7 @@
             "maps_to": "",
             "detail": "Awaiting portfolio admission",
             "schedule": "",
+            "chat_role": "",
             "children": []
           },
           {
@@ -144,6 +177,7 @@
             "maps_to": "",
             "detail": "Awaiting portfolio admission",
             "schedule": "",
+            "chat_role": "",
             "children": []
           },
           {
@@ -154,6 +188,7 @@
             "maps_to": "",
             "detail": "Awaiting portfolio admission",
             "schedule": "",
+            "chat_role": "",
             "children": []
           },
           {
@@ -164,6 +199,7 @@
             "maps_to": "",
             "detail": "Awaiting portfolio admission",
             "schedule": "",
+            "chat_role": "",
             "children": []
           },
           {
@@ -174,6 +210,7 @@
             "maps_to": "",
             "detail": "Awaiting portfolio admission",
             "schedule": "",
+            "chat_role": "",
             "children": []
           },
           {
@@ -184,6 +221,7 @@
             "maps_to": "",
             "detail": "Awaiting portfolio admission",
             "schedule": "",
+            "chat_role": "",
             "children": []
           },
           {
@@ -194,6 +232,7 @@
             "maps_to": "",
             "detail": "Awaiting portfolio admission",
             "schedule": "",
+            "chat_role": "",
             "children": []
           },
           {
@@ -204,6 +243,7 @@
             "maps_to": "",
             "detail": "",
             "schedule": "",
+            "chat_role": "",
             "children": []
           }
         ]

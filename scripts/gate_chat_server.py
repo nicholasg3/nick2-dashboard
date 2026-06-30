@@ -40,6 +40,31 @@ PORT = int(os.environ.get("GATE_CHAT_PORT", "8788"))
 BUS_LIVE_MAX_AGE_SEC = int(os.environ.get("BUS_LIVE_MAX_AGE_SEC", "30"))
 DEFAULT_AGENT = f"python3 {ROOT / 'scripts' / 'gate_agent_bus.py'}"
 DEFAULT_WORK_AGENT = f"python3 {ROOT / 'scripts' / 'work_agent_bus.py'}"
+DEFAULT_ROLE_AGENT = f"python3 {ROOT / 'scripts' / 'role_agent.py'}"
+ROLE_CHATS = ROOT / "logs" / "role-chats"
+ROLE_META = {
+    "ceo": {
+        "role": "ceo",
+        "title": "CEO Office",
+        "owner": "CEO",
+        "status": "live",
+        "summary": "Talk to the executive supervisor about focus, bottlenecks, gates, and next moves.",
+    },
+    "coo": {
+        "role": "coo",
+        "title": "COO Office",
+        "owner": "COO",
+        "status": "live",
+        "summary": "Talk to operations about execution state, stuck work, services, and handoffs.",
+    },
+    "pmo": {
+        "role": "pmo",
+        "title": "PMO Office",
+        "owner": "PMO",
+        "status": "live",
+        "summary": "Talk to PMO about backlog order, dispatch readiness, and evidence before closing work.",
+    },
+}
 
 LIVE_FILES = {
     "/api/live/ledger": (LEDGER, "text/plain; charset=utf-8"),
@@ -120,6 +145,25 @@ def load_messages(task_id: str, *, work: bool = False) -> list[dict]:
             if line:
                 msgs.append(json.loads(line))
     return msgs
+
+
+def load_role_messages(role: str) -> list[dict]:
+    role_key = role if role in ROLE_META else "ceo"
+    chat_path = ROLE_CHATS / f"{role_key}.jsonl"
+    msgs = []
+    if chat_path.exists():
+        for line in chat_path.read_text(encoding="utf-8").splitlines():
+            line = line.strip()
+            if line:
+                msgs.append(json.loads(line))
+    return msgs
+
+
+def load_role_meta(role: str) -> dict:
+    role_key = role if role in ROLE_META else "ceo"
+    meta = dict(ROLE_META[role_key])
+    meta["messages"] = len(load_role_messages(role_key))
+    return meta
 
 
 def load_task_meta(task_id: str) -> dict:
@@ -332,6 +376,36 @@ def work_agent_reply(task_id: str, nick_text: str, meta: dict) -> str:
     )
 
 
+def role_agent_reply(role: str, nick_text: str) -> str:
+    role_key = role if role in ROLE_META else "ceo"
+    cmd = os.environ.get("ROLE_AGENT_CMD", DEFAULT_ROLE_AGENT).strip() or DEFAULT_ROLE_AGENT
+    history = load_role_messages(role_key)
+    payload = json.dumps(
+        {
+            "role": role_key,
+            "message": nick_text,
+            "history": history[-30:],
+        }
+    )
+    try:
+        r = subprocess.run(
+            cmd,
+            shell=True,
+            input=payload,
+            capture_output=True,
+            text=True,
+            timeout=120,
+            cwd=str(ROOT),
+            env={**os.environ, "NICK2_ROOT": str(ROOT)},
+        )
+        out = (r.stdout or r.stderr or "").strip()
+        if out:
+            return out[:5000]
+    except Exception as e:
+        return f"Role office failed ({e}). Message logged for the next pass."
+    return f"Recorded your instruction for {ROLE_META[role_key]['title']}."
+
+
 def agent_reply(task_id: str, nick_text: str) -> str:
     cmd = os.environ.get("GATE_AGENT_CMD", DEFAULT_AGENT).strip() or DEFAULT_AGENT
     meta = load_gate_meta(task_id)
@@ -395,6 +469,8 @@ class Handler(BaseHTTPRequestHandler):
         file_path, mime = spec
         if path == "/api/live/bus-live":
             ensure_bus_live_fresh(force=True)
+        if path == "/api/live/org-fleet":
+            refresh_reports()
         if not file_path.exists():
             empty = b"[]" if mime == "application/json" else b""
             self._raw(200, empty, mime)
@@ -425,6 +501,7 @@ class Handler(BaseHTTPRequestHandler):
                     "service": "nick2-gate-chat",
                     "port": PORT,
                     "live": list(LIVE_FILES.keys()),
+                    "role_chat": list(ROLE_META.keys()),
                     "root": str(ROOT),
                 },
             )
@@ -449,6 +526,14 @@ class Handler(BaseHTTPRequestHandler):
         if path.startswith("/api/work/") and path.endswith("/messages"):
             task_id = path.split("/")[3]
             self._json(200, {"messages": load_messages(task_id, work=True)})
+            return
+        if path.startswith("/api/role/") and path.endswith("/meta"):
+            role = path.split("/")[3].lower()
+            self._json(200, load_role_meta(role))
+            return
+        if path.startswith("/api/role/") and path.endswith("/messages"):
+            role = path.split("/")[3].lower()
+            self._json(200, {"messages": load_role_messages(role)})
             return
         if self._serve_static(self.path):
             return
@@ -530,6 +615,63 @@ class Handler(BaseHTTPRequestHandler):
             self._json(200, {"ok": True, "reply": reply, "task_id": task_id})
             return
 
+        if path.startswith("/api/role/") and path.endswith("/message"):
+            role = path.split("/")[3].lower()
+            role_key = role if role in ROLE_META else "ceo"
+            n = int(self.headers.get("Content-Length", 0))
+            body = json.loads(self.rfile.read(n) or b"{}")
+            text = (body.get("text") or "").strip()
+            if not text:
+                self._json(400, {"error": "text required"})
+                return
+            actor = body.get("actor") or "Nicholas"
+            nick_msg = {
+                "ts": now_sgt(),
+                "role": "nick",
+                "actor": actor,
+                "task_id": f"ROLE-{role_key.upper()}",
+                "text": text,
+            }
+            append_jsonl(ROLE_CHATS / f"{role_key}.jsonl", nick_msg)
+            append_ledger(
+                {
+                    "actor": actor,
+                    "role": "Owner",
+                    "event": "role_chat_instruction",
+                    "task_id": f"ROLE-{role_key.upper()}",
+                    "task": f"Talk with {ROLE_META[role_key]['title']}",
+                    "status": "in_progress",
+                    "owner": ROLE_META[role_key]["owner"],
+                    "output": text,
+                    "needs_nicholas": False,
+                }
+            )
+            reply = role_agent_reply(role_key, text)
+            agent_msg = {
+                "ts": now_sgt(),
+                "role": "agent",
+                "actor": ROLE_META[role_key]["owner"],
+                "task_id": f"ROLE-{role_key.upper()}",
+                "text": reply,
+            }
+            append_jsonl(ROLE_CHATS / f"{role_key}.jsonl", agent_msg)
+            append_ledger(
+                {
+                    "actor": ROLE_META[role_key]["owner"],
+                    "role": ROLE_META[role_key]["title"],
+                    "event": "role_chat_reply",
+                    "task_id": f"ROLE-{role_key.upper()}",
+                    "task": f"Talk with {ROLE_META[role_key]['title']}",
+                    "status": "completed",
+                    "owner": ROLE_META[role_key]["owner"],
+                    "output": reply[:1000],
+                    "needs_nicholas": False,
+                }
+            )
+            refresh_reports()
+            self._json(200, {"ok": True, "reply": reply, "role": role_key})
+            return
+
         if not path.startswith("/api/gate/") or not path.endswith("/message"):
             self._json(404, {"error": "not found"})
             return
@@ -591,13 +733,16 @@ class Handler(BaseHTTPRequestHandler):
 def main() -> None:
     CHATS.mkdir(parents=True, exist_ok=True)
     WORK_CHATS.mkdir(parents=True, exist_ok=True)
+    ROLE_CHATS.mkdir(parents=True, exist_ok=True)
     server = ThreadingHTTPServer(("0.0.0.0", PORT), Handler)
     print(f"gate-chat server on http://0.0.0.0:{PORT}")
     print(f"  dashboard: {DASHBOARD}")
     print(f"  chats: {CHATS}")
+    print(f"  role chats: {ROLE_CHATS}")
     print(f"  ledger: {LEDGER}")
     print(f"  live API: {', '.join(LIVE_FILES)}")
     print(f"  agent: {os.environ.get('GATE_AGENT_CMD', DEFAULT_AGENT)}")
+    print(f"  role agent: {os.environ.get('ROLE_AGENT_CMD', DEFAULT_ROLE_AGENT)}")
     print("Expose via cloudflared/tailscale; set dashboard/config.json gateChatApi to the HTTPS URL.")
     try:
         server.serve_forever()

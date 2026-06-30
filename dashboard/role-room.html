@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Role room — Nick2</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="gate-room-body work-room-body">
+  <header class="site-header">
+    <div class="header-inner">
+      <div class="brand">
+        <h1 id="role-room-title">Role room</h1>
+        <p id="role-room-subtitle" class="tagline">Loading…</p>
+      </div>
+      <div class="header-meta">
+        <button type="button" class="btn btn-ghost" id="role-room-close">Close</button>
+      </div>
+    </div>
+  </header>
+  <main class="container gate-room-main">
+    <div id="role-room-root" class="panel gate-room-panel"></div>
+    <p id="role-room-error" class="empty" hidden></p>
+  </main>
+  <script src="live-config.js?v=16"></script>
+  <script src="gate-chat.js?v=7"></script>
+  <script>
+    (async function () {
+      const params = new URLSearchParams(location.search);
+      const role = (params.get('role') || 'ceo').toLowerCase();
+      const err = document.getElementById('role-room-error');
+      const root = document.getElementById('role-room-root');
+
+      document.getElementById('role-room-close').addEventListener('click', () => window.close());
+
+      if (!window.Nick2RoleChat) {
+        err.hidden = false;
+        err.textContent = 'Role chat module failed to load.';
+        return;
+      }
+
+      let meta = { role, title: `${role.toUpperCase()} Office`, owner: role.toUpperCase(), summary: 'Talk to this role.' };
+      try {
+        const dataUrls = await Nick2LiveConfig.resolveLiveDataUrls();
+        const api = (dataUrls.gateChatApi || '').replace(/\/$/, '');
+        if (api) {
+          const res = await fetch(`${api}/api/role/${encodeURIComponent(role)}/meta?t=${Date.now()}`);
+          if (res.ok) meta = { ...meta, ...(await res.json()) };
+        }
+      } catch (_) { /* offline fallback */ }
+
+      document.title = `${meta.title} — Nick2`;
+      document.getElementById('role-room-title').textContent = meta.title;
+      document.getElementById('role-room-subtitle').textContent = meta.summary || 'Talk to this role';
+      await Nick2RoleChat.mountRoleChat(root, meta);
+    })();
+  </script>
+</body>
+</html>
