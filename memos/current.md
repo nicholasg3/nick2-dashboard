@@ -1,4 +1,4 @@
-_Current focus → [PMO-001](queue/PMO-001.html) · 2 gated · 2026-06-30 17:46 SGT_
+_Current focus → [PMO-001](queue/PMO-001.html) · 2 gated · 2026-06-30 16:47 SGT_
 
 [Tue Jun 30, 2026]
 

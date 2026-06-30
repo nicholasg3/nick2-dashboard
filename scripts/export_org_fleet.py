@@ -150,7 +150,7 @@ def build_tree(ctx: dict) -> dict:
             status="live",
             icon="🟢",
             maps_to=SERVICE_SCHEDULES["telegram-bridge"]["label"],
-            detail="Hermes secretary · Gemini Flash Lite router",
+            detail="Router only (Gemini Flash Lite) — NOT PMO; wakes PMO for assessments",
             schedule=SERVICE_SCHEDULES["telegram-bridge"]["schedule"],
         ),
         _node(
@@ -177,7 +177,7 @@ def build_tree(ctx: dict) -> dict:
             status=coo_status,
             icon=coo_icon,
             maps_to=SERVICE_SCHEDULES["frontier-orchestrator"]["label"],
-            detail=frontier_detail,
+            detail=frontier_detail + " · PMO uses gpt-4.1-mini",
             schedule=SERVICE_SCHEDULES["frontier-orchestrator"]["schedule"],
         ),
         _node(
