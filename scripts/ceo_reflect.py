@@ -22,6 +22,7 @@ SCRIPTS = ROOT / "scripts"
 sys.path.insert(0, str(SCRIPTS))
 
 import pmo_dispatch as pd  # noqa: E402
+import work_queue_ops as wqo  # noqa: E402
 
 BUS_ROOT = pd.BUS_ROOT
 BUS_DB = pd.BUS_DB
@@ -442,7 +443,7 @@ def _retry_one_undispatched(
     tid = targets[0]
     t = ctx["tasks"].get(tid, {})
     item = _issue_item(ctx, tid)
-    if item.get("dispatch") is False:
+    if item.get("dispatch") is False or wqo.is_deferred_task(tid):
         return None
     worker = (item.get("worker") or "coding_worker").strip()
     repo = (item.get("repo") or "ai-agents-workspace").strip()
@@ -511,7 +512,7 @@ def _maybe_delegate_top(
     triage = ctx.get("triage") or {}
     base = ctx["ledger_base"]
     for item in sorted(triage.get("top_issues") or [], key=lambda x: x.get("rank", 99)):
-        if item.get("dispatch") is False:
+        if item.get("dispatch") is False or wqo.is_deferred_task(pd.issue_task_id(item)):
             continue
         tid = pd.issue_task_id(item)
         if tasks.get(tid, {}).get("status") in ("queued", "in_progress", "completed"):

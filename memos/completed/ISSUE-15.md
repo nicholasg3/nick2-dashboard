@@ -1,13 +1,10 @@
 [Tue Jun 30, 2026]
 
-# ISSUE-ROUTING-001: OpenRouter model routing policy in worker_model
+# ISSUE-15: FEATURE: optional skill usefulness tiers
 
 **Owner:** coding  
-**Status:** 🟠 Stale — no update in 30+ min (POL-002)  
+**Status:** 💤 Idle  
 **Last Updated:** 2026-06-30 22:30
-
-> **WIP policy (POL-002):** Last ledger touch was **45 minutes** ago. Agents must append `task_updated` every 30 minutes or set `idle`/`completed`.
-
 
 ────────────────────────────────────────────
 
@@ -15,7 +12,7 @@
 
 ### Objective
 
-pmo-dispatch:retry dispatched JOB-20260630-805.
+pmo-dispatch:dispatched JOB-20260630-808 to coding_worker (held).
 
 ### Success Criteria
 
@@ -26,7 +23,7 @@ pmo-dispatch:retry dispatched JOB-20260630-805.
 1. Execute
 Progress: ░░░░░░░░░░
 
-• pmo-dispatch:retry dispatched JOB-20260630-805.
+• pmo-dispatch:dispatched JOB-20260630-808 to coding_worker (held).
 
 ────────────────────────────────────────────
 
@@ -83,7 +80,10 @@ _TBD_
 ## RECENT EVENTS
 
 22:30
-task_updated: pmo-dispatch:retry dispatched JOB-20260630-805.
+task_updated: pmo-dispatch:dispatched JOB-20260630-808 to coding_worker (held).
+
+22:30
+task_queued: pmo-dispatch:rank 4 queued for coding_worker. Est $1.0.
 
 ────────────────────────────────────────────
 
@@ -91,4 +91,4 @@ task_updated: pmo-dispatch:retry dispatched JOB-20260630-805.
 
 - [Dashboard](https://nicholasg3.github.io/nick2-dashboard/)
 - [CEO Ledger](https://nicholasg3.github.io/nick2-dashboard/memos/ledger.html)
-- Ledger: `logs/ceo-ledger.jsonl` (`ISSUE-ROUTING-001`)
+- Ledger: `logs/ceo-ledger.jsonl` (`ISSUE-15`)

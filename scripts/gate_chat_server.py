@@ -26,6 +26,10 @@ from pathlib import Path
 from urllib.parse import urlparse
 
 ROOT = Path(os.environ.get("NICK2_ROOT", Path(__file__).resolve().parents[1]))
+SCRIPTS = ROOT / "scripts"
+sys.path.insert(0, str(SCRIPTS))
+import work_queue_ops as wqo  # noqa: E402
+
 DASHBOARD = ROOT / "dashboard"
 CHATS = ROOT / "logs" / "gate-chats"
 WORK_CHATS = ROOT / "logs" / "work-chats"
@@ -490,20 +494,30 @@ class Handler(BaseHTTPRequestHandler):
                 "text": text,
             }
             append_jsonl(WORK_CHATS / f"{task_id}.jsonl", nick_msg)
-            append_ledger(
-                {
-                    "actor": actor,
-                    "role": "Owner",
-                    "event": "nick_work_instruction",
-                    "task_id": task_id,
-                    "task": meta.get("task", task_id),
-                    "status": meta.get("status", "in_progress"),
-                    "owner": meta.get("owner") or meta.get("actor"),
-                    "output": text,
-                    "needs_nicholas": False,
-                }
-            )
-            reply = work_agent_reply(task_id, text, meta)
+            if wqo.looks_remove_instruction(text):
+                result = wqo.remove_from_active_queue(task_id, text, actor=actor)
+                reply = (
+                    f"Removed **{task_id}** from the active work queue "
+                    f"(status → idle). Bus packets superseded where applicable.\n\n"
+                    f"Nick: \"{text[:280]}\""
+                )
+                if result.get("deferred"):
+                    reply += "\n\nThis item stays decision-gated / Nick's queue — not agent work."
+            else:
+                append_ledger(
+                    {
+                        "actor": actor,
+                        "role": "Owner",
+                        "event": "nick_work_instruction",
+                        "task_id": task_id,
+                        "task": meta.get("task", task_id),
+                        "status": meta.get("status", "in_progress"),
+                        "owner": meta.get("owner") or meta.get("actor"),
+                        "output": text,
+                        "needs_nicholas": False,
+                    }
+                )
+                reply = work_agent_reply(task_id, text, meta)
             agent_msg = {
                 "ts": now_sgt(),
                 "role": "agent",

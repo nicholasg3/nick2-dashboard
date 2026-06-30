@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-30T15:15:13Z",
+  "generated_at": "2026-06-30T15:17:42Z",
   "legend": {
     "live": "\ud83d\udfe2 Running now (24/7 service)",
     "timer": "\u23f0 Scheduled \u2014 fires on systemd timer",

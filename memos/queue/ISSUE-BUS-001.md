@@ -29,7 +29,7 @@ Minimal bus.py fix first because the crash is an integration bug (empty string i
 
 JOB-549 executing on ai-agents-workspace. Worktree shows 1-line bus.py fix plus scratch reproduce scripts; permanent test + witness still needed before complete.
 
-> POL-002: last ledger touch **45m** ago — heartbeat or status transition due.
+> POL-002: last ledger touch **47m** ago — heartbeat or status transition due.
 
 
 ## EFFORT & COST

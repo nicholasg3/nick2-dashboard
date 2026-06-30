@@ -118,6 +118,12 @@ strong { color: #fff; }
 <ol><li>3. <strong>CEO supervisor</strong> runs landed audit + enrich + POL-008 janitor + dashboard witness</li></ol>
 <p>Decision-gated issues (<code>needs-nick</code>, Nick&#x27;s queue, p3 decide-if/when) are never auto-landed.</p>
 <p>Manual: <code>python3 scripts/job_catalog.py --audit-landed</code> / <code>--enrich</code></p>
+<h2>CEO reflection + bounded delegation (POL-010)</h2>
+<p><strong>CEO uses idle supervisor cycles to reflect, unstick, and delegate within capacity</strong> — not to flood the bus.</p>
+<p>Each <code>ceo_supervisor.py</code> cycle ends with <code>ceo_reflect.py</code>:</p>
+<ol><li>1. <strong>Gather</strong> — <code>bus-live.json</code>, <code>jobs.sqlite</code>, ledger tail, <code>pmo_001_result.json</code>, CEO memories</li><li>2. <strong>Detect bottlenecks</strong> — repo claims, held chains, capacity full, coding saturation, dispatch_blocked, stale WIP, ledger drift</li><li>3. <strong>Admission</strong> — default caps: <code>max_new_delegations=1</code>, <code>max_retries=1</code> only when budget OK, <code>running &lt; BUS_MAX_PARALLEL</code>, and <code>coding_worker &lt; CEO_MAX_CODING_PARALLEL</code> (default 2). Zero slots when bus full, budget exhausted, or held jobs blocked behind active repo claims.</li><li>4. <strong>Unstick (mechanical)</strong> — janitor repass (promote/release), retry one undispatched ISSUE-*, optional single new ISSUE dispatch after PMO dispatch already ran</li><li>5. <strong>Artifacts</strong> — <code>reports/ceo-queue.json</code>, <code>memos/ceo-reflect/latest.md</code>, ledger <code>ceo_reflect</code> event</li></ol>
+<p>Bus submits from CEO use <code>--from-harness ceo-reflect</code> (POL-006 still applies).</p>
+<p>Manual: <code>python3 scripts/ceo_reflect.py</code> / <code>--dry-run</code> / <code>--ledger</code></p>
   </div>
 </body>
 </html>

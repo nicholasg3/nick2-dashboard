@@ -9,6 +9,10 @@ import sys
 from pathlib import Path
 
 ROOT = Path(os.environ.get("NICK2_ROOT", Path(__file__).resolve().parents[1]))
+SCRIPTS = ROOT / "scripts"
+sys.path.insert(0, str(SCRIPTS))
+import work_queue_ops as wqo  # noqa: E402
+
 BUS = Path(
     os.environ.get(
         "AGENT_BUS_ROOT",
@@ -67,6 +71,20 @@ def main() -> int:
     message = (payload.get("message") or "").strip()
     meta = payload.get("meta") or {}
     history = load_chat_history(task_id)
+
+    if wqo.looks_remove_instruction(message):
+        result = wqo.remove_from_active_queue(task_id, message, actor="Nicholas")
+        print(
+            f"Removed **{task_id}** from the active work queue (idle). "
+            f"No new worker dispatched.\n\n"
+            f"Nick: \"{message[:280]}\""
+            + (
+                "\n\nDecision-gated — stays on Nick's queue, not agents."
+                if result.get("deferred")
+                else ""
+            )
+        )
+        return 0
 
     session = worker_for_meta(meta, message)
     title = meta.get("task") or task_id

@@ -15,6 +15,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from md_page import write_html
+from work_queue_ops import is_deferred_task
 from execution_brief import ceo_focus_line, execution_brief_body
 from mka_memo import (
     mka_completed_body,
@@ -108,10 +109,14 @@ def current_memo(events: list[dict], tasks: dict[str, dict], weekly: float) -> s
         if t.get("status") == "in_progress"
         and t.get("event") not in SKIP_QUEUE
         and ungated(t)
+        and not is_deferred_task(t.get("task_id", ""))
     ]
     ungated_active = [
         t for t in tasks.values()
-        if t.get("status") in ACTIVE and ungated(t) and t.get("last_event") not in SKIP_QUEUE
+        if t.get("status") in ACTIVE
+        and ungated(t)
+        and t.get("last_event") not in SKIP_QUEUE
+        and not is_deferred_task(t.get("task_id", ""))
     ]
     primary = in_prog[0] if in_prog else (ft if ungated(ft) else (ungated_active[0] if ungated_active else {}))
     pid = primary.get("task_id", focus_id if ungated(ft) else "—")
@@ -223,6 +228,25 @@ def main() -> None:
             rank = next((i + 1 for i, (g, _) in enumerate(gated_items) if g == tid), 0)
             body = mka_gated_body(tid, t, rank)
             emit_pair(MEMOS / "gated" / f"{tid}.md", body, f"{tid} gated", "../../index.html")
+        elif status in ACTIVE and is_deferred_task(tid):
+            spend = float(latest(events, "cumulative_weekly_spend_usd", 0) or 0)
+            rem = float(latest(events, "budget_remaining_usd", weekly - spend) or 0)
+            idle_row = {**t, "status": "idle"}
+            body = execution_brief_body(
+                tid,
+                idle_row,
+                events=events,
+                weekly=weekly,
+                spend=spend,
+                remaining=rem,
+                memo_context="queue",
+            )
+            emit_pair(
+                MEMOS / "completed" / f"{tid}.md",
+                body,
+                f"{tid} deferred",
+                "../../index.html",
+            )
         elif status in ACTIVE and t.get("last_event", ev) not in SKIP_QUEUE:
             spend = float(latest(events, "cumulative_weekly_spend_usd", 0) or 0)
             rem = float(latest(events, "budget_remaining_usd", weekly - spend) or 0)

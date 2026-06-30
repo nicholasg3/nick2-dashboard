@@ -1,1 +1,20 @@
-[]
+[
+  {
+    "rank": 1,
+    "task_id": "ISSUE-24",
+    "task": "DECISION: revisit Telegram bot permission posture",
+    "priority": "medium",
+    "nick_priority": null,
+    "what_nick_must_do": "work-queue:Nick removed via dashboard chat \u2014 personal decision on Telegram PA permissions, not agent research. (Nick personal queue \u2014 decision on Telegram PA permissions (not agent research))",
+    "since": "2026-06-30T23:17:10+08:00"
+  },
+  {
+    "rank": 2,
+    "task_id": "ISSUE-ROUTING-001",
+    "task": "OpenRouter model routing policy in worker_model",
+    "priority": "medium",
+    "nick_priority": null,
+    "what_nick_must_do": "work-queue:Already shipped on main (POL-009); removed from active queue. (Landed on main \u2014 worker_model.py + model-routing.yaml wired in bus spawn (9186153, ff874d4))",
+    "since": "2026-06-30T23:17:10+08:00"
+  }
+]

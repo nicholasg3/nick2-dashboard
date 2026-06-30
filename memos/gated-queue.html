@@ -32,10 +32,18 @@ strong { color: #fff; }
     <p class="nav"><a href="../index.html">← Dashboard</a></p>
     <h1>Gated by Nick — priority queue</h1>
 <h2>1. Executive Framing</h2>
-<p><strong>Objective:</strong> Surface decisions only Nick can make — without stopping agent execution elsewhere.  </p>
-<p><strong>Decision:</strong> None pending in queue.</p>
+<p><strong>Objective:</strong> Ordered inbox of decisions that block or shape autonomous operations.  </p>
+<p><strong>Decision:</strong> Nick works top-down; agents ignore this list for execution.</p>
+<h2>2. Queue (MECE)</h2>
+<table><thead><tr><th>#</th><th>Priority</th><th>ID</th><th>Decision needed</th></tr></thead><tbody>
+<tr><td>1</td><td>medium</td><td><code>ISSUE-24</code></td><td><a href="../gate-room.html?task=ISSUE-24">DECISION: revisit Telegram bot permission posture</a></td></tr>
+<tr><td>2</td><td>medium</td><td><code>ISSUE-ROUTING-001</code></td><td><a href="../gate-room.html?task=ISSUE-ROUTING-001">OpenRouter model routing policy in worker_model</a></td></tr>
+</tbody></table>
+<h2>3. Root cause</h2>
+<p>Gates exist because framework, alerts, or explicit approval require Nick — not because agents are idle.</p>
 <h2>5. Recommendation</h2>
-<p><strong>Agents:</strong> Keep executing the Active Work Queue. No gates open.</p>
+<p><strong>Nick:</strong> Start with <strong>#1</strong> (DECISION: revisit Telegram bot permission posture).  </p>
+<p><strong>Agents:</strong> Continue ungated queue — <a href="policy.html">policy</a>.</p>
   </div>
 </body>
 </html>

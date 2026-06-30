@@ -22,12 +22,15 @@
     {
       "rank": 2,
       "issue_number": 80,
+      "task_id": "ISSUE-80",
       "title": "Nick2 dashboard: hourly ledger reconcile + memo generation on droplet",
       "roi": 0.75,
       "area": "agent-infra",
       "repo": "nick2-dashboard",
       "worker": "coding_worker",
       "est_cost_usd": 1.0,
+      "dispatch": false,
+      "defer_reason": "POL-009 landed on main — witness green (witness_dashboard_honesty.py); touch_paths on main (4d73ceb, JOB-924)",
       "objective": "ISSUE-080: Harden POL-003 dashboard-live sync — reconcile, memos, bus-live export, cron witness. Closes #80 when acceptance passes."
     },
     {

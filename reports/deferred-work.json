@@ -1,0 +1,24 @@
+{
+  "tasks": [
+    {
+      "task_id": "ISSUE-80",
+      "defer_reason": "POL-009 landed on main \u2014 witness green (witness_dashboard_honesty.py); touch_paths on main (4d73ceb, JOB-924)",
+      "title": "Nick2 dashboard: hourly ledger reconcile + memo generation on droplet"
+    },
+    {
+      "task_id": "ISSUE-ROUTING-001",
+      "defer_reason": "Landed on main \u2014 worker_model.py + model-routing.yaml wired in bus spawn (9186153, ff874d4)",
+      "title": "OpenRouter model routing policy in worker_model"
+    },
+    {
+      "task_id": "ISSUE-15",
+      "defer_reason": "Nick must pick Option A vs B and tier schema before agents implement; p3 decision-gated",
+      "title": "FEATURE: optional skill usefulness tiers"
+    },
+    {
+      "task_id": "ISSUE-24",
+      "defer_reason": "Nick personal queue \u2014 decision on Telegram PA permissions (not agent research)",
+      "title": "DECISION: revisit Telegram bot permission posture"
+    }
+  ]
+}

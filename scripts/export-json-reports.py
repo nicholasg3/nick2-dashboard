@@ -125,11 +125,39 @@ def main() -> None:
     (REPORTS / "costs.json").write_text(json.dumps(costs, indent=2) + "\n", encoding="utf-8")
     (REPORTS / "gated.json").write_text(json.dumps(gated_queue, indent=2) + "\n", encoding="utf-8")
 
+    triage_path = ROOT / "pmo_001_result.json"
+    deferred_work: list[dict] = []
+    if triage_path.is_file():
+        try:
+            triage = json.loads(triage_path.read_text(encoding="utf-8"))
+            for item in triage.get("top_issues") or []:
+                if item.get("dispatch") is False:
+                    tid = item.get("task_id") or (
+                        f"ISSUE-{int(item['issue_number'])}" if item.get("issue_number") else ""
+                    )
+                    if tid:
+                        deferred_work.append(
+                            {
+                                "task_id": tid,
+                                "defer_reason": item.get("defer_reason") or "dispatch: false",
+                                "title": item.get("title"),
+                            }
+                        )
+        except (json.JSONDecodeError, OSError, TypeError, ValueError):
+            pass
+    (REPORTS / "deferred-work.json").write_text(
+        json.dumps({"tasks": deferred_work}, indent=2) + "\n",
+        encoding="utf-8",
+    )
+
     import runpy
 
     runpy.run_path(str(ROOT / "scripts" / "export_org_fleet.py"), run_name="__main__")
 
-    print("Exported trust.json, roadmap.json, costs.json, gated.json, org-fleet.json")
+    print(
+        "Exported trust.json, roadmap.json, costs.json, gated.json, "
+        "deferred-work.json, org-fleet.json"
+    )
 
 
 if __name__ == "__main__":

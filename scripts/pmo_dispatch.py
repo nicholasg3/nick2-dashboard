@@ -523,6 +523,11 @@ def retry_undispatched(*, dry_run: bool = False) -> dict:
         item = catalog.get(tid, {})
         if item.get("dispatch") is False:
             continue
+        import job_catalog as jc  # noqa: E402
+
+        cat_entry = jc.load_catalog().get("tasks", {}).get(tid, {})
+        if jc.is_decision_gated(item, cat_entry):
+            continue
         t = tasks[tid]
         if (t.get("status") or "") not in ("queued", "blocked"):
             continue

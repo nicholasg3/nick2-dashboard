@@ -3,11 +3,8 @@
 # ISSUE-24: DECISION: revisit Telegram bot permission posture
 
 **Owner:** research  
-**Status:** 🟠 Stale — no update in 30+ min (POL-002)  
-**Last Updated:** 2026-06-30 22:30
-
-> **WIP policy (POL-002):** Last ledger touch was **45 minutes** ago. Agents must append `task_updated` every 30 minutes or set `idle`/`completed`.
-
+**Status:** 💤 Idle  
+**Last Updated:** 2026-06-30 23:17
 
 ────────────────────────────────────────────
 
@@ -15,7 +12,7 @@
 
 ### Objective
 
-pmo-dispatch:retry dispatched JOB-20260630-804.
+work-queue:Nick removed via dashboard chat — personal decision on Telegram PA permissions, not agent research. (Nick personal queue — decision on Telegram PA permissions (not agent research))
 
 ### Success Criteria
 
@@ -26,7 +23,7 @@ pmo-dispatch:retry dispatched JOB-20260630-804.
 1. Execute
 Progress: ░░░░░░░░░░
 
-• pmo-dispatch:retry dispatched JOB-20260630-804.
+• work-queue:Nick removed via dashboard chat — personal decision on Telegram PA permissions, not agent research. (Nick personal queue — decision on Telegram PA permissions (not agent research))
 
 ────────────────────────────────────────────
 
@@ -81,6 +78,9 @@ _TBD_
 ────────────────────────────────────────────
 
 ## RECENT EVENTS
+
+23:17
+work_removed: work-queue:Nick removed via dashboard chat — personal decision on Telegram PA pe
 
 22:30
 task_updated: pmo-dispatch:retry dispatched JOB-20260630-804.

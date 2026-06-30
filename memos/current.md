@@ -1,4 +1,4 @@
-_Current focus → [DISPATCH-001](queue/DISPATCH-001.html) · 0 gated · 2026-06-30 23:15 SGT_
+_Current focus → [DISPATCH-001](queue/DISPATCH-001.html) · 2 gated · 2026-06-30 23:17 SGT_
 
 **Dispatching ISSUE-BUS-001 — Fix agent-bus worker_model crash**
 
@@ -10,7 +10,7 @@ _Current focus → [DISPATCH-001](queue/DISPATCH-001.html) · 0 gated · 2026-06
 **Status:** 🟠 Stale — no update in 30+ min (POL-002)  
 **Last Updated:** 2026-06-30 22:30
 
-> **WIP policy (POL-002):** Last ledger touch was **45 minutes** ago. Agents must append `task_updated` every 30 minutes or set `idle`/`completed`.
+> **WIP policy (POL-002):** Last ledger touch was **47 minutes** ago. Agents must append `task_updated` every 30 minutes or set `idle`/`completed`.
 
 
 ────────────────────────────────────────────

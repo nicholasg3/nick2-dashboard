@@ -7,6 +7,7 @@
     busLive: 'reports/bus-live.json',
     orgFleet: 'reports/org-fleet.json',
     gated: 'reports/gated.json',
+    deferredWork: 'reports/deferred-work.json',
     gateBriefs: 'reports/gate-briefs.json',
   };
 

@@ -41,6 +41,7 @@ function nickPriorityRank(t) {
 
 let allEvents = [];
 let filterText = '';
+let deferredTaskIds = new Set();
 
 function $(id) {
   return document.getElementById(id);
@@ -281,7 +282,9 @@ function buildState(events) {
       ACTIVE_STATUSES.has(t.status) &&
       !COMPLETED_STATUSES.has(t.status) &&
       !QUEUE_SKIP_EVENTS.has(t.last_event) &&
-      !isGatedByNick(t, resolvedDecisionIds)
+      !isGatedByNick(t, resolvedDecisionIds) &&
+      !deferredTaskIds.has(t.task_id) &&
+      t.status !== 'idle'
   );
   const completed = taskList
     .filter(
@@ -1161,6 +1164,19 @@ function showError(msg) {
   document.querySelector('.container').prepend(banner);
 }
 
+async function loadDeferredWork() {
+  const url = dataUrls.deferredWork || 'reports/deferred-work.json';
+  try {
+    const res = await fetch(`${url}?t=${Date.now()}`);
+    if (res.ok) {
+      const data = await res.json();
+      deferredTaskIds = new Set((data.tasks || []).map((t) => t.task_id).filter(Boolean));
+    }
+  } catch (e) {
+    console.warn('deferred-work load failed', e);
+  }
+}
+
 async function refresh() {
   document.querySelector('.error-banner')?.remove();
   let events;
@@ -1171,6 +1187,7 @@ async function refresh() {
       loadLedger(),
       loadOrgFleet(),
       loadBusLive(),
+      loadDeferredWork(),
     ]);
     allEvents = events;
   } catch (err) {

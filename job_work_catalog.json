@@ -20,9 +20,10 @@
       ]
     },
     "ISSUE-80": {
-      "landed_audit": "off",
+      "shipped_on_main": true,
+      "landed_audit": "open_witness",
       "problem": "The Nick2 dashboard can lag reality: ledger and bus state are exported on a schedule, and job memos were too thin for Nick to see what workers are actually doing.",
-      "doing": "Harden POL-003 live-sync: reconcile ledger vs bus on finish, export bus-live.json, regenerate memos on cron, and add a witness that the droplet sync path stays green.",
+      "doing": "**Done — no bus dispatch.** POL-003 on main (4d73ceb): bus_finish_sync, sync-dashboard-live cron, export_bus_live + generate_job_memos, witness_dashboard_honesty. SYS-002/JOB-924 completed earlier same day.",
       "steps": [
         "Wire reconcile-ledger + export_bus_live into sync-dashboard-live.sh cron",
         "Ensure generate_job_memos runs on every bus-live export",
