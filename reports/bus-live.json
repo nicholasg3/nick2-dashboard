@@ -1,6 +1,26 @@
 {
-  "generated_at": "2026-06-30T13:45:03Z",
-  "running": [],
+  "generated_at": "2026-06-30T13:48:01Z",
+  "running": [
+    {
+      "job_id": "JOB-20260630-183",
+      "short_job_id": "JOB-183",
+      "created_at": "2026-06-30T13:46:23Z",
+      "updated_at": "2026-06-30T13:46:28Z",
+      "started_at": "2026-06-30T13:46:28Z",
+      "display_name": "dashboard-completed-work-table-verify-ne [coder] \u00b7 executing",
+      "feature_name": "dashboard-completed-work-table-verify-ne",
+      "objective_preview": "Dashboard completed-work table: verify newest-first sort, honest Cost (API) column (em dash when no spend logged, not fake zero dollars), merged artifacts, no F",
+      "lane": "coder",
+      "repo": "nick2-dashboard",
+      "to_session": "coding_worker",
+      "worker_status": "executing",
+      "hold_reason": "",
+      "status": "running",
+      "branch": "job/20260630-183-dashboard-completed-work-table",
+      "mission_id": "",
+      "memo_path": "memos/jobs/JOB-20260630-183.md"
+    }
+  ],
   "queued": [],
   "held": [],
   "recent_completed": [
