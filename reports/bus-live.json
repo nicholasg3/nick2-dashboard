@@ -1,6 +1,26 @@
 {
-  "generated_at": "2026-06-30T17:21:01Z",
-  "running": [],
+  "generated_at": "2026-06-30T17:24:02Z",
+  "running": [
+    {
+      "job_id": "JOB-20260630-234",
+      "short_job_id": "JOB-234",
+      "created_at": "2026-06-30T17:23:54Z",
+      "updated_at": "2026-06-30T17:23:57Z",
+      "started_at": "2026-06-30T17:23:55Z",
+      "display_name": "diagnostic-report-the-current-git-branch [coder] \u00b7 executing",
+      "feature_name": "diagnostic-report-the-current-git-branch",
+      "objective_preview": "DIAGNOSTIC: Report the current git branch name in bottom_line. Make NO file changes, NO commits. Just report and finish.",
+      "lane": "coder",
+      "repo": "ai-agents-workspace",
+      "to_session": "coding_worker",
+      "worker_status": "executing",
+      "hold_reason": "",
+      "status": "running",
+      "branch": "job/20260630-234-diagnostic-report-the-current-",
+      "mission_id": "",
+      "memo_path": "memos/jobs/JOB-20260630-234.md"
+    }
+  ],
   "queued": [],
   "held": [],
   "recent_completed": [
