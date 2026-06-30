@@ -46,6 +46,7 @@ LIVE_FILES = {
     "/api/live/bus-live": (REPORTS / "bus-live.json", "application/json"),
     "/api/live/org-fleet": (REPORTS / "org-fleet.json", "application/json"),
     "/api/live/gated": (REPORTS / "gated.json", "application/json"),
+    "/api/live/ceo-queue": (REPORTS / "ceo-queue.json", "application/json"),
     "/api/live/gate-briefs": (REPORTS / "gate-briefs.json", "application/json"),
 }
 

@@ -8,6 +8,7 @@
     orgFleet: 'reports/org-fleet.json',
     gated: 'reports/gated.json',
     deferredWork: 'reports/deferred-work.json',
+    ceoQueue: 'reports/ceo-queue.json',
     gateBriefs: 'reports/gate-briefs.json',
   };
 
@@ -42,6 +43,7 @@
         busLive: `${prefix}/api/live/bus-live`,
         orgFleet: `${prefix}/api/live/org-fleet`,
         gated: `${prefix}/api/live/gated`,
+        ceoQueue: `${prefix}/api/live/ceo-queue`,
         gateBriefs: `${prefix}/api/live/gate-briefs`,
         gateChatApi: (cfg.gateChatApi || prefix).replace(/\/$/, ''),
       };
@@ -54,6 +56,7 @@
         busLive: `${b}/api/live/bus-live`,
         orgFleet: `${b}/api/live/org-fleet`,
         gated: `${b}/api/live/gated`,
+        ceoQueue: `${b}/api/live/ceo-queue`,
         gateBriefs: `${b}/api/live/gate-briefs`,
         gateChatApi: b,
       };

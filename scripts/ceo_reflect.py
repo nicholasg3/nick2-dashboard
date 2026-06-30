@@ -253,6 +253,8 @@ def detect_bottlenecks(ctx: dict) -> list[dict]:
             conn.close()
 
     for tid, t in ctx["issue_tasks"].items():
+        if wqo.is_deferred_task(tid):
+            continue
         arts = t.get("artifacts") or []
         has_bus = any("agent-bus JOB-" in str(a) for a in arts)
         out_txt = t.get("output") or ""
@@ -645,6 +647,42 @@ def write_artifacts(report: dict) -> None:
     MEMO_LATEST.write_text("\n".join(lines) + "\n", encoding="utf-8")
 
 
+def _focus_from_report(report: dict, ctx: dict) -> tuple[str, str, str]:
+    """Return (focus_task_id, focus_line, focus_detail)."""
+    llm = (report.get("llm") or {}).get("reflection") or {}
+    summary = (llm.get("situation_summary") or "").strip()
+    counts = (report.get("context") or {}).get("counts") or {}
+    running = int(counts.get("running") or 0)
+    bn = int(report.get("bottleneck_count") or 0)
+
+    for row in ctx.get("bus_rows") or []:
+        if row.get("status") == "running":
+            tid = row.get("job_id") or ""
+            line = (row.get("feature_name") or row.get("objective") or tid)[:100]
+            return tid, line, (row.get("objective") or "")[:220]
+
+    active = sorted(
+        ctx.get("issue_tasks") or {},
+        key=lambda kv: kv[1].get("ts") or "",
+        reverse=True,
+    )
+    for tid, _t in active:
+        if not wqo.is_deferred_task(tid):
+            if summary:
+                line = summary.split(".")[0].strip()
+                return tid, line[:120], summary[:220]
+            return tid, f"Unblocking {tid}", f"CEO reflect: {bn} bottleneck(s)"
+
+    if summary:
+        line = summary.split(".")[0].strip()[:120]
+        return "SYS-002", line, summary[:220]
+    if running:
+        return "SYS-002", f"Supervising {running} running job(s)", ""
+    if bn:
+        return "SYS-002", f"CEO reflect — {bn} bottleneck(s) to unstick", ""
+    return "SYS-002", "CEO supervision — portfolio idle", ""
+
+
 def run_reflect(
     *,
     dry_run: bool = False,
@@ -693,6 +731,26 @@ def run_reflect(
 
     if not dry_run:
         write_artifacts(report)
+
+    if append_fn and not dry_run:
+        fid, fline, fdetail = _focus_from_report(report, ctx)
+        pd.append_ledger(
+            {
+                **ctx["ledger_base"],
+                "actor": "CEO",
+                "role": "Chief Executive Officer",
+                "event": "focus_snapshot",
+                "task_id": "FOCUS-001",
+                "focus_task_id": fid,
+                "task": "CEO supervision",
+                "status": "in_progress" if bottlenecks else "completed",
+                "owner": "CEO",
+                "focus_line": fline,
+                "focus_detail": fdetail or f"Reflect {report['ts']}",
+                "output": f"{MARKER}focus → {fid}",
+            },
+            append_fn,
+        )
 
     if append_fn and not dry_run and (actions or bottlenecks):
         parts = []

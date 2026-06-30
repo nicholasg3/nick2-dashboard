@@ -197,6 +197,7 @@ function buildState(events) {
   let autonomyMode = null;
   let currentCeoTask = null;
   let focusSnapshot = null;
+  let latestCeoReflect = null;
   const taskCostTotal = new Map();
   const taskCostTracked = new Set();
   const taskArtifactsAll = new Map();
@@ -245,6 +246,10 @@ function buildState(events) {
 
     if (ev.event === 'focus_snapshot') {
       focusSnapshot = ev;
+    }
+
+    if (ev.event === 'ceo_reflect_llm' || ev.event === 'ceo_reflect') {
+      latestCeoReflect = ev;
     }
 
     if (ev.event === 'ceo_focus') {
@@ -349,6 +354,7 @@ function buildState(events) {
     spendByModel,
     spendByProject,
     memoKindByTaskId,
+    latestCeoReflect,
   };
 }
 
@@ -564,20 +570,78 @@ function taskMemoLinkFromState(text, taskId, state, className = 'memo-link') {
   return taskMemoLink(text, state.memoKindByTaskId.get(taskId), taskId, className);
 }
 
+function focusFromBusJob(job) {
+  const line = (job.display_name || job.objective_preview || job.short_job_id || '').trim();
+  return {
+    task_id: job.mission_id || job.short_job_id || job.job_id,
+    focus_task_id: job.short_job_id || job.job_id,
+    task: line,
+    status: 'in_progress',
+    focus_line: line.length > 100 ? `${line.slice(0, 97)}…` : line,
+    focus_detail: (job.objective_preview || '').trim(),
+    ts: job.updated_at || job.started_at || job.created_at,
+    owner: (job.to_session || '').replace('_worker', '') || 'worker',
+    _fromBus: true,
+  };
+}
+
+function focusFromCeoReflect(state) {
+  const ev = state.latestCeoReflect;
+  const q = state.ceoQueue;
+  if (!ev && !q) return null;
+  const ts = q?.ts || ev?.ts;
+  const llm = q?.llm?.reflection;
+  const summary = llm?.situation_summary || (ev?.output || '').replace(/^ceo-reflect(-llm)?:\s*/i, '');
+  const counts = q?.context?.counts;
+  const running = counts?.running ?? 0;
+  const bn = q?.bottleneck_count ?? 0;
+  let line = summary ? summary.split(/[.!?]/)[0].trim() : '';
+  if (!line) {
+    line = running
+      ? `Supervising ${running} running job(s) on the bus`
+      : bn
+        ? `CEO reflect — ${bn} bottleneck(s) to unstick`
+        : 'CEO supervision — portfolio idle';
+  }
+  if (line.length > 120) line = `${line.slice(0, 117)}…`;
+  return {
+    task_id: 'FOCUS-001',
+    focus_task_id: ev?.focus_task_id || 'SYS-002',
+    task: ev?.task || 'CEO supervision',
+    status: ev?.status || 'in_progress',
+    focus_line: line,
+    focus_detail: summary && summary.length > line.length ? summary : '',
+    ts,
+    owner: 'CEO',
+    _fromReflect: true,
+  };
+}
+
 function pickCurrentFocus(state) {
-  const inProg = state.active.find((t) => t.status === 'in_progress');
+  const running = state.busLive?.running;
+  if (running?.length) return focusFromBusJob(running[0]);
+
+  const active = [...state.active].sort((a, b) => new Date(b.ts || 0) - new Date(a.ts || 0));
+  const inProg = active.find((t) => t.status === 'in_progress');
   if (inProg) return inProg;
-  const queued = state.active.find((t) => t.status === 'queued');
+  const queued = active.find((t) => t.status === 'queued');
   if (queued) return queued;
+
+  const reflect = focusFromCeoReflect(state);
   const snap = state.focusSnapshot;
+  const reflectTs = reflect?.ts ? new Date(reflect.ts).getTime() : 0;
+  const snapTs = snap?.ts ? new Date(snap.ts).getTime() : 0;
+  if (reflect && (!snap || reflectTs >= snapTs)) return reflect;
+
   if (snap?.focus_task_id) {
-    const linked = state.active.find((t) => t.task_id === snap.focus_task_id);
-    if (linked) return { ...linked, focus_line: snap.focus_line, focus_detail: snap.focus_detail };
+    const linked = active.find((t) => t.task_id === snap.focus_task_id);
+    if (linked) return { ...linked, focus_line: snap.focus_line, focus_detail: snap.focus_detail, ts: linked.ts || snap.ts };
   }
   if (snap && !COMPLETED_STATUSES.has(snap.status) && snap.status !== 'idle') {
     return snap;
   }
-  return state.active[0] || null;
+  if (reflect) return reflect;
+  return active[0] || null;
 }
 
 function focusPlainLine(focus, state) {
@@ -593,42 +657,74 @@ function focusPlainLine(focus, state) {
   return task ? `${tid}: ${task.slice(0, 60)}` : tid || 'Idle';
 }
 
+function renderFocusReflect(state) {
+  const el = $('focus-reflect');
+  if (!el) return;
+  const q = state.ceoQueue;
+  const llm = q?.llm?.reflection;
+  const summary = llm?.situation_summary
+    || (state.latestCeoReflect?.output || '').replace(/^ceo-reflect(-llm)?:\s*/i, '');
+  if (!summary?.trim()) {
+    el.hidden = true;
+    el.innerHTML = '';
+    return;
+  }
+  const ts = q?.ts || state.latestCeoReflect?.ts;
+  const body = summary.length > 420 ? `${summary.slice(0, 417)}…` : summary;
+  el.hidden = false;
+  el.innerHTML = `
+    <p class="focus-reflect-label">CEO reflection <span class="meta-pill">${esc(fmtTs(ts))}</span></p>
+    <p class="focus-reflect-body">${esc(body)}</p>
+    <a class="focus-link" href="memo.html?p=${encodeURIComponent('memos/ceo-reflect/latest.md')}">Full reflect memo</a>`;
+}
+
 function setFocusPanel(focus, state) {
   const headline = $('focus-headline');
   const detail = $('focus-detail');
   const meta = $('focus-meta');
+  const panel = $('current-focus');
   if (!headline || !detail || !meta) return;
 
   if (!focus) {
+    if (panel) panel.classList.remove('focus-stale');
     headline.innerHTML =
       '<a class="focus-link" href="memos/current.html">Idle — no active work in queue</a>';
     detail.textContent = 'Check the roadmap or authorize work in the ledger.';
     meta.innerHTML = '';
+    renderFocusReflect(state || {});
     return;
   }
 
   const taskId = focus.focus_task_id || focus.task_id;
   const line = focusPlainLine(focus, state) || '—';
-  headline.innerHTML = state && taskId
+  const linkable = state && taskId && !focus._fromReflect && !focus._fromBus;
+  headline.innerHTML = linkable
     ? taskMemoLinkFromState(line, taskId, state, 'focus-link')
     : esc(line);
   const done = COMPLETED_STATUSES.has(focus.status) || focus.status === 'idle';
   let detailSrc = focus.focus_detail || focus.output || '';
-  if (done && focus.output) {
+  if (done && focus.output && !focus._fromReflect) {
     const dot = focus.output.indexOf('.');
     detailSrc =
       dot >= 0
         ? focus.output.slice(dot + 1).trim()
         : 'Next: dispatch ranked issues to coding_worker (see PMO-001_TRIAGE_SUMMARY.md).';
   }
+  if (focus._fromReflect && detailSrc) {
+    /* headline already carries first sentence; detail can stay empty */
+    detailSrc = '';
+  }
   detail.textContent = detailSrc.length > 220 ? `${detailSrc.slice(0, 217)}…` : detailSrc;
-  const focusStale = focus.ts && ageMs(focus.ts) >= WIP_STALE_MS;
+  const focusStale = focus.ts && ageMs(focus.ts) >= WIP_STALE_MS && !focus._fromReflect;
+  if (panel) panel.classList.toggle('focus-stale', Boolean(focusStale));
+  const staleNote = focusStale ? ' <span class="queue-stale-tag">stale</span>' : '';
   meta.innerHTML = `
-    <span class="meta-pill">${badge(focus.status)}</span>
+    <span class="meta-pill">${badge(focus.status)}${staleNote}</span>
     <span class="meta-pill">${esc(taskId || '')}</span>
-    <span class="meta-pill">${liveTimerSpan(focus.ts, 'Focus age', { stale: focusStale })}</span>`;
+    <span class="meta-pill">${liveTimerSpan(focus.ts, 'Updated', { stale: focusStale })}</span>`;
   bindWorkOpenLinks(headline);
   bindGateOpenLinks(headline);
+  renderFocusReflect(state || {});
 }
 
 function renderCurrentFocus(state) {
@@ -804,6 +900,7 @@ const ORG_ASLEEP = new Set(['asleep', 'idle']);
 let orgFleetFilter = 'now';
 let orgFleetDataCache = null;
 let busLiveDataCache = null;
+let ceoQueueDataCache = null;
 
 function orgRoleCard(node, { compact = false } = {}) {
   const status = node.status || 'asleep';
@@ -1107,6 +1204,17 @@ async function loadOrgFleet() {
   }
 }
 
+async function loadCeoQueue() {
+  const url = dataUrls.ceoQueue || 'reports/ceo-queue.json';
+  try {
+    const res = await fetch(`${url}?t=${Date.now()}`);
+    if (res.ok) return await res.json();
+  } catch (e) {
+    console.warn('ceo-queue load failed', e);
+  }
+  return null;
+}
+
 async function loadBusLive() {
   try {
     const res = await fetch(`${dataUrls.busLive}?t=${Date.now()}`);
@@ -1124,6 +1232,8 @@ async function refreshFleetPanel() {
 }
 
 function renderAll(state) {
+  state.busLive = busLiveDataCache;
+  state.ceoQueue = ceoQueueDataCache;
   renderCurrentFocus(state);
   renderSnapshot(state);
   renderActivity(state.sorted, state);
@@ -1182,13 +1292,17 @@ async function refresh() {
   let events;
   let orgFleet = null;
   let busLive = null;
+  let ceoQueue = null;
   try {
-    [events, orgFleet, busLive] = await Promise.all([
+    [events, orgFleet, busLive, , ceoQueue] = await Promise.all([
       loadLedger(),
       loadOrgFleet(),
       loadBusLive(),
       loadDeferredWork(),
+      loadCeoQueue(),
     ]);
+    ceoQueueDataCache = ceoQueue;
+    busLiveDataCache = busLive;
     allEvents = events;
   } catch (err) {
     const hint = dataUrls.source === 'github-static'
