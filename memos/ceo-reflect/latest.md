@@ -1,37 +1,37 @@
-# CEO reflection — 2026-06-30T15:25:21Z
+# CEO reflection — 2026-06-30T15:29:42Z
 
 ## Situation
 - Running: 0 | Held: 0 | Queued: 0
 - Budget remaining: $20.0
 
 ## Bottlenecks
-- **dispatch_blocked** (high): ISSUE-80 queued in ledger without active bus job (submit failed or never linked).
-  - Unstick: Retry bus submit for ISSUE-80 once admission allows.
+- None detected this cycle.
 
 ## Admission
 - New delegations allowed: **1**
-- Retries allowed: **1**
+- Retries allowed: **0**
 - one delegation slot available
-- may retry one undispatched ISSUE-*
+
+## Actions taken
+- llm_delegate_rejected: {"action": "llm_delegate_rejected", "task_id": "ISSUE-BUS-001", "reason": "ISSUE-BUS-001 already active on ledger"}
 
 ## Proposals
-- [unstick] ISSUE-80 queued in ledger without active bus job (submit failed or never linked).
 - [already_deferred] POL-009 landed on main — witness green (witness_dashboard_honesty.py); touch_paths on main (4d73ceb, JOB-924)
 - [already_deferred] Landed on main — worker_model.py + model-routing.yaml wired in bus spawn (9186153, ff874d4)
 - [already_deferred] Nick must pick Option A vs B and tier schema before agents implement; p3 decision-gated
 - [already_deferred] Nick personal queue — decision on Telegram PA permissions (not agent research)
-- [llm_unstick] Retry bus submit for ISSUE-80 once admission allows.
-- [llm_unstick] Promote any held jobs related to ISSUE-BUS-001 or ISSUE-80 if they exist.
-- [llm_nick_attention] ISSUE-80 is blocked due to a failed bus submit but is marked dispatch:false because of recent policy landing; Nick needs to confirm if it can be retried or forc
-- [llm_nick_attention] ISSUE-15 and ISSUE-24 require Nick's decisions to unblock agent implementation and Telegram bot permissions respectively.
-- [llm_nick_attention] Consider reviewing the bus job blocking causes and whether manual intervention or code fixes are needed to prevent submit failures.
+- [llm_unstick] Promote one blocked job from ISSUE-BUS-001 to running to test if it can proceed.
+- [llm_unstick] Perform janitor checks on blocked jobs to identify and clear any stale holds or environment issues.
+- [llm_delegate] ISSUE-BUS-001 is the highest-ranked active issue with blocked jobs and one delegation slot available. Delegating this task can help resolve the critical bus wor
+- [llm_nick_attention] Decision-gated issues ISSUE-15 and ISSUE-24 require Nick's input to proceed.
+- [llm_nick_attention] Review the status and priority of ISSUE-80 and ISSUE-BUS-001 to ensure alignment with current goals.
 
 ## LLM reflection
-The system is fully stalled with 7 blocked tasks and no running or queued jobs. The primary bottleneck is ISSUE-80, which is queued in the ledger but has no active bus job due to a failed or missing submit. Admission allows one retry or one new delegation, but ISSUE-80 is currently dispatch:false and decision-gated, limiting options.
+The system currently has no running or queued tasks but has 7 blocked jobs, all related to ISSUE-80 and ISSUE-BUS-001. No retries are allowed, and only one new delegation slot is available. Several decision-gated issues remain deferred, preventing progress on related tasks.
 
 ### Root causes
-- ISSUE-80 is blocked because its bus job submit failed or was never linked, causing ledger queue blockage.
-- ISSUE-80 is marked dispatch:false due to a recent code landing and policy verification, preventing automatic retries or dispatch.
-- No running or held jobs exist to progress the queue, and all bus jobs related to ISSUE-80 and ISSUE-BUS-001 are blocked.
-- Other issues requiring decisions from Nick (ISSUE-15, ISSUE-24) are deferred and not actionable by agents.
+- Blocked jobs are stuck on ISSUE-80 and ISSUE-BUS-001, preventing forward progress.
+- No retries allowed to attempt unblocking failed jobs.
+- Decision-gated issues (ISSUE-15 and ISSUE-24) are deferred awaiting Nick's input, limiting new work initiation.
+- No running or queued tasks to absorb the workload, causing a stall.
 
