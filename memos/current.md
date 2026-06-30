@@ -1,52 +1,47 @@
-_Current focus → [PMO-001](queue/PMO-001.html) · 0 gated · 2026-06-30 20:29 SGT_
+_Current focus → [SYS-002](queue/SYS-002.html) · 0 gated · 2026-06-30 20:35 SGT_
 
-**Make the dashboard live — executing on droplet (JOB-924), live API + reconcile path**
+**Dashboard live mission complete — no dashboard worker on bus**
 
 [Tue Jun 30, 2026]
 
 [← Dashboard](https://nicholasg3.github.io/nick2-dashboard/index.html)
 
-**PMO-001: Triage 13 ready-for-agent GitHub issues**
+**SYS-002: Make the dashboard live**
 
 ## SITUATION
 
-Thirteen GitHub issues are labeled ready-for-agent but lack a ranked execution order. PMO must inventory, score ROI, and dispatch frontier workers within the $20/week cap — without burning budget on repo-lock collisions or low-yield doc-only tasks.
+The operating dashboard still reads ledger and agent-bus state from GitHub Pages snapshots that can lag minutes behind reality. POL-002 needs server-side stale detection so workers cannot sit at Executing while asleep.
 
 ## MECE DECOMPOSITION
 
-- **Understand the work** — Inventory 13 issues; classify capability/tier; estimate effort/risk (~35% done)
-- **Prioritize** — Score ROI with interim rubric until DEC-002; map dependencies; rank backlog (~15%)
-- **Execute** — Dispatch top issues to frontier workers; monitor budget; verify witnesses (~10%)
-- **Report & learn** — Update ledger, refresh briefs, capture lessons for postmortem (~5%)
+- **Live read path** — Add droplet API for ledger tail + bus SQLite — in flight via JOB-924
+- **Honest reconcile** — Auto-flag or transition tasks with no heartbeat in 30+ minutes
+- **Publish cadence** — 15-minute cron to reconcile, regenerate memos, and push
+- **Client wiring** — dashboard app polls live API when configured, static JSON fallback
 
 ## PATHS CONSIDERED
 
-- FIFO dispatch — fast start but ignores ROI and repo-lock risk
-- ROI-ranked batch with interim scoring — analysis-first, then dispatch top N
-- Wait for DEC-002 scoring framework before any dispatch
+- Full React/Node rewrite on GitHub Pages
+- Extend existing Python gate server with /api/live/* + vanilla JS polling
+- Static-only: shorter cron and hope agents heartbeats
 
 ## CHOSEN PATH + WHY
 
-ROI-ranked batch with interim rubric wins because FIFO would waste slots on doc-only or blocked repos, and waiting for DEC-002 stalls the whole frontier. P-001 already approved pure analysis feeding this backlog — PMO executes the ranked dispatch once inventory and dependencies are clear.
+We chose extending the gate server and vanilla JS because it fixes latency and honesty without a framework migration. React would improve DX but would not stop agents from going quiet without the reconcile layer; static-only leaves the phone and dashboard blind during the export gap. The gate server already runs on the droplet beside the ledger — adding live endpoints is the cheapest path that unifies memo and panel reads.
 
 ## WHERE IT STANDS
 
-Issue inventory ~35% complete. Dependency mapping started. nick2-dashboard repo lock (JOB-453) cleared on main but PMO dispatch still needs a clean ranked top-5. DEC-002 scoring framework pending — interim rubric in use, not a hard block. No Nick gate.
-
-> POL-002: last ledger touch **58m** ago — heartbeat or status transition due.
-
+JOB-924 is **executing now** on the droplet (not blocked). One harness crash earlier required a requeue; repo-lock zombies (JOB-755/453) are cleared. Worker is implementing live ledger/bus API, POL-002 reconcile, and 15m sync cron on branch job/20260630-924. JOB-102 waits for 924 to finish. No Nick gate.
 
 ## EFFORT & COST
 
-- **Time:** Mission age ~5h · Last heartbeat due per POL-002 if stale
-- **Work:** PMO worker enabled; inventory + ranking in flight
+- **Time:** Now: executing since ~19:50 SGT · Mission age ~2h · Past stalls (resolved): ~45m repo locks + ~15m harness retry — not current blockers
+- **Work:** JOB-924 attempt 2 executing; attempt 1 blocked (harness); JOB-102 held; JOB-438 parallel
 - **Budget:** spent $0.00 · remaining $20.00 · limit $20/week
 
 ## LINKS
 
 - [Dashboard](https://nicholasg3.github.io/nick2-dashboard/)
-- [GitHub Issues](https://github.com/nicholasg3/ai-agents-workspace/issues)
 - [CEO Ledger](https://nicholasg3.github.io/nick2-dashboard/memos/ledger.html)
-- [lane.json](Projects-for-agents/frontier-orchestrator/lane.json)
 
-_Last updated 2026-06-30 19:30 SGT_
+_Last updated 2026-06-30 20:34 SGT_
