@@ -90,8 +90,15 @@ def load_work_catalog() -> dict[str, dict]:
 
 
 def work_catalog_entry(
-    ledger_tid: str | None, pmo_item: dict | None, catalog: dict[str, dict]
+    ledger_tid: str | None,
+    pmo_item: dict | None,
+    catalog: dict[str, dict],
+    *,
+    objective: str = "",
+    feature: str = "",
 ) -> dict | None:
+    if is_smoke_or_test(objective, feature):
+        return None
     if ledger_tid and ledger_tid in catalog:
         return catalog[ledger_tid]
     if pmo_item:
@@ -154,7 +161,7 @@ def resolve_ledger_task(
             cand = f"ISSUE-{int(num_m.group(1))}"
             if cand in tasks:
                 return cand, tasks[cand]
-    if feature:
+    if feature and not is_smoke_or_test(objective, feature):
         fm = re.search(r"issue-(\d+)", feature)
         if fm:
             cand = f"ISSUE-{int(fm.group(1))}"
@@ -264,19 +271,45 @@ def repo_claim_job(conn: sqlite3.Connection, repo: str, exclude: str) -> str | N
     return row[0] if row else None
 
 
-def load_report_snippet(report_path: str | None, limit: int = 600) -> str | None:
+def load_report_dict(report_path: str | None) -> dict | None:
     if not report_path:
         return None
     p = Path(report_path)
+    if not p.is_file():
+        p = BUS_ROOT / "outbox" / f"{Path(report_path).name}"
     if not p.is_file():
         p = BUS_ROOT / "reports" / f"{Path(report_path).name}"
     if not p.is_file():
         return None
     try:
-        text = p.read_text(encoding="utf-8").strip()
-    except OSError:
+        return json.loads(p.read_text(encoding="utf-8"))
+    except (json.JSONDecodeError, OSError):
         return None
+
+
+def load_report_snippet(report_path: str | None, limit: int = 600) -> str | None:
+    rep = load_report_dict(report_path)
+    if not rep:
+        return None
+    if rep.get("status") == "closed-superseded":
+        line = rep.get("bottom_line") or "closed-superseded"
+        by = rep.get("superseded_by") or "harness"
+        finished = (rep.get("finished_at") or "")[:19]
+        return f"**Already superseded** ({finished} by `{by}`): {line}"
+    text = json.dumps(rep, indent=2)
     return text[:limit] + ("…" if len(text) > limit else "")
+
+
+def is_smoke_or_test(objective: str, feature: str) -> bool:
+    blob = f"{objective} {feature}".lower()
+    return bool(re.search(r"\b(smoke|smoke-test|test packet|orphan)\b", blob))
+
+
+def report_supersedes_running(row: sqlite3.Row) -> bool:
+    if (row["status"] or "") != "running":
+        return False
+    rep = load_report_dict(row["report_path"])
+    return bool(rep and rep.get("status") == "closed-superseded")
 
 
 def objective_text(row: sqlite3.Row, packet: dict) -> str:
@@ -324,8 +357,23 @@ def what_its_doing_section(
     work: dict | None,
     objective: str,
     live: str | None,
+    smoke: bool = False,
 ) -> str:
     lines: list[str] = []
+    if smoke:
+        lines.append(
+            "**Smoke/test packet** — not PMO rank #2 and not GitHub #80 production work. "
+            "Objective is a one-off harness test; ignore portfolio brief links."
+        )
+        lines.append("")
+        lines.append(objective.split("\n")[0].strip())
+        lines.append("")
+        lines.append("**Done when:** test author marks done or packet is superseded.")
+        if live:
+            lines.append("")
+            lines.append("**Live worktree (now):**")
+            lines.append(live)
+        return "\n".join(lines)
     if work:
         if work.get("doing"):
             lines.append(str(work["doing"]))
@@ -415,7 +463,14 @@ def where_it_stands(
     hold = (row["hold_reason"] or "").strip()
     lines: list[str] = []
 
-    if status == "running":
+    if report_supersedes_running(row):
+        lines.append(
+            "**Zombie packet** — bus DB says `running` but the worker report is "
+            "`closed-superseded`. A stale worker may still hold the repo lock. "
+            "Run `bus.py supersede` again or `cancel_duplicate_jobs.py`; do not trust "
+            "WHAT IT'S DOING above (memo used wrong ISSUE-80 catalog match)."
+        )
+    elif status == "running":
         since = started or updated
         lines.append(
             f"**Executing** on `{row['repo'] or '—'}` — worker phase `{worker}`, "
@@ -494,15 +549,22 @@ def job_memo_body(
     short = short_job_id(job_id)
     feature = row["feature_name"] or packet.get("feature_name") or "job"
     objective = objective_text(row, packet)
-    pmo_item = pmo_item_for_job(objective, None, pmo_index)
-    ledger_tid, ledger_task = resolve_ledger_task(
-        job_id, objective, events, tasks, pmo_item, feature
-    )
-    if not pmo_item and ledger_tid:
-        pmo_item = pmo_item_for_job(objective, ledger_tid, pmo_index)
-    title = spoken_title(objective, feature, pmo_item)
+    smoke = is_smoke_or_test(objective, feature)
     catalog = load_work_catalog()
-    work = work_catalog_entry(ledger_tid, pmo_item, catalog)
+    if smoke:
+        pmo_item = None
+        ledger_tid, ledger_task = None, {}
+    else:
+        pmo_item = pmo_item_for_job(objective, None, pmo_index)
+        ledger_tid, ledger_task = resolve_ledger_task(
+            job_id, objective, events, tasks, pmo_item, feature
+        )
+        if not pmo_item and ledger_tid:
+            pmo_item = pmo_item_for_job(objective, ledger_tid, pmo_index)
+    title = spoken_title(objective, feature, pmo_item)
+    work = work_catalog_entry(
+        ledger_tid, pmo_item, catalog, objective=objective, feature=feature
+    )
     live = live_worktree_progress(row)
     started = running_started_at(job_id) if row["status"] == "running" else None
     siblings = duplicate_siblings(conn, feature, job_id)
@@ -526,7 +588,12 @@ def job_memo_body(
         "",
         "## WHAT IT'S DOING",
         "",
-        what_its_doing_section(work=work, objective=objective, live=live),
+        what_its_doing_section(
+            work=work,
+            objective=objective,
+            live=live,
+            smoke=smoke,
+        ),
         "",
         "## WHERE IT STANDS",
         "",
