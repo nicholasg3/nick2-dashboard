@@ -1,6 +1,26 @@
 {
-  "generated_at": "2026-06-30T15:31:34Z",
-  "running": [],
+  "generated_at": "2026-06-30T15:33:02Z",
+  "running": [
+    {
+      "job_id": "JOB-20260630-576",
+      "short_job_id": "JOB-576",
+      "created_at": "2026-06-30T15:32:56Z",
+      "updated_at": "2026-06-30T15:33:01Z",
+      "started_at": "2026-06-30T15:33:01Z",
+      "display_name": "repro-worker-model-crash-check [coder] \u00b7 checking out branch",
+      "feature_name": "repro-worker-model-crash-check",
+      "objective_preview": "REPRO: worker_model crash check",
+      "lane": "coder",
+      "repo": "ai-agents-workspace",
+      "to_session": "coding_worker",
+      "worker_status": "checking out branch",
+      "hold_reason": "",
+      "status": "running",
+      "branch": "job/20260630-576-repro-worker-model-crash-check",
+      "mission_id": "",
+      "memo_path": "memos/jobs/JOB-20260630-576.md"
+    }
+  ],
   "queued": [],
   "held": [],
   "recent_completed": [
