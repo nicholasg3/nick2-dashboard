@@ -1,26 +1,7 @@
 {
-  "generated_at": "2026-06-30T14:57:01Z",
+  "generated_at": "2026-06-30T15:00:03Z",
   "running": [],
   "queued": [
-    {
-      "job_id": "JOB-20260630-596",
-      "short_job_id": "JOB-596",
-      "created_at": "2026-06-30T14:26:36Z",
-      "updated_at": "2026-06-30T14:40:14Z",
-      "started_at": "2026-06-30T14:26:36Z",
-      "display_name": "issue-routing-001-implement-cost-aware-o [coder] \u00b7 queued",
-      "feature_name": "issue-routing-001-implement-cost-aware-o",
-      "objective_preview": "ISSUE-ROUTING-001: Implement cost-aware OpenRouter routing per model-routing-policy skill. PMO-001 rank #3.",
-      "lane": "coder",
-      "repo": "ai-agents-workspace",
-      "to_session": "coding_worker",
-      "worker_status": "queued",
-      "hold_reason": "",
-      "status": "queued",
-      "branch": "job/20260630-596-issue-routing-001-implement-co",
-      "mission_id": "",
-      "memo_path": "memos/jobs/JOB-20260630-596.md"
-    },
     {
       "job_id": "JOB-20260630-703",
       "short_job_id": "JOB-703",
@@ -41,27 +22,7 @@
       "memo_path": "memos/jobs/JOB-20260630-703.md"
     }
   ],
-  "held": [
-    {
-      "job_id": "JOB-20260630-550",
-      "short_job_id": "JOB-550",
-      "created_at": "2026-06-30T14:25:50Z",
-      "updated_at": "2026-06-30T14:57:00Z",
-      "started_at": "2026-06-30T14:25:50Z",
-      "display_name": "issue-15-implement-optional-skill-useful [coder] \u00b7 queued",
-      "feature_name": "issue-15-implement-optional-skill-useful",
-      "objective_preview": "ISSUE-15: Implement optional skill usefulness tiers in skill-radar digest path. Closes #15 when witness passes.",
-      "lane": "coder",
-      "repo": "ai-agents-workspace",
-      "to_session": "coding_worker",
-      "worker_status": "queued",
-      "hold_reason": "waiting for JOB-20260630-549 (blocked)",
-      "status": "held",
-      "branch": "job/20260630-550-issue-15-implement-optional-sk",
-      "mission_id": "",
-      "memo_path": "memos/jobs/JOB-20260630-550.md"
-    }
-  ],
+  "held": [],
   "recent_completed": [
     {
       "job_id": "JOB-20260630-183",
