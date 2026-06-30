@@ -184,7 +184,11 @@ def submit_bus_job(
             err = (r.stderr or out or "bus submit failed")[:300]
             return {"error": err, "returncode": r.returncode}
         if out:
-            return json.loads(out)
+            try:
+                return json.loads(out)
+            except json.JSONDecodeError:
+                return {"error": out or (r.stderr or "")[:400], "returncode": r.returncode}
+        return {"error": (r.stderr or "empty bus response")[:400], "returncode": r.returncode}
     except Exception as e:
         return {"error": str(e)}
     return None
@@ -279,7 +283,7 @@ def run_dispatch(
             append_fn,
         )
 
-    prior_by_repo: dict[str, str] = {}
+    prior_chain: dict[str, str] = {}
     job_rows: list[dict] = []
     for item in queued:
         tid = item["task_id"]
@@ -287,7 +291,8 @@ def run_dispatch(
         worker = (item.get("worker") or "coding_worker").strip()
         repo = (item.get("repo") or "ai-agents-workspace").strip()
         objective = build_objective(item, tid)
-        after = prior_by_repo.get(repo)
+        chain_key = f"{repo}:{worker}"
+        after = prior_chain.get(chain_key)
 
         if not dry_run:
             append_ledger(
@@ -326,7 +331,7 @@ def run_dispatch(
             if bus_out.get("jobs"):
                 job_id = bus_out["jobs"][-1].get("job_id")
         if job_id:
-            prior_by_repo[repo] = job_id
+            prior_chain[chain_key] = job_id
         job_rows.append({"task_id": tid, "job_id": job_id, "bus": bus_out})
 
         if not dry_run and job_id:
@@ -410,7 +415,7 @@ def retry_undispatched(*, dry_run: bool = False) -> dict:
     tasks = task_state(events)
     base = ledger_base(events)
     retried: list[dict] = []
-    prior_by_repo: dict[str, str] = {}
+    prior_chain: dict[str, str] = {}
     catalog = _item_lookup()
 
     for tid in sorted(tasks):
@@ -439,17 +444,18 @@ def retry_undispatched(*, dry_run: bool = False) -> dict:
             "worker": worker,
             "repo": repo,
         }
+        chain_key = f"{repo}:{worker}"
         bus_out = submit_bus_job(
             session=worker,
             objective=build_objective(item, tid),
             repo=repo,
             task_type="implementation" if worker == "coding_worker" else "research",
-            after=prior_by_repo.get(repo),
+            after=prior_chain.get(chain_key),
             dry_run=dry_run,
         )
         job_id = (bus_out or {}).get("job_id") if isinstance(bus_out, dict) else None
         if job_id:
-            prior_by_repo[repo] = job_id
+            prior_chain[chain_key] = job_id
             if not dry_run:
                 append_ledger(
                     {
