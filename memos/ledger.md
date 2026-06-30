@@ -4,6 +4,7 @@ Read-only view of `logs/ceo-ledger.jsonl`.
 
 | Time | Actor | Event | Task ID | Task |
 |------|-------|-------|---------|------|
+| 2026-06-30T17:46:35 | CRO | task_updated | LIT-001 | Autonomous literature research for memory architec |
 | 2026-06-30T16:35:52 | COO | focus_snapshot | FOCUS-001 | Triage 13 ready-for-agent GitHub issues |
 | 2026-06-30T16:35:52 | PMO | task_started | PMO-001 | Triage 13 ready-for-agent GitHub issues |
 | 2026-06-30T16:35:52 | COO | worker_status | SYS-001 | Frontier worker configuration |
