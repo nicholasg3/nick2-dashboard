@@ -45,12 +45,15 @@
     {
       "rank": 4,
       "issue_number": 15,
+      "task_id": "ISSUE-15",
       "title": "FEATURE: optional skill usefulness tiers",
       "roi": 0.55,
       "area": "skill-library",
       "repo": "ai-agents-workspace",
       "worker": "coding_worker",
       "est_cost_usd": 1.0,
+      "dispatch": false,
+      "defer_reason": "Nick must pick Option A vs B and tier schema before agents implement; p3 decision-gated",
       "objective": "ISSUE-15: Implement optional skill usefulness tiers in skill-radar digest path. Closes #15 when witness passes."
     },
     {

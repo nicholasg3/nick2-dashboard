@@ -51,15 +51,19 @@
       ]
     },
     "ISSUE-15": {
-      "problem": "Skill-radar digest has no usefulness tiers — hard to prioritize which skills to improve.",
-      "doing": "Add optional usefulness tiers to the skill-radar digest path per GitHub issue #15.",
+      "problem": "~107 far-field jesus-pattern skills may pollute router/digest; issue is p3 and decision-gated (Option A: tag tiers + prefer Tier 1–2 vs Option B: leave indexed).",
+      "doing": "**Nick's queue — not running on agents.** Pick Option A or B, define tier schema in frontmatter, then re-open with a runnable witness.",
       "steps": [
-        "Design tier schema",
-        "Implement in digest path",
-        "Witness on sample digest output"
+        "Decide Option A (usefulness_tier in frontmatter + router prefers Tier 1–2) vs Option B (status quo)",
+        "If A: document schema in GitHub #15 and job catalog witness",
+        "Dispatch only after witness is concrete (e.g. skill_manifest selftest + router smoke)"
       ],
-      "witness": "Closes #15 when witness passes",
-      "touch_paths": ["Skill Library/", "agent-bus or digest scripts"]
+      "witness": "Decision recorded on #15; no bus dispatch until Nick opts in",
+      "touch_paths": [
+        "Projects-for-agents/skill-radar/skill_manifest.py",
+        "skill-router/skill_index.py",
+        "Projects-for-agents/skill-radar/run_daily.sh"
+      ]
     },
     "ISSUE-24": {
       "problem": "Telegram PA bot currently runs with bypassPermissions (full root for Nick's Telegram ID only). Nick may want read-only or acceptEdits instead — this is a personal decision, not an agent task.",
