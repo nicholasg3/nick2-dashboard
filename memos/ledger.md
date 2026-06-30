@@ -4,6 +4,13 @@ Read-only view of `logs/ceo-ledger.jsonl`.
 
 | Time | Actor | Event | Task ID | Task |
 |------|-------|-------|---------|------|
+| 2026-06-30T23:45:07 | CEO | supervisor_cycle | FOCUS-001 | CEO supervisor corrective cycle |
+| 2026-06-30T23:45:07 | CEO | focus_snapshot | FOCUS-001 | CEO supervision |
+| 2026-06-30T23:43:04 | Nicholas | nick_gate_resolved | ISSUE-24 | DECISION: revisit Telegram bot permission posture |
+| 2026-06-30T23:43:04 | Nicholas | decision_resolved | ISSUE-24 | DECISION: revisit Telegram bot permission posture |
+| 2026-06-30T23:40:08 | CEO | nick_gate_resolved | ISSUE-80 | Nick2 dashboard: hourly ledger reconcile + memo ge |
+| 2026-06-30T23:40:08 | CEO | nick_gate_resolved | ISSUE-ROUTING-001 | OpenRouter model routing policy in worker_model |
+| 2026-06-30T23:37:15 | CEO | work_removed | ISSUE-BUS-001 | Fix agent-bus worker_model crash |
 | 2026-06-30T23:31:34 | COO | pattern_flag | FOCUS-001 |  |
 | 2026-06-30T23:31:31 | CEO | focus_snapshot | FOCUS-001 | CEO supervision |
 | 2026-06-30T23:29:51 | CEO | ceo_reflect | FOCUS-001 | CEO reflection and bottleneck pass |
@@ -37,10 +44,3 @@ Read-only view of `logs/ceo-ledger.jsonl`.
 | 2026-06-30T19:54:14 | COO | focus_snapshot | FOCUS-001 | Make the dashboard live |
 | 2026-06-30T19:54:14 | COO | task_updated | SYS-002 | Make the dashboard live |
 | 2026-06-30T19:30:59 | COO | task_updated | PMO-001 | Triage 13 ready-for-agent GitHub issues |
-| 2026-06-30T19:28:53 | CEO | task_queued | SYS-002 | Dashboard live-sync (ledger+bus API, POL-002 recon |
-| 2026-06-30T19:24:23 | PMO | task_updated | PMO-001 | Triage 13 ready-for-agent GitHub issues |
-| 2026-06-30T19:22:08 | CRO | task_updated | LIT-001 | Autonomous literature research for memory architec |
-| 2026-06-30T19:22:07 | COO | policy_set | POL-002 | WIP execution brief cadence |
-| 2026-06-30T19:12:50 | Nicholas | nick_gate_resolved | DEC-003 | Confirm Telegram alert method for $5 spend thresho |
-| 2026-06-30T19:12:50 | Nicholas | decision_resolved | DEC-003 | Confirm Telegram alert method for $5 spend thresho |
-| 2026-06-30T19:12:50 | Nicholas | nick_gate_instruction | DEC-003 | Confirm Telegram alert method for $5 spend thresho |

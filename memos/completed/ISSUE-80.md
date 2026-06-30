@@ -1,44 +1,30 @@
-[Tue Jun 30, 2026]
+# ISSUE-80: Nick2 dashboard: hourly ledger reconcile + memo generation on droplet — Completed
 
-[← Dashboard](https://nicholasg3.github.io/nick2-dashboard/index.html)
+**Owner:** CEO · **Status:** completed · **Updated:** 2026-06-30T23:40 · **Cost:** $0.00
 
-**ISSUE-80: Dashboard live-sync + honest memos**
 
-## SITUATION
+## 1. Executive Framing
 
-Nick cannot tell what workers are doing from thin job memos and lagging exports. POL-003 requires reconcile-on-finish, bus-live export, and cron sync on the droplet.
+**Objective:** Advance: Nick2 dashboard: hourly ledger reconcile + memo generation on droplet  
+**Outcome:** Resolved — POL-009 landed on main (4d73ceb, JOB-924); witness_dashboard_honesty green; 15m cron live on droplet. No Nick decision needed; GitHub #80 can be closed with pointer to 4d73ceb.
 
-## MECE DECOMPOSITION
+## 2. What shipped (MECE)
 
-- **Live export** — export_bus_live.py + generate_job_memos on sync tick
-- **Reconcile** — reconcile-ledger.py flags stale in_progress per POL-002
-- **Cron** — sync-dashboard-live.sh every 15m on droplet
-- **Witness** — witness_dashboard_honesty.py exits 0
+| Bucket | Scope | Current state |
+|--------|-------|---------------|
+| Work unit | Nick2 dashboard: hourly ledger reconcile + memo generation on droplet | Resolved — POL-009 landed on main (4d73ceb, JOB-924); witness_dashboard_honesty green; 15m cron live on droplet. No Nick |
+| Status & owner | completed / CEO | 2026-06-30T23:40 |
+| Dependencies | Gates, budget, worker | See dashboard Gated queue and budget panel |
+| Deliverable | Ledger event + artifacts | Not listed |
 
-## PATHS CONSIDERED
+## 3. Root cause addressed
 
-- React rewrite
-- Extend gate server + vanilla JS (chosen for SYS-002)
-- Static-only shorter cron
+Work item reached completed status in ledger.
 
-## CHOSEN PATH + WHY
+## 5. Recommendation
 
-Extend existing Python gate server — same path as SYS-002 live mission; add POL-005 narrative job memos so Nick sees what each worker is actually doing.
+**Done.** No further action unless regression.
 
-## WHERE IT STANDS
+## Artifacts
 
-JOB-573 executing on nick2-dashboard in parallel with ISSUE-BUS-001 on workspace repo.
-
-## EFFORT & COST
-
-- **Time:** Parallel lane #2 after PMO triage
-- **Work:** coding_worker on nick2-dashboard
-- **Budget:** spent $0.00 · remaining $20.00 · limit $20.00/week
-
-## LINKS
-
-- [Dashboard](https://nicholasg3.github.io/nick2-dashboard/)
-- [GitHub #80](https://github.com/nicholasg3/ai-agents-workspace/issues/80)
-- [CEO Ledger](https://nicholasg3.github.io/nick2-dashboard/memos/ledger.html)
-
-_Last updated 2026-06-30 23:25 SGT_
+_None listed._

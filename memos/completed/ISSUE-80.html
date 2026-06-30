@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ISSUE-80 idle — Nick2</title>
+  <title>ISSUE-80 completed — Nick2</title>
   <style>
 body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   background: #0f1419; color: #e8edf4; line-height: 1.55; margin: 0; }
@@ -30,24 +30,24 @@ strong { color: #fff; }
 <body>
   <div class="wrap">
     <p class="nav"><a href="../../index.html">← Dashboard</a></p>
-    <p>[Tue Jun 30, 2026]</p>
-<p><a href="https://nicholasg3.github.io/nick2-dashboard/index.html">← Dashboard</a></p>
-<p><strong>ISSUE-80: Dashboard live-sync + honest memos</strong></p>
-<h2>SITUATION</h2>
-<p>Nick cannot tell what workers are doing from thin job memos and lagging exports. POL-003 requires reconcile-on-finish, bus-live export, and cron sync on the droplet.</p>
-<h2>MECE DECOMPOSITION</h2>
-<ul><li><strong>Live export</strong> — export_bus_live.py + generate_job_memos on sync tick</li><li><strong>Reconcile</strong> — reconcile-ledger.py flags stale in_progress per POL-002</li><li><strong>Cron</strong> — sync-dashboard-live.sh every 15m on droplet</li><li><strong>Witness</strong> — witness_dashboard_honesty.py exits 0</li></ul>
-<h2>PATHS CONSIDERED</h2>
-<ul><li>React rewrite</li><li>Extend gate server + vanilla JS (chosen for SYS-002)</li><li>Static-only shorter cron</li></ul>
-<h2>CHOSEN PATH + WHY</h2>
-<p>Extend existing Python gate server — same path as SYS-002 live mission; add POL-005 narrative job memos so Nick sees what each worker is actually doing.</p>
-<h2>WHERE IT STANDS</h2>
-<p>JOB-573 executing on nick2-dashboard in parallel with ISSUE-BUS-001 on workspace repo.</p>
-<h2>EFFORT &amp; COST</h2>
-<ul><li><strong>Time:</strong> Parallel lane #2 after PMO triage</li><li><strong>Work:</strong> coding_worker on nick2-dashboard</li><li><strong>Budget:</strong> spent $0.00 · remaining $20.00 · limit $20.00/week</li></ul>
-<h2>LINKS</h2>
-<ul><li><a href="https://nicholasg3.github.io/nick2-dashboard/">Dashboard</a></li><li><a href="https://github.com/nicholasg3/ai-agents-workspace/issues/80">GitHub #80</a></li><li><a href="https://nicholasg3.github.io/nick2-dashboard/memos/ledger.html">CEO Ledger</a></li></ul>
-<p>_Last updated 2026-06-30 23:25 SGT_</p>
+    <h1>ISSUE-80: Nick2 dashboard: hourly ledger reconcile + memo generation on droplet — Completed</h1>
+<p><strong>Owner:</strong> CEO · <strong>Status:</strong> completed · <strong>Updated:</strong> 2026-06-30T23:40 · <strong>Cost:</strong> $0.00</p>
+<h2>1. Executive Framing</h2>
+<p><strong>Objective:</strong> Advance: Nick2 dashboard: hourly ledger reconcile + memo generation on droplet  </p>
+<p><strong>Outcome:</strong> Resolved — POL-009 landed on main (4d73ceb, JOB-924); witness_dashboard_honesty green; 15m cron live on droplet. No Nick decision needed; GitHub #80 can be closed with pointer to 4d73ceb.</p>
+<h2>2. What shipped (MECE)</h2>
+<table><thead><tr><th>Bucket</th><th>Scope</th><th>Current state</th></tr></thead><tbody>
+<tr><td>Work unit</td><td>Nick2 dashboard: hourly ledger reconcile + memo generation on droplet</td><td>Resolved — POL-009 landed on main (4d73ceb, JOB-924); witness_dashboard_honesty green; 15m cron live on droplet. No Nick</td></tr>
+<tr><td>Status &amp; owner</td><td>completed / CEO</td><td>2026-06-30T23:40</td></tr>
+<tr><td>Dependencies</td><td>Gates, budget, worker</td><td>See dashboard Gated queue and budget panel</td></tr>
+<tr><td>Deliverable</td><td>Ledger event + artifacts</td><td>Not listed</td></tr>
+</tbody></table>
+<h2>3. Root cause addressed</h2>
+<p>Work item reached completed status in ledger.</p>
+<h2>5. Recommendation</h2>
+<p><strong>Done.</strong> No further action unless regression.</p>
+<h2>Artifacts</h2>
+<p>_None listed._</p>
   </div>
 </body>
 </html>

@@ -1,94 +1,30 @@
-[Tue Jun 30, 2026]
+# ISSUE-ROUTING-001: OpenRouter model routing policy in worker_model — Completed
 
-# ISSUE-ROUTING-001: OpenRouter model routing policy in worker_model
+**Owner:** CEO · **Status:** completed · **Updated:** 2026-06-30T23:40 · **Cost:** $0.00
 
-**Owner:** coding  
-**Status:** 💤 Idle  
-**Last Updated:** 2026-06-30 23:17
 
-────────────────────────────────────────────
+## 1. Executive Framing
 
-## MISSION
+**Objective:** Advance: OpenRouter model routing policy in worker_model  
+**Outcome:** Resolved — no Nick decision needed. worker_model resolves an OpenRouter slug per tier and falls back to OpenRouter/CCR default when none is set, so routing is decided at call time. Landed on main (9186153, ff874d4); regression test test_worker_model.py green.
 
-### Objective
+## 2. What shipped (MECE)
 
-work-queue:Already shipped on main (POL-009); removed from active queue. (Landed on main — worker_model.py + model-routing.yaml wired in bus spawn (9186153, ff874d4))
+| Bucket | Scope | Current state |
+|--------|-------|---------------|
+| Work unit | OpenRouter model routing policy in worker_model | Resolved — no Nick decision needed. worker_model resolves an OpenRouter slug per tier and falls back to OpenRouter/CCR d |
+| Status & owner | completed / CEO | 2026-06-30T23:40 |
+| Dependencies | Gates, budget, worker | See dashboard Gated queue and budget panel |
+| Deliverable | Ledger event + artifacts | Not listed |
 
-### Success Criteria
+## 3. Root cause addressed
 
-☐ Mission completed per ledger
+Work item reached completed status in ledger.
 
-### Mission Decomposition (MECE)
+## 5. Recommendation
 
-1. Execute
-Progress: ░░░░░░░░░░
+**Done.** No further action unless regression.
 
-• work-queue:Already shipped on main (POL-009); removed from active queue. (Landed on main — worker_model.py + model-routing.yaml wired in bus spawn (9186153, ff874d4))
+## Artifacts
 
-────────────────────────────────────────────
-
-## EXECUTION STATUS
-
-### Overall Progress
-
-░░░░░░░░░░ 5%
-
-### Budget
-
-Spent: $0.00
-Remaining: $20.00
-Limit: $20.00/week
-
-### Critical Path
-
-Start
-      ↓
-Execute
-      ↓
-Verify
-      ↓
-Report
-
-────────────────────────────────────────────
-
-## CURRENT WORKSTREAMS
-
-░░░░░░░░░░
-Primary workstream
-
-────────────────────────────────────────────
-
-## BLOCKERS
-
-• _None._
-
-────────────────────────────────────────────
-
-## NEXT MILESTONES
-
-—
-_TBD_
-
-────────────────────────────────────────────
-
-## WAITING ON
-
-• _None._
-
-────────────────────────────────────────────
-
-## RECENT EVENTS
-
-23:17
-work_removed: work-queue:Already shipped on main (POL-009); removed from active queue. (Landed
-
-22:30
-task_updated: pmo-dispatch:retry dispatched JOB-20260630-805.
-
-────────────────────────────────────────────
-
-## LINKS
-
-- [Dashboard](https://nicholasg3.github.io/nick2-dashboard/)
-- [CEO Ledger](https://nicholasg3.github.io/nick2-dashboard/memos/ledger.html)
-- Ledger: `logs/ceo-ledger.jsonl` (`ISSUE-ROUTING-001`)
+_None listed._

@@ -1,6 +1,6 @@
-_Current focus → [DISPATCH-001](queue/DISPATCH-001.html) · 3 gated · 2026-06-30 23:31 SGT_
+_Current focus → [DISPATCH-001](queue/DISPATCH-001.html) · 0 gated · 2026-06-30 23:45 SGT_
 
-**Unblocking ISSUE-BUS-001**
+**CEO supervision — portfolio idle**
 
 [Tue Jun 30, 2026]
 
@@ -10,7 +10,7 @@ _Current focus → [DISPATCH-001](queue/DISPATCH-001.html) · 3 gated · 2026-06
 **Status:** 🟠 Stale — no update in 30+ min (POL-002)  
 **Last Updated:** 2026-06-30 22:30
 
-> **WIP policy (POL-002):** Last ledger touch was **61 minutes** ago. Agents must append `task_updated` every 30 minutes or set `idle`/`completed`.
+> **WIP policy (POL-002):** Last ledger touch was **75 minutes** ago. Agents must append `task_updated` every 30 minutes or set `idle`/`completed`.
 
 
 ────────────────────────────────────────────

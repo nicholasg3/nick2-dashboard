@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ISSUE-ROUTING-001 completed — Nick2</title>
+  <title>ISSUE-BUS-001 completed — Nick2</title>
   <style>
 body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   background: #0f1419; color: #e8edf4; line-height: 1.55; margin: 0; }
@@ -30,24 +30,24 @@ strong { color: #fff; }
 <body>
   <div class="wrap">
     <p class="nav"><a href="../../index.html">← Dashboard</a></p>
-    <h1>ISSUE-ROUTING-001: OpenRouter model routing policy in worker_model — Completed</h1>
-<p><strong>Owner:</strong> CEO · <strong>Status:</strong> completed · <strong>Updated:</strong> 2026-06-30T23:40 · <strong>Cost:</strong> $0.00</p>
+    <h1>ISSUE-BUS-001: Fix agent-bus worker_model crash — Completed</h1>
+<p><strong>Owner:</strong> coding · <strong>Status:</strong> completed · <strong>Updated:</strong> 2026-06-30T23:37 · <strong>Cost:</strong> $0.00</p>
 <h2>1. Executive Framing</h2>
-<p><strong>Objective:</strong> Advance: OpenRouter model routing policy in worker_model  </p>
-<p><strong>Outcome:</strong> Resolved — no Nick decision needed. worker_model resolves an OpenRouter slug per tier and falls back to OpenRouter/CCR default when none is set, so routing is decided at call time. Landed on main (9186153, ff874d4); regression test test_worker_model.py green.</p>
+<p><strong>Objective:</strong> Advance: Fix agent-bus worker_model crash  </p>
+<p><strong>Outcome:</strong> work-queue:Fix already on main; worker_model collapses empty-string registry_model to None and falls back to DEFAULTS. Added permanent regression test test_worker_model.py (5 cases, exit 0) + verified worker dry-run shows model: line with no traceback. Witness green. Stale JOB-549 worktree left untouched. (commit 54a8e1a)</p>
 <h2>2. What shipped (MECE)</h2>
 <table><thead><tr><th>Bucket</th><th>Scope</th><th>Current state</th></tr></thead><tbody>
-<tr><td>Work unit</td><td>OpenRouter model routing policy in worker_model</td><td>Resolved — no Nick decision needed. worker_model resolves an OpenRouter slug per tier and falls back to OpenRouter/CCR d</td></tr>
-<tr><td>Status &amp; owner</td><td>completed / CEO</td><td>2026-06-30T23:40</td></tr>
+<tr><td>Work unit</td><td>Fix agent-bus worker_model crash</td><td>work-queue:Fix already on main; worker_model collapses empty-string registry_model to None and falls back to DEFAULTS. A</td></tr>
+<tr><td>Status &amp; owner</td><td>completed / coding</td><td>2026-06-30T23:37</td></tr>
 <tr><td>Dependencies</td><td>Gates, budget, worker</td><td>See dashboard Gated queue and budget panel</td></tr>
-<tr><td>Deliverable</td><td>Ledger event + artifacts</td><td>Not listed</td></tr>
+<tr><td>Deliverable</td><td>Ledger event + artifacts</td><td>agent-bus/scripts/test_worker_model.py</td></tr>
 </tbody></table>
 <h2>3. Root cause addressed</h2>
 <p>Work item reached completed status in ledger.</p>
 <h2>5. Recommendation</h2>
 <p><strong>Done.</strong> No further action unless regression.</p>
 <h2>Artifacts</h2>
-<p>_None listed._</p>
+<ul><li><code>agent-bus/scripts/test_worker_model.py</code></li></ul>
   </div>
 </body>
 </html>
