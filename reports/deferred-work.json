@@ -19,11 +19,6 @@
       "task_id": "ISSUE-24",
       "defer_reason": "Nick personal queue \u2014 decision on Telegram PA permissions (not agent research)",
       "title": "DECISION: revisit Telegram bot permission posture"
-    },
-    {
-      "task_id": "ISSUE-BUS-001",
-      "defer_reason": "Fix on main + regression test green (test_worker_model.py, commit 54a8e1a); no crash on empty-string registry_model. Resolved, not deferred.",
-      "title": "Fix agent-bus worker_model crash"
     }
   ]
 }

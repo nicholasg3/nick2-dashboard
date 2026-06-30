@@ -28,11 +28,11 @@
         "DEC-002 is the last high-priority framework gate"
       ]
     ],
-    "root_cause": "PMO cannot scale triage without a shared rubric — ad-hoc ranking would misallocate the $20/week cap across low-ROI agent runs.",
+    "root_cause": "PMO cannot scale triage without a shared rubric \u2014 ad-hoc ranking would misallocate the $20/week cap across low-ROI agent runs.",
     "options": [
       {
         "name": "Approve default framework (pilot)",
-        "upside": "Unblocks PMO-001 immediately; impact×readiness/effort is good enough for first cycle.",
+        "upside": "Unblocks PMO-001 immediately; impact\u00d7readiness/effort is good enough for first cycle.",
         "downside": "Weights may need tuning after first spend report.",
         "when": "Nick wants velocity over perfect calibration."
       },
@@ -43,13 +43,13 @@
         "when": "Nick has strong priors on issue priority."
       },
       {
-        "name": "Defer — manual CEO triage only",
+        "name": "Defer \u2014 manual CEO triage only",
         "upside": "Zero framework risk.",
         "downside": "Does not scale; wastes PMO capacity; blocks autonomous loop.",
         "when": "Only if autonomous dispatch is off indefinitely."
       },
       {
-        "name": "Reject — revert to ad-hoc picks",
+        "name": "Reject \u2014 revert to ad-hoc picks",
         "upside": "No process overhead.",
         "downside": "Highest risk of budget waste and inconsistent outcomes.",
         "when": "Not recommended while budget is capped and worker may enable."
@@ -63,7 +63,7 @@
     "title": "Confirm Telegram alert method for $5 spend thresholds",
     "priority": "medium",
     "rank": 2,
-    "objective": "Give Nicholas real-time visibility when weekly OpenRouter spend crosses material thresholds — before the $20 cap is silently exhausted.",
+    "objective": "Give Nicholas real-time visibility when weekly OpenRouter spend crosses material thresholds \u2014 before the $20 cap is silently exhausted.",
     "decision": "Which alert channel and threshold rules to use for spend notifications.",
     "mece": [
       [
@@ -87,10 +87,10 @@
         "Hourly reconcile + dashboard only today"
       ]
     ],
-    "root_cause": "Budget is authorized and capped, but spend is only visible on reconcile — no interrupt path for Nick to throttle or reprioritize mid-week.",
+    "root_cause": "Budget is authorized and capped, but spend is only visible on reconcile \u2014 no interrupt path for Nick to throttle or reprioritize mid-week.",
     "options": [
       {
-        "name": "Telegram bot → Nick",
+        "name": "Telegram bot \u2192 Nick",
         "upside": "Real-time; mobile; low friction once bot token is set.",
         "downside": "Requires one-time bot setup and chat ID.",
         "when": "Nick wants push alerts (recommended)."
@@ -116,5 +116,58 @@
     ],
     "recommendation": "**Telegram alerts at $5 / $10 / $15 / $20 cumulative weekly spend**, with reconcile as fallback witness. Pair with auto-pause at $18 if desired.",
     "what_nick_must_do": "Confirm Telegram (provide chat ID or approve CTO to wire bot) or choose email/dashboard-only."
+  },
+  "ISSUE-24": {
+    "task_id": "ISSUE-24",
+    "title": "DECISION: revisit Telegram bot permission posture",
+    "priority": "medium",
+    "rank": 1,
+    "objective": "Decide how much the Telegram PA (@NMGs_Hermes_bot) and the agent fleet may act on Nicks behalf over Telegram, since the bridge can already run Claude Code with email/calendar/contacts tools.",
+    "decision": "Choose the Telegram PA permission posture: keep current, tighten, or expand.",
+    "mece": [
+      [
+        "Scope",
+        "Which tools the bridge may invoke (read vs send email, calendar edit, shell/Claude Code)",
+        "Bridge currently can run Claude Code + Gmail modify + calendar edit"
+      ],
+      [
+        "Identity",
+        "Who may message the bot / allowlist",
+        "Allowlist = Nick only today"
+      ],
+      [
+        "Risk",
+        "Outward-facing or irreversible actions (send email, external posts)",
+        "Personal-decision item, not agent research"
+      ],
+      [
+        "Audit",
+        "Logging + confirmation for write actions",
+        "No explicit per-action confirm policy documented"
+      ]
+    ],
+    "root_cause": "The PA accreted capabilities (email/calendar/Claude Code) without an explicit decision on what it may do autonomously vs with confirmation \u2014 so it sits as a standing Nick gate.",
+    "options": [
+      {
+        "name": "Keep current posture (Nick-only allowlist, full tools)",
+        "upside": "No work; PA stays maximally useful.",
+        "downside": "No confirmation gate on outward/irreversible actions.",
+        "when": "Nick trusts the single-user allowlist as sufficient control."
+      },
+      {
+        "name": "Tighten \u2014 read/draft only, confirm before send",
+        "upside": "Removes risk of autonomous outward actions.",
+        "downside": "Less hands-free; adds a confirm step.",
+        "when": "Nick wants the PA to never send/act without an explicit yes."
+      },
+      {
+        "name": "Expand \u2014 add scheduling/contacts write, more autonomy",
+        "upside": "More done hands-free.",
+        "downside": "Larger blast radius if misfired.",
+        "when": "Nick wants a fuller autonomous assistant."
+      }
+    ],
+    "recommendation": "**Tighten to read/draft-by-default with confirm-before-send for outward/irreversible actions**, keeping the Nick-only allowlist. Matches the unbrowse/agent guardrail posture already in memory.",
+    "what_nick_must_do": "Reply keep / tighten / expand (or custom). CEO appends decision_resolved for ISSUE-24."
   }
 }
