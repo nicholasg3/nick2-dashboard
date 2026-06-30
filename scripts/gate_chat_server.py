@@ -27,10 +27,12 @@ from urllib.parse import urlparse
 
 ROOT = Path(os.environ.get("NICK2_ROOT", Path(__file__).resolve().parents[1]))
 CHATS = ROOT / "logs" / "gate-chats"
+WORK_CHATS = ROOT / "logs" / "work-chats"
 LEDGER = ROOT / "logs" / "ceo-ledger.jsonl"
 SGT = timezone(timedelta(hours=8))
 PORT = int(os.environ.get("GATE_CHAT_PORT", "8788"))
 DEFAULT_AGENT = f"python3 {ROOT / 'scripts' / 'gate_agent_bus.py'}"
+DEFAULT_WORK_AGENT = f"python3 {ROOT / 'scripts' / 'work_agent_bus.py'}"
 
 
 def now_sgt() -> str:
@@ -85,8 +87,8 @@ def load_gate_meta(task_id: str) -> dict:
     return {"task_id": task_id, "title": task_id}
 
 
-def load_messages(task_id: str) -> list[dict]:
-    chat_path = CHATS / f"{task_id}.jsonl"
+def load_messages(task_id: str, *, work: bool = False) -> list[dict]:
+    chat_path = (WORK_CHATS if work else CHATS) / f"{task_id}.jsonl"
     msgs = []
     if chat_path.exists():
         for line in chat_path.read_text(encoding="utf-8").splitlines():
@@ -94,6 +96,27 @@ def load_messages(task_id: str) -> list[dict]:
             if line:
                 msgs.append(json.loads(line))
     return msgs
+
+
+def load_task_meta(task_id: str) -> dict:
+    """Latest ledger row for an active-work task."""
+    meta = {"task_id": task_id, "task": task_id, "owner": "PMO", "status": "in_progress"}
+    focus_id = None
+    for ev in load_events():
+        if ev.get("task_id") == task_id:
+            meta = {**meta, **ev}
+        if ev.get("event") in ("focus_snapshot", "ceo_focus") and ev.get("focus_task_id"):
+            if task_id in ("FOCUS-001", ev.get("task_id", "")):
+                focus_id = ev.get("focus_task_id")
+    if focus_id:
+        meta["memo_task_id"] = focus_id
+        for ev in reversed(load_events()):
+            if ev.get("task_id") == focus_id:
+                meta["focus_mission"] = ev.get("task") or focus_id
+                break
+    if "memo_task_id" not in meta:
+        meta["memo_task_id"] = task_id
+    return meta
 
 
 def looks_resolved(text: str) -> bool:
@@ -200,6 +223,41 @@ def resolve_gate(task_id: str, note: str, actor: str = "Nicholas") -> dict:
     return {"resolved": True, "task_id": task_id, "git": git_note}
 
 
+def work_agent_reply(task_id: str, nick_text: str, meta: dict) -> str:
+    cmd = os.environ.get("WORK_AGENT_CMD", DEFAULT_WORK_AGENT).strip() or DEFAULT_WORK_AGENT
+    history = load_messages(task_id, work=True)
+    payload = json.dumps(
+        {
+            "task_id": task_id,
+            "message": nick_text,
+            "meta": meta,
+            "history": history[-30:],
+        }
+    )
+    try:
+        r = subprocess.run(
+            cmd,
+            shell=True,
+            input=payload,
+            capture_output=True,
+            text=True,
+            timeout=120,
+            cwd=str(ROOT),
+            env={**os.environ, "NICK2_ROOT": str(ROOT)},
+        )
+        out = (r.stdout or r.stderr or "").strip()
+        if out:
+            return out[:4000]
+    except Exception as e:
+        return f"Agent dispatch failed ({e}). Message logged — worker will pick up on reconcile."
+
+    title = meta.get("task") or task_id
+    return (
+        f"Recorded your instruction for **{task_id}** ({title}).\n\n"
+        f"\"{nick_text[:300]}\""
+    )
+
+
 def agent_reply(task_id: str, nick_text: str) -> str:
     cmd = os.environ.get("GATE_AGENT_CMD", DEFAULT_AGENT).strip() or DEFAULT_AGENT
     meta = load_gate_meta(task_id)
@@ -269,6 +327,14 @@ class Handler(BaseHTTPRequestHandler):
             task_id = path.split("/")[3]
             self._json(200, {"task_id": task_id, "resolved": is_resolved(task_id)})
             return
+        if path.startswith("/api/work/") and path.endswith("/meta"):
+            task_id = path.split("/")[3]
+            self._json(200, load_task_meta(task_id))
+            return
+        if path.startswith("/api/work/") and path.endswith("/messages"):
+            task_id = path.split("/")[3]
+            self._json(200, {"messages": load_messages(task_id, work=True)})
+            return
         self._json(404, {"error": "not found"})
 
     def do_POST(self):
@@ -292,6 +358,49 @@ class Handler(BaseHTTPRequestHandler):
             }
             append_jsonl(CHATS / f"{task_id}.jsonl", agent_msg)
             self._json(200, {"ok": True, **result})
+            return
+
+        if path.startswith("/api/work/") and path.endswith("/message"):
+            task_id = path.split("/")[3]
+            n = int(self.headers.get("Content-Length", 0))
+            body = json.loads(self.rfile.read(n) or b"{}")
+            text = (body.get("text") or "").strip()
+            if not text:
+                self._json(400, {"error": "text required"})
+                return
+            actor = body.get("actor") or "Nicholas"
+            meta = load_task_meta(task_id)
+            nick_msg = {
+                "ts": now_sgt(),
+                "role": "nick",
+                "actor": actor,
+                "task_id": task_id,
+                "text": text,
+            }
+            append_jsonl(WORK_CHATS / f"{task_id}.jsonl", nick_msg)
+            append_ledger(
+                {
+                    "actor": actor,
+                    "role": "Owner",
+                    "event": "nick_work_instruction",
+                    "task_id": task_id,
+                    "task": meta.get("task", task_id),
+                    "status": meta.get("status", "in_progress"),
+                    "owner": meta.get("owner") or meta.get("actor"),
+                    "output": text,
+                    "needs_nicholas": False,
+                }
+            )
+            reply = work_agent_reply(task_id, text, meta)
+            agent_msg = {
+                "ts": now_sgt(),
+                "role": "agent",
+                "actor": meta.get("owner") or "Agent",
+                "task_id": task_id,
+                "text": reply,
+            }
+            append_jsonl(WORK_CHATS / f"{task_id}.jsonl", agent_msg)
+            self._json(200, {"ok": True, "reply": reply, "task_id": task_id})
             return
 
         if not path.startswith("/api/gate/") or not path.endswith("/message"):
@@ -354,6 +463,7 @@ class Handler(BaseHTTPRequestHandler):
 
 def main() -> None:
     CHATS.mkdir(parents=True, exist_ok=True)
+    WORK_CHATS.mkdir(parents=True, exist_ok=True)
     server = ThreadingHTTPServer(("0.0.0.0", PORT), Handler)
     print(f"gate-chat server on http://0.0.0.0:{PORT}")
     print(f"  chats: {CHATS}")

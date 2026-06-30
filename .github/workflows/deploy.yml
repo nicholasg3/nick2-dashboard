@@ -50,11 +50,12 @@ jobs:
 
       - name: Assemble site
         run: |
-          mkdir -p _site/logs _site/reports _site/memos _site/logs/gate-chats
+          mkdir -p _site/logs _site/reports _site/memos _site/logs/gate-chats _site/logs/work-chats
           cp dashboard/index.html dashboard/app.js dashboard/style.css dashboard/memo.html \
-            dashboard/gate-room.html dashboard/gate-chat.js dashboard/config.json _site/
+            dashboard/gate-room.html dashboard/work-room.html dashboard/gate-chat.js dashboard/config.json _site/
           cp logs/ceo-ledger.jsonl _site/logs/
           cp -r logs/gate-chats/. _site/logs/gate-chats/ 2>/dev/null || true
+          cp -r logs/work-chats/. _site/logs/work-chats/ 2>/dev/null || true
           cp -r memos/. _site/memos/ 2>/dev/null || true
           cp reports/*.json _site/reports/ 2>/dev/null || true
 

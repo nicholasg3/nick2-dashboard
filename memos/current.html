@@ -30,104 +30,27 @@ strong { color: #fff; }
 <body>
   <div class="wrap">
     <p class="nav"><a href="../index.html">← Dashboard</a></p>
-    <p>_Current focus → <a href="queue/PMO-001.html">PMO-001</a> · 0 gated · 2026-06-30 20:00 SGT_</p>
+    <p>_Current focus → <a href="queue/PMO-001.html">PMO-001</a> · 0 gated · 2026-06-30 20:22 SGT_</p>
 <p><strong>Make the dashboard live — executing on droplet (JOB-924), live API + reconcile path</strong></p>
 <p>[Tue Jun 30, 2026]</p>
-<h1>PMO-001: Triage Ready-for-Agent GitHub Issues</h1>
-<p><strong>Owner:</strong> PMO  </p>
-<p><strong>Status:</strong> 🟢 Executing  </p>
-<p><strong>Last Updated:</strong> 2026-06-30 19:30</p>
-<p>────────────────────────────────────────────</p>
-<h2>MISSION</h2>
-<h3>Objective</h3>
-<p>Produce a ranked execution order for 13 ready-for-agent GitHub issues and dispatch the highest-value work within the $20/week operating budget.</p>
-<h3>Success Criteria</h3>
-<p>☑ All issues inventoried</p>
-<p>☐ Dependencies identified</p>
-<p>☐ Ranked backlog produced</p>
-<p>☐ Top issues dispatched</p>
-<p>☐ Dashboard updated</p>
-<h3>Mission Decomposition (MECE)</h3>
-<ol><li>1. Understand the Work</li></ol>
-<p>Progress: ████░░░░░░</p>
-<p>• Inventory all 13 ready-for-agent issues</p>
-<p>• Classify by capability / tier</p>
-<p>• Estimate effort and risk</p>
-<ol><li>2. Prioritize</li></ol>
-<p>Progress: ██░░░░░░░░</p>
-<p>• Score ROI (interim rubric until DEC-002)</p>
-<p>• Identify dependencies</p>
-<p>• Produce ranked backlog</p>
-<ol><li>3. Execute</li></ol>
-<p>Progress: █░░░░░░░░░</p>
-<p>• Dispatch frontier workers</p>
-<p>• Monitor budget ($20/wk cap)</p>
-<p>• Verify outputs / witnesses</p>
-<ol><li>4. Report &amp; Learn</li></ol>
-<p>Progress: ░░░░░░░░░░</p>
-<p>• Update nick2-dashboard ledger</p>
-<p>• Refresh execution brief</p>
-<p>• Capture lessons for postmortem</p>
-<p>────────────────────────────────────────────</p>
-<h2>EXECUTION STATUS</h2>
-<h3>Overall Progress</h3>
-<p>██░░░░░░░░ 18%</p>
-<h3>Budget</h3>
-<p>Spent: $0.00</p>
-<p>Remaining: $20.00</p>
-<p>Limit: $20.00/week</p>
-<h3>Critical Path</h3>
-<p>Issue inventory</p>
-<p>      ↓</p>
-<p>Dependency analysis</p>
-<p>      ↓</p>
-<p>Priority ranking</p>
-<p>      ↓</p>
-<p>Agent dispatch</p>
-<p>      ↓</p>
-<p>Verification</p>
-<p>      ↓</p>
-<p>Dashboard update</p>
-<p>────────────────────────────────────────────</p>
-<h2>CURRENT WORKSTREAMS</h2>
-<p>████░░░░░░</p>
-<p>Issue analysis</p>
-<p>██░░░░░░░░</p>
-<p>Dependency mapping</p>
-<p>░░░░░░░░░░</p>
-<p>Agent dispatch</p>
-<p>░░░░░░░░░░</p>
-<p>Verification</p>
-<p>────────────────────────────────────────────</p>
-<h2>BLOCKERS</h2>
-<p>• nick2-dashboard repo lock — JOB-453 still running (gate work already on main)</p>
-<p>• DEC-002 scoring framework not yet finalized — using interim rubric</p>
-<p>────────────────────────────────────────────</p>
-<h2>NEXT MILESTONES</h2>
-<p>17:30</p>
-<p>Complete issue inventory</p>
-<p>18:00</p>
-<p>Publish ranked backlog (top 5)</p>
-<p>18:15</p>
-<p>Push dashboard ledger update</p>
-<p>────────────────────────────────────────────</p>
-<h2>WAITING ON</h2>
-<p>• DEC-002 — Approve PMO scoring framework (calibration, not dispatch block)</p>
-<p>────────────────────────────────────────────</p>
-<h2>RECENT EVENTS</h2>
-<p>19:30</p>
-<p>task_updated: Unblocked: JOB-755 zombie cleared (DEC-002 was already resolved 19:09 — not a Ni</p>
-<p>19:24</p>
-<p>task_updated: POL-002 heartbeat: triage stalled — no ranked backlog shipped since 16:35 start.</p>
-<p>16:35</p>
-<p>task_started: Dispatch authorized (Option B). Ranking 13 ready-for-agent GitHub issues; fronti</p>
-<p>16:35</p>
-<p>nick_decision: Nick chose Option B: enable worker.enabled and authorize PMO autonomous dispatch</p>
-<p>16:18</p>
-<p>task_updated: Budget authorized ($20/week). Blocked on worker.enabled=false — enable in lane.j</p>
-<p>────────────────────────────────────────────</p>
+<p><a href="../index.html">← Dashboard</a></p>
+<p><strong>PMO-001: Triage 13 ready-for-agent GitHub issues</strong></p>
+<h2>SITUATION</h2>
+<p>Thirteen GitHub issues are labeled ready-for-agent but lack a ranked execution order. PMO must inventory, score ROI, and dispatch frontier workers within the $20/week cap — without burning budget on repo-lock collisions or low-yield doc-only tasks.</p>
+<h2>MECE DECOMPOSITION</h2>
+<ul><li><strong>Understand the work</strong> — Inventory 13 issues; classify capability/tier; estimate effort/risk (~35% done)</li><li><strong>Prioritize</strong> — Score ROI with interim rubric until DEC-002; map dependencies; rank backlog (~15%)</li><li><strong>Execute</strong> — Dispatch top issues to frontier workers; monitor budget; verify witnesses (~10%)</li><li><strong>Report &amp; learn</strong> — Update ledger, refresh briefs, capture lessons for postmortem (~5%)</li></ul>
+<h2>PATHS CONSIDERED</h2>
+<ul><li>FIFO dispatch — fast start but ignores ROI and repo-lock risk</li><li>ROI-ranked batch with interim scoring — analysis-first, then dispatch top N</li><li>Wait for DEC-002 scoring framework before any dispatch</li></ul>
+<h2>CHOSEN PATH + WHY</h2>
+<p>ROI-ranked batch with interim rubric wins because FIFO would waste slots on doc-only or blocked repos, and waiting for DEC-002 stalls the whole frontier. P-001 already approved pure analysis feeding this backlog — PMO executes the ranked dispatch once inventory and dependencies are clear.</p>
+<h2>WHERE IT STANDS</h2>
+<p>Issue inventory ~35% complete. Dependency mapping started. nick2-dashboard repo lock (JOB-453) cleared on main but PMO dispatch still needs a clean ranked top-5. DEC-002 scoring framework pending — interim rubric in use, not a hard block. No Nick gate.</p>
+<p>&gt; POL-002: last ledger touch <strong>51m</strong> ago — heartbeat or status transition due.</p>
+<h2>EFFORT &amp; COST</h2>
+<ul><li><strong>Time:</strong> Mission age ~5h · Last heartbeat due per POL-002 if stale</li><li><strong>Work:</strong> PMO worker enabled; inventory + ranking in flight</li><li><strong>Budget:</strong> spent $0.00 · remaining $20.00 · limit $20/week</li></ul>
 <h2>LINKS</h2>
-<ul><li><a href="https://nicholasg3.github.io/nick2-dashboard/">Dashboard</a></li><li><a href="https://github.com/nicholasg3/ai-agents-workspace/issues">GitHub Issues</a></li><li><a href="ledger.html">CEO Ledger</a></li><li><code>Projects-for-agents/frontier-orchestrator/lane.json</code></li><li>Ledger: <code>logs/ceo-ledger.jsonl</code> (<code>PMO-001</code>)</li></ul>
+<ul><li><a href="https://nicholasg3.github.io/nick2-dashboard/">Dashboard</a></li><li><a href="https://github.com/nicholasg3/ai-agents-workspace/issues">GitHub Issues</a></li><li><a href="ledger.html">CEO Ledger</a></li><li><a href="Projects-for-agents/frontier-orchestrator/lane.json">lane.json</a></li></ul>
+<p>_Last updated 2026-06-30 19:30 SGT_</p>
   </div>
 </body>
 </html>

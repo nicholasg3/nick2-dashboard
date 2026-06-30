@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Work room — Nick2</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="gate-room-body work-room-body">
+  <header class="site-header">
+    <div class="header-inner">
+      <div class="brand">
+        <h1 id="work-room-title">Work room</h1>
+        <p id="work-room-subtitle" class="tagline">Loading…</p>
+      </div>
+      <div class="header-meta">
+        <button type="button" class="btn btn-ghost" id="work-room-close">Close</button>
+      </div>
+    </div>
+  </header>
+  <main class="container gate-room-main">
+    <div id="work-room-root" class="panel gate-room-panel"></div>
+    <p id="work-room-error" class="empty" hidden></p>
+  </main>
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script src="gate-chat.js?v=4"></script>
+  <script>
+    (async function () {
+      const params = new URLSearchParams(location.search);
+      const taskId = params.get('task');
+      const err = document.getElementById('work-room-error');
+      const root = document.getElementById('work-room-root');
+      if (!taskId) {
+        err.hidden = false;
+        err.textContent = 'Missing ?task=PMO-001 (or other queue ID).';
+        return;
+      }
+
+      let meta = { task_id: taskId, task: taskId, owner: 'PMO', status: 'in_progress', memo_task_id: taskId };
+
+      async function loadMetaFromLedger() {
+        try {
+          const res = await fetch(`logs/ceo-ledger.jsonl?t=${Date.now()}`);
+          if (!res.ok) return;
+          const lines = (await res.text()).trim().split('\n').filter(Boolean);
+          let focusMission = null;
+          for (const line of lines) {
+            try {
+              const ev = JSON.parse(line);
+              if (ev.task_id === taskId) meta = { ...meta, ...ev };
+              if (ev.event === 'focus_snapshot' || ev.event === 'ceo_focus') {
+                if (taskId === 'FOCUS-001' || ev.focus_task_id) {
+                  meta.memo_task_id = ev.focus_task_id || meta.memo_task_id;
+                  focusMission = ev.focus_line || ev.task;
+                }
+              }
+            } catch (_) { /* skip */ }
+          }
+          if (focusMission) meta.focus_line = focusMission;
+        } catch (_) { /* fallback */ }
+      }
+
+      async function loadMetaFromApi() {
+        try {
+          const cfg = await fetch(`config.json?t=${Date.now()}`).then((r) => r.json());
+          const api = (cfg.gateChatApi || '').replace(/\/$/, '');
+          if (!api) return;
+          const res = await fetch(`${api}/api/work/${taskId}/meta?t=${Date.now()}`);
+          if (res.ok) meta = { ...meta, ...(await res.json()) };
+        } catch (_) { /* offline */ }
+      }
+
+      await loadMetaFromLedger();
+      await loadMetaFromApi();
+
+      document.title = `${taskId} — Work room — Nick2`;
+      document.getElementById('work-room-title').textContent = taskId;
+      document.getElementById('work-room-subtitle').textContent =
+        meta.task || meta.focus_line || 'Active work';
+      document.getElementById('work-room-close').addEventListener('click', () => window.close());
+
+      if (!window.Nick2WorkChat) {
+        err.hidden = false;
+        err.textContent = 'Work chat module failed to load.';
+        return;
+      }
+      await Nick2WorkChat.mountWorkChat(root, meta);
+    })();
+  </script>
+</body>
+</html>

@@ -15,83 +15,39 @@ WIP_MEMO_MAX_AGE_MIN = 30
 # Rich execution state keyed by task_id. Agents update via ledger + regenerate-memos.
 EXECUTION_BRIEFS: dict[str, dict[str, Any]] = {
     "PMO-001": {
-        "mission_name": "Triage Ready-for-Agent GitHub Issues",
-        "objective": (
-            "Produce a ranked execution order for 13 ready-for-agent GitHub issues "
-            "and dispatch the highest-value work within the $20/week operating budget."
+        "title": "Triage 13 ready-for-agent GitHub issues",
+        "situation": (
+            "Thirteen GitHub issues are labeled ready-for-agent but lack a ranked execution order. "
+            "PMO must inventory, score ROI, and dispatch frontier workers within the $20/week cap — "
+            "without burning budget on repo-lock collisions or low-yield doc-only tasks."
         ),
-        "success_criteria": [
-            ("done", "All issues inventoried"),
-            ("open", "Dependencies identified"),
-            ("open", "Ranked backlog produced"),
-            ("open", "Top issues dispatched"),
-            ("open", "Dashboard updated"),
+        "mece": [
+            ("Understand the work", "Inventory 13 issues; classify capability/tier; estimate effort/risk (~35% done)"),
+            ("Prioritize", "Score ROI with interim rubric until DEC-002; map dependencies; rank backlog (~15%)"),
+            ("Execute", "Dispatch top issues to frontier workers; monitor budget; verify witnesses (~10%)"),
+            ("Report & learn", "Update ledger, refresh briefs, capture lessons for postmortem (~5%)"),
         ],
-        "phases": [
-            {
-                "name": "Understand the Work",
-                "progress": 35,
-                "activities": [
-                    "Inventory all 13 ready-for-agent issues",
-                    "Classify by capability / tier",
-                    "Estimate effort and risk",
-                ],
-            },
-            {
-                "name": "Prioritize",
-                "progress": 15,
-                "activities": [
-                    "Score ROI (interim rubric until DEC-002)",
-                    "Identify dependencies",
-                    "Produce ranked backlog",
-                ],
-            },
-            {
-                "name": "Execute",
-                "progress": 10,
-                "activities": [
-                    "Dispatch frontier workers",
-                    "Monitor budget ($20/wk cap)",
-                    "Verify outputs / witnesses",
-                ],
-            },
-            {
-                "name": "Report & Learn",
-                "progress": 5,
-                "activities": [
-                    "Update nick2-dashboard ledger",
-                    "Refresh execution brief",
-                    "Capture lessons for postmortem",
-                ],
-            },
+        "paths_considered": [
+            "FIFO dispatch — fast start but ignores ROI and repo-lock risk",
+            "ROI-ranked batch with interim scoring — analysis-first, then dispatch top N",
+            "Wait for DEC-002 scoring framework before any dispatch",
         ],
-        "overall_progress": 18,
-        "critical_path": [
-            "Issue inventory",
-            "Dependency analysis",
-            "Priority ranking",
-            "Agent dispatch",
-            "Verification",
-            "Dashboard update",
-        ],
-        "workstreams": [
-            ("Issue analysis", 40),
-            ("Dependency mapping", 15),
-            ("Agent dispatch", 5),
-            ("Verification", 0),
-        ],
-        "blockers": [
-            "nick2-dashboard repo lock — JOB-453 still running (gate work already on main)",
-            "DEC-002 scoring framework not yet finalized — using interim rubric",
-        ],
-        "milestones": [
-            ("17:30", "Complete issue inventory"),
-            ("18:00", "Publish ranked backlog (top 5)"),
-            ("18:15", "Push dashboard ledger update"),
-        ],
-        "waiting_on": [
-            "DEC-002 — Approve PMO scoring framework (calibration, not dispatch block)",
-        ],
+        "chosen_path_why": (
+            "ROI-ranked batch with interim rubric wins because FIFO would waste slots on doc-only or "
+            "blocked repos, and waiting for DEC-002 stalls the whole frontier. P-001 already approved "
+            "pure analysis feeding this backlog — PMO executes the ranked dispatch once inventory "
+            "and dependencies are clear."
+        ),
+        "where_it_stands": (
+            "Issue inventory ~35% complete. Dependency mapping started. nick2-dashboard repo lock "
+            "(JOB-453) cleared on main but PMO dispatch still needs a clean ranked top-5. DEC-002 "
+            "scoring framework pending — interim rubric in use, not a hard block. No Nick gate."
+        ),
+        "effort": {
+            "time": "Mission age ~5h · Last heartbeat due per POL-002 if stale",
+            "work": "PMO worker enabled; inventory + ranking in flight",
+            "budget": "spent $0.00 · remaining $20.00 · limit $20/week",
+        },
         "links": [
             ("Dashboard", DASHBOARD),
             ("GitHub Issues", "https://github.com/nicholasg3/ai-agents-workspace/issues"),
@@ -100,39 +56,41 @@ EXECUTION_BRIEFS: dict[str, dict[str, Any]] = {
         ],
     },
     "P-001": {
-        "mission_name": "PMO Triage Proposal (Tier B)",
-        "objective": "Seed PMO-001 with highest-ROI analysis entry point for 13 ready-for-agent issues.",
-        "success_criteria": [
-            ("done", "Proposal approved (Tier B, score 0.6)"),
-            ("open", "Analysis output linked to PMO-001"),
-            ("open", "Ranked recommendation delivered"),
+        "title": "PMO Triage Proposal (Tier B)",
+        "situation": (
+            "CEO approved a Tier B proposal (score 0.6) to seed PMO-001 with analysis-first triage "
+            "of 13 ready-for-agent GitHub issues. P-001 scopes pure analysis with no external writes — "
+            "output feeds PMO-001's ranked backlog. Task is stale: no ledger heartbeat in 30+ minutes."
+        ),
+        "mece": [
+            ("Scope", "Approved — pure analysis, no external writes; feeds PMO-001 (complete)"),
+            ("Analyze", "Review issue board; draft rank inputs for PMO (~30%)"),
+            ("Handoff", "Merge analysis into PMO-001 backlog; close P-001 (not started)"),
         ],
-        "phases": [
-            {
-                "name": "Scope",
-                "progress": 100,
-                "activities": ["Pure analysis — no external writes", "Feeds PMO-001"],
-            },
-            {
-                "name": "Analyze",
-                "progress": 30,
-                "activities": ["Review issue board", "Draft rank inputs"],
-            },
-            {
-                "name": "Handoff",
-                "progress": 0,
-                "activities": ["Merge into PMO-001 backlog", "Close P-001"],
-            },
+        "paths_considered": [
+            "Dispatch all 13 issues immediately from CEO lane",
+            "Analysis-first: rank inputs only, hand off to PMO-001 for dispatch",
+            "Defer until DEC-002 scoring framework is finalized",
         ],
-        "overall_progress": 45,
-        "critical_path": ["Approved scope", "Analysis", "Handoff to PMO-001"],
-        "workstreams": [("Analysis", 45), ("Handoff", 0)],
-        "blockers": [],
-        "milestones": [("—", "Complete analysis handoff to PMO-001")],
-        "waiting_on": [],
+        "chosen_path_why": (
+            "Analysis-first was approved because immediate dispatch would collide with repo locks "
+            "and burn budget without ranking. PMO-001 owns execution; P-001 only produces the "
+            "ranked recommendation and then closes."
+        ),
+        "where_it_stands": (
+            "Proposal approved and scope locked. Analysis partially drafted; handoff to PMO-001 not "
+            "yet complete. **Stale per POL-002** — CEO lane should append `task_updated` or transition "
+            "to idle/completed after handoff."
+        ),
+        "effort": {
+            "time": "Approved 14:50 SGT · No heartbeat 30+ min (stale)",
+            "work": "Analysis in progress; handoff pending",
+            "budget": "spent $0.00 · remaining $20.00 · limit $20/week",
+        },
         "links": [
             ("Dashboard", DASHBOARD),
             ("PMO-001 brief", "queue/PMO-001.html"),
+            ("CEO Ledger", "ledger.html"),
         ],
     },
     "LIT-001": {
@@ -253,6 +211,16 @@ def _is_mckinsey_brief(brief: dict[str, Any]) -> bool:
     return bool(brief.get("situation") and brief.get("mece"))
 
 
+def _resolve_brief_tid(tid: str, events: list[dict] | None = None) -> str:
+    """FOCUS-001 mirrors the CEO focus mission (e.g. SYS-002)."""
+    if tid != "FOCUS-001" or not events:
+        return tid
+    for ev in reversed(events):
+        if ev.get("event") in ("focus_snapshot", "ceo_focus") and ev.get("focus_task_id"):
+            return ev["focus_task_id"]
+    return tid
+
+
 def ceo_focus_line(tid: str, t: dict, brief: dict[str, Any] | None = None) -> str:
     """One plain sentence for CEO Focus — never truncated mid-word."""
     brief = brief or EXECUTION_BRIEFS.get(tid, {})
@@ -302,12 +270,15 @@ def mckinsey_brief_body(
     links = "\n".join(
         f"- [{label}]({href})" for label, href in brief.get("links", [("Dashboard", DASHBOARD)])
     )
+    alias_note = ""
+    if brief.get("_alias_from"):
+        alias_note = f"\n\n_Focus memo sourced from **{brief['_alias_from']}**._\n"
 
     return f"""{_date_stamp()}
 
 [← Dashboard]({back})
 
-**{tid}: {title}**
+**{tid}: {title}**{alias_note}
 
 ## SITUATION
 
@@ -457,7 +428,10 @@ def execution_brief_body(
     remaining: float | None,
     memo_context: str = "queue",
 ) -> str:
-    raw = EXECUTION_BRIEFS.get(tid, {})
+    brief_tid = _resolve_brief_tid(tid, events)
+    raw = dict(EXECUTION_BRIEFS.get(brief_tid) or EXECUTION_BRIEFS.get(tid, {}))
+    if brief_tid != tid and raw:
+        raw["_alias_from"] = brief_tid
     if _is_mckinsey_brief(raw):
         return mckinsey_brief_body(tid, t, raw, memo_context=memo_context)
     brief = _brief(tid, t)

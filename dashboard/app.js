@@ -368,9 +368,17 @@ function openGateRoom(taskId) {
   if (win) win.focus();
 }
 
+function openWorkRoom(taskId) {
+  if (!taskId) return;
+  const url = `work-room.html?task=${encodeURIComponent(taskId)}`;
+  const win = window.open(url, `nick2_work_${taskId}`, GATE_ROOM_WIN);
+  if (win) win.focus();
+}
+
 function memoHref(kind, taskId) {
   if (!taskId || !kind) return null;
   if (kind === 'gated') return `gate-room.html?task=${encodeURIComponent(taskId)}`;
+  if (kind === 'queue') return `work-room.html?task=${encodeURIComponent(taskId)}`;
   // Dynamic loader — always fetches fresh .md (static .html lags behind live ledger)
   const mdPath = `memos/${kind}/${taskId}.md`;
   return `memo.html?p=${encodeURIComponent(mdPath)}`;
@@ -415,9 +423,27 @@ function bindGateOpenLinks(root) {
   });
 }
 
+/** Active queue tasks open the work room popup (execution brief + agent chat). */
+function workTaskLink(text, taskId, className = 'memo-link') {
+  const label = text ?? '—';
+  if (!taskId) return esc(label);
+  return `<a class="${className} work-open-link" href="work-room.html?task=${encodeURIComponent(taskId)}" data-work-id="${esc(taskId)}">${esc(label)}</a>`;
+}
+
+function bindWorkOpenLinks(root) {
+  if (!root) return;
+  root.querySelectorAll('.work-open-link').forEach((a) => {
+    a.addEventListener('click', (e) => {
+      e.preventDefault();
+      openWorkRoom(a.dataset.workId);
+    });
+  });
+}
+
 /** Wrap label in memo link when a memo exists; otherwise plain escaped text. */
 function taskMemoLink(text, kind, taskId, className = 'memo-link') {
   if (kind === 'gated') return gateTaskLink(text, taskId, className);
+  if (kind === 'queue') return workTaskLink(text, taskId, className);
   const label = text ?? '—';
   const href = memoHref(kind, taskId);
   if (!href) return esc(label);
@@ -477,6 +503,8 @@ function setFocusPanel(focus, state) {
     <span class="meta-pill">${badge(focus.status)}</span>
     <span class="meta-pill">${esc(taskId || '')}</span>
     <span class="meta-pill">Updated ${fmtTs(focus.ts)}</span>`;
+  bindWorkOpenLinks(headline);
+  bindGateOpenLinks(headline);
 }
 
 function renderCurrentFocus(state) {
@@ -499,6 +527,7 @@ function renderQueue(state) {
     rows,
     'No active work in queue.'
   );
+  bindWorkOpenLinks($('work-queue'));
 }
 
 function renderCompleted(state) {

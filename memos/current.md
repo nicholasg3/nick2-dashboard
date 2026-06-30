@@ -1,156 +1,52 @@
-_Current focus → [PMO-001](queue/PMO-001.html) · 0 gated · 2026-06-30 20:00 SGT_
+_Current focus → [PMO-001](queue/PMO-001.html) · 0 gated · 2026-06-30 20:22 SGT_
 
 **Make the dashboard live — executing on droplet (JOB-924), live API + reconcile path**
 
 [Tue Jun 30, 2026]
 
-# PMO-001: Triage Ready-for-Agent GitHub Issues
+[← Dashboard](../index.html)
 
-**Owner:** PMO  
-**Status:** 🟢 Executing  
-**Last Updated:** 2026-06-30 19:30
+**PMO-001: Triage 13 ready-for-agent GitHub issues**
 
-────────────────────────────────────────────
+## SITUATION
 
-## MISSION
+Thirteen GitHub issues are labeled ready-for-agent but lack a ranked execution order. PMO must inventory, score ROI, and dispatch frontier workers within the $20/week cap — without burning budget on repo-lock collisions or low-yield doc-only tasks.
 
-### Objective
+## MECE DECOMPOSITION
 
-Produce a ranked execution order for 13 ready-for-agent GitHub issues and dispatch the highest-value work within the $20/week operating budget.
+- **Understand the work** — Inventory 13 issues; classify capability/tier; estimate effort/risk (~35% done)
+- **Prioritize** — Score ROI with interim rubric until DEC-002; map dependencies; rank backlog (~15%)
+- **Execute** — Dispatch top issues to frontier workers; monitor budget; verify witnesses (~10%)
+- **Report & learn** — Update ledger, refresh briefs, capture lessons for postmortem (~5%)
 
-### Success Criteria
+## PATHS CONSIDERED
 
-☑ All issues inventoried
-☐ Dependencies identified
-☐ Ranked backlog produced
-☐ Top issues dispatched
-☐ Dashboard updated
+- FIFO dispatch — fast start but ignores ROI and repo-lock risk
+- ROI-ranked batch with interim scoring — analysis-first, then dispatch top N
+- Wait for DEC-002 scoring framework before any dispatch
 
-### Mission Decomposition (MECE)
+## CHOSEN PATH + WHY
 
-1. Understand the Work
-Progress: ████░░░░░░
+ROI-ranked batch with interim rubric wins because FIFO would waste slots on doc-only or blocked repos, and waiting for DEC-002 stalls the whole frontier. P-001 already approved pure analysis feeding this backlog — PMO executes the ranked dispatch once inventory and dependencies are clear.
 
-• Inventory all 13 ready-for-agent issues
-• Classify by capability / tier
-• Estimate effort and risk
+## WHERE IT STANDS
 
-2. Prioritize
-Progress: ██░░░░░░░░
+Issue inventory ~35% complete. Dependency mapping started. nick2-dashboard repo lock (JOB-453) cleared on main but PMO dispatch still needs a clean ranked top-5. DEC-002 scoring framework pending — interim rubric in use, not a hard block. No Nick gate.
 
-• Score ROI (interim rubric until DEC-002)
-• Identify dependencies
-• Produce ranked backlog
+> POL-002: last ledger touch **51m** ago — heartbeat or status transition due.
 
-3. Execute
-Progress: █░░░░░░░░░
 
-• Dispatch frontier workers
-• Monitor budget ($20/wk cap)
-• Verify outputs / witnesses
+## EFFORT & COST
 
-4. Report & Learn
-Progress: ░░░░░░░░░░
-
-• Update nick2-dashboard ledger
-• Refresh execution brief
-• Capture lessons for postmortem
-
-────────────────────────────────────────────
-
-## EXECUTION STATUS
-
-### Overall Progress
-
-██░░░░░░░░ 18%
-
-### Budget
-
-Spent: $0.00
-Remaining: $20.00
-Limit: $20.00/week
-
-### Critical Path
-
-Issue inventory
-      ↓
-Dependency analysis
-      ↓
-Priority ranking
-      ↓
-Agent dispatch
-      ↓
-Verification
-      ↓
-Dashboard update
-
-────────────────────────────────────────────
-
-## CURRENT WORKSTREAMS
-
-████░░░░░░
-Issue analysis
-
-██░░░░░░░░
-Dependency mapping
-
-░░░░░░░░░░
-Agent dispatch
-
-░░░░░░░░░░
-Verification
-
-────────────────────────────────────────────
-
-## BLOCKERS
-
-• nick2-dashboard repo lock — JOB-453 still running (gate work already on main)
-• DEC-002 scoring framework not yet finalized — using interim rubric
-
-────────────────────────────────────────────
-
-## NEXT MILESTONES
-
-17:30
-Complete issue inventory
-
-18:00
-Publish ranked backlog (top 5)
-
-18:15
-Push dashboard ledger update
-
-────────────────────────────────────────────
-
-## WAITING ON
-
-• DEC-002 — Approve PMO scoring framework (calibration, not dispatch block)
-
-────────────────────────────────────────────
-
-## RECENT EVENTS
-
-19:30
-task_updated: Unblocked: JOB-755 zombie cleared (DEC-002 was already resolved 19:09 — not a Ni
-
-19:24
-task_updated: POL-002 heartbeat: triage stalled — no ranked backlog shipped since 16:35 start.
-
-16:35
-task_started: Dispatch authorized (Option B). Ranking 13 ready-for-agent GitHub issues; fronti
-
-16:35
-nick_decision: Nick chose Option B: enable worker.enabled and authorize PMO autonomous dispatch
-
-16:18
-task_updated: Budget authorized ($20/week). Blocked on worker.enabled=false — enable in lane.j
-
-────────────────────────────────────────────
+- **Time:** Mission age ~5h · Last heartbeat due per POL-002 if stale
+- **Work:** PMO worker enabled; inventory + ranking in flight
+- **Budget:** spent $0.00 · remaining $20.00 · limit $20/week
 
 ## LINKS
 
 - [Dashboard](https://nicholasg3.github.io/nick2-dashboard/)
 - [GitHub Issues](https://github.com/nicholasg3/ai-agents-workspace/issues)
 - [CEO Ledger](ledger.html)
-- `Projects-for-agents/frontier-orchestrator/lane.json`
-- Ledger: `logs/ceo-ledger.jsonl` (`PMO-001`)
+- [lane.json](Projects-for-agents/frontier-orchestrator/lane.json)
+
+_Last updated 2026-06-30 19:30 SGT_

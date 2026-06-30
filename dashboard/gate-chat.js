@@ -364,5 +364,186 @@
     stopPolling();
   }
 
+  const WORK_CHAT_URL = (taskId) => `logs/work-chats/${taskId}.jsonl`;
+
+  async function fetchWorkMessages(taskId) {
+    const api = (config.gateChatApi || '').replace(/\/$/, '');
+    if (api) {
+      try {
+        const res = await fetch(`${api}/api/work/${taskId}/messages?t=${Date.now()}`);
+        if (res.ok) {
+          const data = await res.json();
+          return (data.messages || []).sort((a, b) => new Date(a.ts) - new Date(b.ts));
+        }
+      } catch (_) { /* fall through */ }
+    }
+    let server = [];
+    try {
+      const res = await fetch(`${WORK_CHAT_URL(taskId)}?t=${Date.now()}`);
+      if (res.ok) {
+        const text = await res.text();
+        server = text
+          .trim()
+          .split('\n')
+          .filter(Boolean)
+          .map((line) => {
+            try {
+              return JSON.parse(line);
+            } catch {
+              return null;
+            }
+          })
+          .filter(Boolean);
+      }
+    } catch (_) { /* offline */ }
+    const pending = loadPending(`work-${taskId}`).map((p) => ({
+      ts: p.ts,
+      role: 'nick',
+      actor: p.actor || 'Nicholas',
+      text: p.text,
+      pending: true,
+    }));
+    return [...server, ...pending].sort((a, b) => new Date(a.ts) - new Date(b.ts));
+  }
+
+  async function loadWorkMemo(memoTaskId) {
+    const path = `memos/queue/${memoTaskId}.md`;
+    const res = await fetch(`${path}?t=${Date.now()}`);
+    if (!res.ok) throw new Error(`memo ${res.status}`);
+    return { path, markdown: await res.text() };
+  }
+
+  function renderWorkMemo(el, markdown, taskMeta) {
+    const parse = global.marked?.parse;
+    if (!parse) {
+      el.innerHTML = `<pre class="work-memo-raw">${esc(markdown)}</pre>`;
+      return;
+    }
+    el.innerHTML = `
+      <div class="work-brief-tag">Execution Brief</div>
+      <div class="work-memo-body">${parse(markdown)}</div>`;
+    if (taskMeta.memo_task_id && taskMeta.memo_task_id !== taskMeta.task_id) {
+      const note = document.createElement('p');
+      note.className = 'muted work-memo-alias';
+      note.textContent = `Memo from ${taskMeta.memo_task_id} (focus for ${taskMeta.task_id})`;
+      el.prepend(note);
+    }
+  }
+
+  async function sendWorkMessage(taskId, text, taskMeta, statusEl, messagesEl) {
+    const api = (config.gateChatApi || '').replace(/\/$/, '');
+    if (api) {
+      statusEl.textContent = 'Sending to agent…';
+      try {
+        const res = await fetch(`${api}/api/work/${taskId}/message`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ text, actor: 'Nicholas' }),
+        });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        clearPending(`work-${taskId}`);
+        statusEl.textContent = 'Sent — worker dispatched with full mission context.';
+        const msgs = await fetchWorkMessages(taskId);
+        renderMessages(messagesEl, msgs);
+        notifyGateUpdate(taskId);
+        return true;
+      } catch (err) {
+        statusEl.textContent = `Bridge error: ${err.message}. Falling back to Telegram.`;
+      }
+    }
+    savePending(`work-${taskId}`, text);
+    const title = taskMeta.task || taskId;
+    const outbound = [
+      `[Nick2 Work ${taskId}]`,
+      title,
+      '',
+      'Nick instructs:',
+      text,
+      '',
+      '(Work room — agent will update ledger when processed.)',
+    ].join('\n');
+    window.open(telegramUrl(outbound), '_blank', 'noopener');
+    const msgs = await fetchWorkMessages(taskId);
+    renderMessages(messagesEl, msgs);
+    statusEl.textContent = 'Opened Telegram with mission context.';
+    return false;
+  }
+
+  function startWorkPolling(taskId, messagesEl) {
+    stopPolling();
+    const tick = async () => {
+      if (activeTaskId !== `work:${taskId}`) return;
+      try {
+        const msgs = await fetchWorkMessages(taskId);
+        renderMessages(messagesEl, msgs);
+      } catch (_) { /* ignore */ }
+    };
+    tick();
+    pollTimer = setInterval(tick, config.pollIntervalMs || 8000);
+  }
+
+  async function mountWorkChat(root, taskMeta) {
+    await loadConfig();
+    const taskId = taskMeta.task_id;
+    const memoTaskId = taskMeta.memo_task_id || taskId;
+    activeTaskId = `work:${taskId}`;
+
+    root.innerHTML = `
+      <div class="gate-room-layout work-room-layout">
+        <div class="gate-brief-panel work-memo-panel" id="work-memo-panel">
+          <p class="empty">Loading execution brief…</p>
+        </div>
+        <div class="gate-chat-panel">
+          <p class="gate-bridge-banner" id="work-bridge-banner"></p>
+          <div class="gate-chat-head">
+            <h3>Discuss with agent</h3>
+            <p class="muted">Instructions for <strong>${esc(taskId)}</strong> — routes to <strong>${esc(taskMeta.owner || 'worker')}</strong>.</p>
+          </div>
+          <div class="gate-chat-messages" id="work-chat-messages"></div>
+          <form class="gate-chat-form" id="work-chat-form">
+            <textarea id="work-chat-input" rows="4" placeholder="Steer the mission — e.g. prioritize issue #42, skip doc-only tasks…" required></textarea>
+            <div class="gate-chat-actions">
+              <button type="submit" class="btn btn-primary">Send to agent</button>
+              <a class="btn btn-ghost" href="memo.html?p=${encodeURIComponent(`memos/queue/${memoTaskId}.md`)}" target="_blank" rel="noopener">Memo only</a>
+            </div>
+          </form>
+          <p class="gate-chat-status" id="work-chat-status"></p>
+        </div>
+      </div>`;
+
+    const memoEl = root.querySelector('#work-memo-panel');
+    const messagesEl = root.querySelector('#work-chat-messages');
+    const form = root.querySelector('#work-chat-form');
+    const input = root.querySelector('#work-chat-input');
+    const statusEl = root.querySelector('#work-chat-status');
+    const bannerEl = root.querySelector('#work-bridge-banner');
+
+    renderBridgeBanner(bannerEl);
+    try {
+      const { markdown } = await loadWorkMemo(memoTaskId);
+      renderWorkMemo(memoEl, markdown, { ...taskMeta, memo_task_id: memoTaskId });
+    } catch (e) {
+      memoEl.innerHTML = `<p class="empty">Could not load brief: ${esc(e.message)}. Run generate-memos on droplet.</p>`;
+    }
+
+    const msgs = await fetchWorkMessages(taskId);
+    renderMessages(messagesEl, msgs);
+    startWorkPolling(taskId, messagesEl);
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const text = input.value.trim();
+      if (!text) return;
+      input.value = '';
+      await sendWorkMessage(taskId, text, taskMeta, statusEl, messagesEl);
+    });
+  }
+
+  function unmountWorkChat() {
+    activeTaskId = null;
+    stopPolling();
+  }
+
   global.Nick2GateChat = { mountGateChat, unmountGateChat, loadConfig, openGateRoom: null };
+  global.Nick2WorkChat = { mountWorkChat, unmountWorkChat, loadConfig };
 })(window);

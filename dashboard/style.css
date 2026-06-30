@@ -695,13 +695,19 @@ tr:hover td { background: rgba(79, 156, 249, 0.05); }
 .gate-bridge-live { color: var(--success); font-weight: 600; }
 .gate-bridge-off { color: var(--warning); font-weight: 600; }
 
-.gate-brief-tag {
+.gate-brief-tag,
+.work-brief-tag {
   font-size: 0.72rem;
   text-transform: uppercase;
   letter-spacing: 0.06em;
   color: var(--muted);
   margin-bottom: 0.5rem;
 }
+
+.work-memo-body { font-size: 0.92rem; line-height: 1.55; }
+.work-memo-body h2 { font-size: 1rem; margin: 1rem 0 0.35rem; }
+.work-memo-alias { font-size: 0.82rem; margin-bottom: 0.5rem; }
+.work-memo-panel .gate-brief-tag { color: var(--accent); }
 
 .gate-brief-panel h3 { font-size: 1.05rem; margin: 0.25rem 0 0.5rem; }
 .gate-brief-panel h4 {

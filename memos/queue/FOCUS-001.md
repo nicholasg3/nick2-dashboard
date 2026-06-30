@@ -1,100 +1,46 @@
 [Tue Jun 30, 2026]
 
-# FOCUS-001: Make the dashboard live
+[← Dashboard](../index.html)
 
-**Owner:** dashboard_worker  
-**Status:** 🟢 Executing  
-**Last Updated:** 2026-06-30 19:54
+**FOCUS-001: Make the dashboard live**
 
-────────────────────────────────────────────
+_Focus memo sourced from **SYS-002**._
 
-## MISSION
 
-### Objective
+## SITUATION
 
-CEO focus pinned to SYS-002 while JOB-924 executes.
+The operating dashboard still reads ledger and agent-bus state from GitHub Pages snapshots that can lag minutes behind reality. POL-002 needs server-side stale detection so workers cannot sit at Executing while asleep.
 
-### Success Criteria
+## MECE DECOMPOSITION
 
-☐ Mission completed per ledger
+- **Live read path** — Add droplet API for ledger tail + bus SQLite — in flight via JOB-924
+- **Honest reconcile** — Auto-flag or transition tasks with no heartbeat in 30+ minutes
+- **Publish cadence** — 15-minute cron to reconcile, regenerate memos, and push
+- **Client wiring** — dashboard app polls live API when configured, static JSON fallback
 
-### Mission Decomposition (MECE)
+## PATHS CONSIDERED
 
-1. Execute
-Progress: █░░░░░░░░░
+- Full React/Node rewrite on GitHub Pages
+- Extend existing Python gate server with /api/live/* + vanilla JS polling
+- Static-only: shorter cron and hope agents heartbeats
 
-• CEO focus pinned to SYS-002 while JOB-924 executes.
+## CHOSEN PATH + WHY
 
-────────────────────────────────────────────
+We chose extending the gate server and vanilla JS because it fixes latency and honesty without a framework migration. React would improve DX but would not stop agents from going quiet without the reconcile layer; static-only leaves the phone and dashboard blind during the export gap. The gate server already runs on the droplet beside the ledger — adding live endpoints is the cheapest path that unifies memo and panel reads.
 
-## EXECUTION STATUS
+## WHERE IT STANDS
 
-### Overall Progress
+JOB-924 is **executing now** on the droplet (not blocked). One harness crash earlier required a requeue; repo-lock zombies (JOB-755/453) are cleared. Worker is implementing live ledger/bus API, POL-002 reconcile, and 15m sync cron on branch job/20260630-924. JOB-102 waits for 924 to finish. No Nick gate.
 
-██░░░░░░░░ 15%
+## EFFORT & COST
 
-### Budget
-
-Spent: $0.00
-Remaining: $20.00
-Limit: $20.00/week
-
-### Critical Path
-
-Start
-      ↓
-Execute
-      ↓
-Verify
-      ↓
-Report
-
-────────────────────────────────────────────
-
-## CURRENT WORKSTREAMS
-
-██░░░░░░░░
-Primary workstream
-
-────────────────────────────────────────────
-
-## BLOCKERS
-
-• _None._
-
-────────────────────────────────────────────
-
-## NEXT MILESTONES
-
-—
-_TBD_
-
-────────────────────────────────────────────
-
-## WAITING ON
-
-• _None._
-
-────────────────────────────────────────────
-
-## RECENT EVENTS
-
-19:54
-ceo_focus: 
-
-19:54
-focus_snapshot: CEO focus pinned to SYS-002 while JOB-924 executes.
-
-16:35
-focus_snapshot: PMO triage in progress; worker enabled per Nicholas Option B.
-
-16:18
-focus_snapshot: Hourly focus: PMO triage queued; enable frontier worker to start.
-
-────────────────────────────────────────────
+- **Time:** Now: executing since ~19:50 SGT · Mission age ~2h · Past stalls (resolved): ~45m repo locks + ~15m harness retry — not current blockers
+- **Work:** JOB-924 attempt 2 executing; attempt 1 blocked (harness); JOB-102 held; JOB-438 parallel
+- **Budget:** spent $0.00 · remaining $20.00 · limit $20/week
 
 ## LINKS
 
 - [Dashboard](https://nicholasg3.github.io/nick2-dashboard/)
-- [CEO Ledger](../ledger.html)
-- Ledger: `logs/ceo-ledger.jsonl` (`FOCUS-001`)
+- [CEO Ledger](ledger.html)
+
+_Last updated 2026-06-30 19:54 SGT_
