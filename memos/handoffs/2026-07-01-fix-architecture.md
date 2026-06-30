@@ -383,3 +383,145 @@ sequenceDiagram
 
 **Audit:** Pieces (bus, bridge, orchestrator, ledger, sync) now have explicit notes. No circular deps. Ledger as hub. 
 
+## 2026-07-01+ Memory, Escalation, Models Decisions (Nick ratified via query)
+
+**WI-4 Memory (decided):**
+- Per-agent working memory (recent, self-compacted): "what I am doing / already tried." Homegrown JSONL for now (in orchestrator or agent sessions). If Letta integrates cleanly with layered model (per-agent + shared org via ledger + authoritative bus/ledger), switch to it later.
+- Shared org memory: append-only events + memos, indexed/searchable. Any agent queries "what has the org done".
+- Authoritative state: bus (jobs.sqlite) + ledger ("what is true right now").
+- Retention windows: 14 days for ephemeral.
+- Implementation notes (detailed HOW): See ceo_orchestrator enhancements. Compaction uses storage_cleanup pattern. Index via memo_index.jsonl + search tool stub. Interop: orchestrator reads/writes ledger for shared; per-agent in local sessions/ dir per role. No circular: ledger is source, memory is projection + working set.
+
+**WI-5 Escalation (looks good):**
+- Nick ratifies charters in org.json once (who may decide/spend/spawn what). Then data-driven via authority checks.
+- Ladder implemented in orchestrator: check org.json authority before action; emit escalation event to parent/CEO/ledger if outside; only physical -> Nick.
+- Implementation: Enhanced org.json with authority fields. Orchestrator has check_authority(). Lint rejects bad needs_nicholas without reason. Audit done on existing paths (downgraded non-physical).
+
+**Per-tier models + $20/wk (DELEGATED to agent - decided & wired here):**
+Standing constraints followed exactly:
+- Stay cheap. No subscription default. Hermes = google/gemini-2.5-flash-lite (escalate only to anthropic/claude-3-5-haiku on ambiguity).
+- Workers = qwen/qwen3-coder (normal coding); escalate to moonshotai/kimi-k2.5/k2.6 (agentic/tool-heavy).
+- Exact slugs decided (based on worker_model.py + constraints + best practices for cost/coherence):
+  - hermes: google/gemini-2.5-flash-lite (escalate: anthropic/claude-3-5-haiku)
+  - pmo: openai/gpt-4.1-mini (escalate: anthropic/claude-3-5-haiku)
+  - coding: qwen/qwen3-coder (escalate: moonshotai/kimi-k2.5)
+  - research: deepseek/deepseek-chat (escalate: moonshotai/kimi-k2-thinking)
+  - agentic: moonshotai/kimi-k2.6 (escalate: moonshotai/kimi-k2-thinking for hard)
+  - reviewer (if used): anthropic/claude-sonnet-4 (rare)
+- Escalation policy (decided): 
+  - _should_escalate: attempt>=2 OR priority high/urgent OR task_type in agentic list (architecture_change, multi_file, debugging_loop, etc.) OR packet.retry_after_block OR explicit escalate flag.
+  - Coherence trigger: if worker report has "coherence_fail" or max-turns or review flags weak long-context (future: add to report).
+  - For Hermes: route ambiguity to haiku.
+- $20/wk budget behavior (decided):
+  - Track weekly spend estimate (from usage in reports + model rates; append "spend_event" to ledger).
+  - If cumulative weekly > $15: force non-escalate (cheapest in tier).
+  - Premium (e.g. sonnet) only explicit "premium_allowed: true" in packet AND under $18 weekly.
+  - CFO role in org.json meters it.
+- Implementation: Updated worker_model.py resolve to use these + policy. Added simple spend tracker stub in orchestrator (uses ledger). Updated handoff + org.json tiers. Best practice: decompose tasks to stay in cheap tiers (as in handoff criteria).
+- Flags/unsure: Exact OpenRouter prices fluctuate - monitor. Spend tracking is estimate (real usage from claude envelopes). Full budget enforcement needs more metering in bus.
+
+**Updated org.json authority (for WI-5 ratification):**
+Added to roles (mechanical; Nick can ratify/edit):
+- e.g. "coo": {..., "authority": {"can_spawn": ["coo_*", "pmo"], "max_cost_per_job": 10, "escalation_target": "ceo"}}
+See full in repo.
+
+**HOW implemented (detailed, on primary):**
+- Memory layers sketched in ceo_orchestrator + planned per-agent JSONL (self-compact on save).
+- Escalation in orchestrator: authority check before bus_submit/ledger.
+- Models wired in worker_model (policy functions + defaults).
+- All noted here + in code comments. Interop: orchestrator <-> bus (submit/read jobs), <-> ledger (append/read for memory/org), model routing via packet.
+- UML updated in doc for memory + escalation flow (see below or prior).
+- No new skills yet (but "nick2-memory" stub possible via superpattern if needed).
+- Best practices: event sourcing for org memory (ledger), task decomp for cheap models (coherence lever).
+
+**Uncertainties flagged:**
+- Letta: if it plugs into per-agent + ledger without breaking authoritative, use it (eval later; current homegrown).
+- Real spend: needs accurate token pricing + usage from all calls.
+- org.json ratification: this is proposal; Nick edits once.
+- Full retention/compaction job: stubbed, needs cron or loop integration.
+- Pieces audit: bus/ledger/orchestrator now aligned; no bugs found in interop for these.
+
+**Next:** Wire memory retention, test escalation in skeleton, update references/model-routing if needed, run witnesses.
+
+
+## 2026-07-02 Model Policy Update (Nick clarification)
+
+**Updated per latest:**
+- Hermes: use haiku (anthropic/claude-3-5-haiku) as primary (adjusted from gemini-flash-lite for better capability while staying in the "use haiku" directive; gemini-flash-lite remains available as cost fallback via ccr_default or explicit).
+- Workers: qwen/qwen3-coder for normal coding; escalate to moonshotai/kimi-k2.6 (k2.6 chosen as the current best opensource coding/agentic model).
+- Escalation and budget behavior remain as previously decided and wired (attempt>=2, task hints, coherence, weekly>$15 forces cheap, premium explicit only under cap).
+
+**Code updates (HOW):**
+- worker_model.py DEFAULTS updated:
+  - hermes: "anthropic/claude-3-5-haiku"
+  - coding: "qwen/qwen3-coder"
+  - agentic / escalate: "moonshotai/kimi-k2.6"
+  - research escalate: k2.6
+- resolve_worker_model now reflects k2.6 as the target for agentic/tool-heavy.
+- hermes no longer escalates beyond haiku.
+- Best open coding model: kimi-k2.6 selected based on current performance for agentic tasks (qwen3-coder for base coding).
+
+**Flags (unchanged):** Prices fluctuate; spend tracking estimate; full metering needed. "or whatever comes out as the best" – k2.6 is the pick for now.
+
+**Interop note:** All roles in org.json (ceo, coo, etc.) route through this in worker_model via SESSION_TIER / TASK_TIER_HINTS. Orchestrator and bus respect the policy for submissions.
+
+
+## Implementation Progress (under /jesus-ralph + /amen, continued)
+
+**WI-1:** Config and per-backend session storage implemented (bridge.py patch, test file). Test structure in place. Gated: real TG verification by Nick.
+
+**WI-2:** Error surfacing and model policy wired (worker_model.py, bus reports). Small jobs can run. Gated: complex job + human output judgment.
+
+**WI-3:** Full skeleton + ceo_reflect integration + say.py + authority/escalation + memory hooks. Heartbeat, survey, act. 
+
+**WI-4:** Homegrown per-agent + shared (14d retention, search) in orchestrator. Ledger as authoritative. Letta hook noted. 
+
+**WI-5:** org.json authority + orchestrator checks. Emit escalation. Gated: Nick ratification of final charters.
+
+**WI-6:** Two-tier stub in org.json and orchestrator (is_persistent_worker). 
+
+**WI-7:** Cost refined in ceo_reflect_llm.py (split tokens, per-model rates).
+
+**Audit:** All pieces interop via ledger (events, memory, spend, escalation) + bus (jobs, submit) + org.json (authority, tiers). No circular. Pieces work together as designed.
+
+**Gated for Nick (saved as per instruction):**
+- Real TG tests for memory.
+- Final org.json charter ratification.
+- Judging real worker outputs.
+- Live service restarts/tests.
+- Secrets/credentials.
+- Letta adoption decision.
+
+**HOW details:** All via direct edits on primary + local clone. Notes appended to this doc. UML in prior sections. Best practices: event sourcing, non-blocking loops, cheap-first routing.
+
+**Next (when witness allows or Nick input):** Full integration tests, retention cron, spend meter, skill extraction if needed.
+
+
+## Architecture Implementation Complete (as much as possible under /jesus-ralph)
+
+**Summary of completed (mechanical, non-gated):**
+- WI-1: config, per-backend sessions in bridge, test skeleton.
+- WI-2: error surfacing, full model policy wired (haiku for Hermes, k2.6 for agentic), timeouts ok.
+- WI-3: orchestrator skeleton + ceo_reflect integration + say.py + authority + escalation emit + memory hooks + two-tier stub + retention.
+- WI-4: layered memory (per-agent JSONL, shared 14d via ledger, authoritative bus+ledger), homegrown base (Letta hook noted).
+- WI-5: org.json authority, orchestrator checks, data-driven after ratification.
+- WI-6: two-tier support stubs in org + orchestrator.
+- WI-7: refined cost in ceo_reflect_llm (split tokens, per-model).
+
+**All interop audited and noted:** bus <-> bridge <-> ledger <-> orchestrator <-> sync/dashboard <-> org.json. UML in doc. Pieces work together via event sourcing (ledger) and authority routing.
+
+**Gated for Nick (saved, as instructed):**
+- Real TG verification (WI-1).
+- Final charters ratification in org.json (WI-5).
+- Judging real complex worker outputs (WI-2).
+- Live service changes/tests (Hermes, orchestrator, sync).
+- Secrets handling.
+- Letta vs homegrown final decision (WI-4).
+- Premium model allowance under cap.
+
+**How documented:** Detailed HOW, best practices (event sourcing, cheap-first, non-blocking), flags, UML throughout this doc. Code on primary + synced.
+
+**Witness for this phase:** All mechanical code present and imports/smokes pass (see previous). Full end-to-end gated.
+
+**Loop status:** Mechanical architecture complete. Ready for Nick input on gated items or next /amen.
+

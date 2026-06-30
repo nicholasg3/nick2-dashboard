@@ -4,6 +4,7 @@ Read-only view of `logs/ceo-ledger.jsonl`.
 
 | Time | Actor | Event | Task ID | Task |
 |------|-------|-------|---------|------|
+| 2026-07-01T02:00:07 | CEO | focus_snapshot | FOCUS-001 | CEO supervision |
 | 2026-07-01T01:45:11 | CEO | supervisor_cycle | FOCUS-001 | CEO supervisor corrective cycle |
 | 2026-07-01T01:45:11 | CEO | ceo_reflect | FOCUS-001 | CEO reflection and bottleneck pass |
 | 2026-07-01T01:45:11 | CEO | focus_snapshot | FOCUS-001 | CEO supervision |
@@ -43,4 +44,3 @@ Read-only view of `logs/ceo-ledger.jsonl`.
 | 2026-06-30T23:17:10 | Nicholas | work_removed | ISSUE-24 | DECISION: revisit Telegram bot permission posture |
 | 2026-06-30T22:30:08 | PMO | focus_snapshot | FOCUS-001 | Fix agent-bus worker_model crash |
 | 2026-06-30T22:30:08 | PMO | task_updated | ISSUE-15 | FEATURE: optional skill usefulness tiers |
-| 2026-06-30T22:30:08 | PMO | task_queued | ISSUE-15 | FEATURE: optional skill usefulness tiers |
