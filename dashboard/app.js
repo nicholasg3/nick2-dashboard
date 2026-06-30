@@ -494,7 +494,7 @@ function openWorkRoom(taskId) {
 function memoHref(kind, taskId) {
   if (!taskId || !kind) return null;
   if (kind === 'gated') return `gate-room.html?task=${encodeURIComponent(taskId)}`;
-  if (kind === 'queue') return `work-room.html?task=${encodeURIComponent(taskId)}`;
+  if (kind === 'queue') return `memo.html?p=${encodeURIComponent(`memos/queue/${taskId}.md`)}`;
   // Dynamic loader — always fetches fresh .md (static .html lags behind live ledger)
   const mdPath = `memos/${kind}/${taskId}.md`;
   return `memo.html?p=${encodeURIComponent(mdPath)}`;
@@ -559,7 +559,6 @@ function bindWorkOpenLinks(root) {
 /** Wrap label in memo link when a memo exists; otherwise plain escaped text. */
 function taskMemoLink(text, kind, taskId, className = 'memo-link') {
   if (kind === 'gated') return gateTaskLink(text, taskId, className);
-  if (kind === 'queue') return workTaskLink(text, taskId, className);
   const label = text ?? '—';
   const href = memoHref(kind, taskId);
   if (!href) return esc(label);

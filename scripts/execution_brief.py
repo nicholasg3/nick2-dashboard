@@ -537,6 +537,13 @@ def execution_brief_body(
         raw["_alias_from"] = brief_tid
     if _is_mckinsey_brief(raw):
         return mckinsey_brief_body(tid, t, raw, memo_context=memo_context)
+    # Unified memo style (audit item A): non-curated briefs render in the MKA
+    # layout instead of the deprecated progress-bar execution brief. Curated
+    # McKinsey briefs (handled above) are preserved.
+    from mka_memo import mka_queue_body, mka_completed_body
+    if t.get("status") in ("completed", "idle", "deferred") or memo_context == "completed":
+        return mka_completed_body(tid, t)
+    return mka_queue_body(tid, t, weekly)
     brief = _brief(tid, t)
     owner = t.get("owner") or t.get("actor", "—")
     stale = _wip_stale(t)
