@@ -870,6 +870,22 @@ tr:hover td { background: rgba(79, 156, 249, 0.05); }
   max-height: 45vh;
 }
 
+.role-orchestrator-summary {
+  margin: 0 0 0.75rem;
+  padding: 0.65rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--muted);
+  font-size: 0.86rem;
+  line-height: 1.45;
+}
+
+.role-orchestrator-summary strong {
+  color: var(--text);
+  margin-right: 0.35rem;
+}
+
 /* Org fleet — executive card layout */
 .org-fleet-panel .panel-head {
   display: flex;
@@ -1130,7 +1146,7 @@ tr:hover td { background: rgba(79, 156, 249, 0.05); }
 }
 
 .org-card-grid-compact {
-  grid-template-columns: repeat(auto-fill, minmax(12rem, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(13.5rem, 1fr));
   padding-top: 0.5rem;
 }
 
@@ -1153,9 +1169,13 @@ tr:hover td { background: rgba(79, 156, 249, 0.05); }
   flex-wrap: wrap;
 }
 
-.org-card-icon {
-  font-size: 1.1rem;
-  line-height: 1.2;
+.org-card-status-dot {
+  width: 0.52rem;
+  height: 0.52rem;
+  border-radius: 999px;
+  margin-top: 0.35rem;
+  background: var(--muted);
+  box-shadow: 0 0 0 3px rgba(148, 163, 184, 0.12);
   flex-shrink: 0;
 }
 
@@ -1172,11 +1192,14 @@ tr:hover td { background: rgba(79, 156, 249, 0.05); }
 }
 
 .org-card-maps {
-  display: block;
+  display: inline-block;
+  max-width: 100%;
   font-size: 0.74rem;
   color: var(--accent);
   margin-top: 0.15rem;
-  word-break: break-word;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .org-card-schedule {
@@ -1200,8 +1223,11 @@ tr:hover td { background: rgba(79, 156, 249, 0.05); }
 }
 
 .org-status-live .org-card-title { color: var(--success); }
+.org-status-live .org-card-status-dot { background: var(--success); box-shadow: 0 0 0 3px rgba(52, 211, 153, 0.16); }
 .org-status-timer .org-card-title { color: var(--info); }
+.org-status-timer .org-card-status-dot { background: var(--info); box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.16); }
 .org-status-active .org-card-title { color: var(--warning); }
+.org-status-active .org-card-status-dot { background: var(--warning); box-shadow: 0 0 0 3px rgba(251, 191, 36, 0.16); }
 .org-status-implicit .org-card-title { color: var(--text); }
 .org-status-passive .org-card-title { color: var(--muted); }
 .org-status-asleep .org-card-title,

@@ -9,6 +9,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 LEDGER = ROOT / "logs" / "ceo-ledger.jsonl"
 OUT = ROOT / "reports" / "org-fleet.json"
+ORCH_STATUS = ROOT / "reports" / "orchestrator" / "status.json"
 
 # Curated dashboard tree (matches org.json maps_to + droplet services)
 SERVICE_SCHEDULES = {
@@ -106,6 +107,39 @@ def ledger_context(events: list[dict]) -> dict:
     }
 
 
+def _parse_utc(ts: str | None) -> datetime | None:
+    if not ts:
+        return None
+    try:
+        return datetime.fromisoformat(ts.replace("Z", "+00:00")).astimezone(timezone.utc)
+    except ValueError:
+        return None
+
+
+def orchestrator_context() -> dict:
+    if not ORCH_STATUS.is_file():
+        return {"running": False, "detail": "CEO orchestrator service not witnessed yet"}
+    try:
+        data = json.loads(ORCH_STATUS.read_text(encoding="utf-8"))
+    except json.JSONDecodeError:
+        return {"running": False, "detail": "CEO orchestrator status unreadable"}
+    last = _parse_utc(data.get("last_tick_at") or data.get("ts"))
+    age_min = None
+    fresh = False
+    if last:
+        age_min = (datetime.now(timezone.utc) - last).total_seconds() / 60.0
+        fresh = age_min <= 10
+    summary = data.get("summary") or data.get("reason") or "No summary"
+    return {
+        "running": fresh and data.get("mode") == "live",
+        "fresh": fresh,
+        "age_min": round(age_min, 1) if age_min is not None else None,
+        "healthy": data.get("healthy"),
+        "mode": data.get("mode"),
+        "summary": summary,
+    }
+
+
 def _node(
     node_id: str,
     title: str,
@@ -139,6 +173,7 @@ def build_tree(ctx: dict) -> dict:
     gates = ctx.get("gates") or []
     focus = ctx.get("focus") or {}
     budget = ctx.get("budget") or {}
+    orch = ctx.get("orchestrator") or {}
 
     frontier_detail = "Daily cycle + /nick2 run on demand"
     if pmo_active:
@@ -156,14 +191,21 @@ def build_tree(ctx: dict) -> dict:
     if focus.get("task_id"):
         ceo_detail = "%s (%s)" % (focus.get("task_id"), focus.get("status") or "—")
 
+    ceo_status = "live" if orch.get("running") else "timer"
+    ceo_icon = "🟢" if orch.get("running") else "⏰"
+    orch_detail = "Talkable executive supervisor via the live dashboard bridge."
+    if orch.get("summary"):
+        age = "fresh" if orch.get("age_min") is None else f"{orch['age_min']}m ago"
+        orch_detail = f"{orch.get('summary')} ({age})"
+
     children = [
         _node(
             "ceo_office",
             "CEO Office",
-            status="live",
-            icon="🟢",
+            status=ceo_status,
+            icon=ceo_icon,
             maps_to=SERVICE_SCHEDULES["ceo-office"]["label"],
-            detail="Talkable executive supervisor via the live dashboard bridge; reads ledger, bus, and CEO memo context.",
+            detail=orch_detail,
             schedule=SERVICE_SCHEDULES["ceo-office"]["schedule"],
             chat_role="ceo",
         ),
@@ -288,6 +330,7 @@ def build_tree(ctx: dict) -> dict:
 def main() -> None:
     events = load_events()
     ctx = ledger_context(events)
+    ctx = {**ctx, "orchestrator": orchestrator_context()}
     payload = {
         "generated_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
         "legend": {

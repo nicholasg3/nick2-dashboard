@@ -10,6 +10,7 @@
     deferredWork: 'reports/deferred-work.json',
     ceoQueue: 'reports/ceo-queue.json',
     gateBriefs: 'reports/gate-briefs.json',
+    orchestrator: 'reports/orchestrator/status.json',
   };
 
   let cached = null;
@@ -45,6 +46,7 @@
         gated: `${prefix}/api/live/gated`,
         ceoQueue: `${prefix}/api/live/ceo-queue`,
         gateBriefs: `${prefix}/api/live/gate-briefs`,
+        orchestrator: `${prefix}/api/live/orchestrator`,
         gateChatApi: (cfg.gateChatApi || prefix).replace(/\/$/, ''),
       };
     } else if (cfg.dataSource === 'droplet' && cfg.gateChatApi) {
@@ -58,6 +60,7 @@
         gated: `${b}/api/live/gated`,
         ceoQueue: `${b}/api/live/ceo-queue`,
         gateBriefs: `${b}/api/live/gate-briefs`,
+        orchestrator: `${b}/api/live/orchestrator`,
         gateChatApi: b,
       };
     } else {

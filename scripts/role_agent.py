@@ -124,6 +124,7 @@ def build_context(role: str, message: str, history: list[dict]) -> dict:
         "bus_live": _read_json(REPORTS / "bus-live.json", {}),
         "ceo_queue": _read_json(REPORTS / "ceo-queue.json", {}),
         "org_fleet": _read_json(REPORTS / "org-fleet.json", {}),
+        "orchestrator": _read_json(REPORTS / "orchestrator" / "status.json", {}),
         "gated": _read_json(REPORTS / "gated.json", []),
         "ceo_reflect_latest": _read_text(CEO_MEMO),
         "ledger_tail": _ledger_tail(),

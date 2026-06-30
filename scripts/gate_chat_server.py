@@ -73,6 +73,7 @@ LIVE_FILES = {
     "/api/live/gated": (REPORTS / "gated.json", "application/json"),
     "/api/live/ceo-queue": (REPORTS / "ceo-queue.json", "application/json"),
     "/api/live/gate-briefs": (REPORTS / "gate-briefs.json", "application/json"),
+    "/api/live/orchestrator": (REPORTS / "orchestrator" / "status.json", "application/json"),
 }
 
 STATIC_MIME = {
@@ -98,6 +99,24 @@ def append_jsonl(path: Path, obj: dict) -> None:
             prefix = "\n"
     with path.open("a", encoding="utf-8") as f:
         f.write(prefix + line + "\n")
+
+
+def read_json(path: Path, default):
+    try:
+        if path.is_file():
+            return json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        pass
+    return default
+
+
+def compact_orchestrator_status() -> dict:
+    data = read_json(REPORTS / "orchestrator" / "status.json", {})
+    return {
+        k: data.get(k)
+        for k in ("ts", "mode", "reason", "healthy", "last_tick_at", "summary")
+        if k in data
+    }
 
 
 def append_ledger(event: dict) -> None:
@@ -163,6 +182,7 @@ def load_role_meta(role: str) -> dict:
     role_key = role if role in ROLE_META else "ceo"
     meta = dict(ROLE_META[role_key])
     meta["messages"] = len(load_role_messages(role_key))
+    meta["orchestrator"] = compact_orchestrator_status()
     return meta
 
 

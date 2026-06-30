@@ -624,6 +624,20 @@ function pickCurrentFocus(state) {
   const running = state.busLive?.running;
   if (running?.length) return focusFromBusJob(running[0]);
 
+  if (state.orchestrator?.summary) {
+    return {
+      task_id: 'CEO-ORCH',
+      focus_task_id: 'SYS-002',
+      task: 'CEO orchestrator heartbeat',
+      status: state.orchestrator.healthy ? 'completed' : 'blocked',
+      focus_line: state.orchestrator.summary,
+      focus_detail: '',
+      ts: state.orchestrator.last_tick_at || state.orchestrator.ts,
+      owner: 'CEO',
+      _fromOrchestrator: true,
+    };
+  }
+
   const active = [...state.active].sort((a, b) => new Date(b.ts || 0) - new Date(a.ts || 0));
   const inProg = active.find((t) => t.status === 'in_progress');
   if (inProg) return inProg;
@@ -663,6 +677,18 @@ function focusPlainLine(focus, state) {
 function renderFocusReflect(state) {
   const el = $('focus-reflect');
   if (!el) return;
+  if (state.orchestrator?.summary) {
+    const ts = state.orchestrator.last_tick_at || state.orchestrator.ts;
+    const body = state.orchestrator.summary.length > 420
+      ? `${state.orchestrator.summary.slice(0, 417)}…`
+      : state.orchestrator.summary;
+    el.hidden = false;
+    el.innerHTML = `
+      <p class="focus-reflect-label">CEO heartbeat <span class="meta-pill">${esc(fmtTs(ts))}</span></p>
+      <p class="focus-reflect-body">${esc(body)}</p>
+      <a class="focus-link" href="memo.html?p=${encodeURIComponent('memos/orchestrator/latest.md')}">Full heartbeat memo</a>`;
+    return;
+  }
   const q = state.ceoQueue;
   const llm = q?.llm?.reflection;
   const summary = llm?.situation_summary
@@ -904,10 +930,11 @@ let orgFleetFilter = 'now';
 let orgFleetDataCache = null;
 let busLiveDataCache = null;
 let ceoQueueDataCache = null;
+let orchestratorDataCache = null;
 
 function orgRoleCard(node, { compact = false } = {}) {
   const status = node.status || 'asleep';
-  const maps = node.maps_to
+  const maps = node.maps_to && !compact
     ? `<span class="org-card-maps">${esc(node.maps_to)}</span>`
     : '';
   const sched = node.schedule
@@ -922,7 +949,7 @@ function orgRoleCard(node, { compact = false } = {}) {
   const cls = compact ? 'org-card org-card-compact' : 'org-card';
   return `<article class="${cls} org-status-${esc(status)}" data-status="${esc(status)}">
     <div class="org-card-head">
-      <span class="org-card-icon" aria-hidden="true">${esc(node.icon || '·')}</span>
+      <span class="org-card-status-dot" aria-hidden="true"></span>
       <div class="org-card-titles">
         <h4 class="org-card-title">${esc(node.title)}</h4>
         ${maps}
@@ -1169,6 +1196,26 @@ function renderOrgFleetNowBoard(running, queued, held, liveInfra) {
   return parts.join('');
 }
 
+function rootWithLiveOrchestrator(root) {
+  const orch = orchestratorDataCache;
+  if (!root?.children?.length || !orch?.summary) return root || { children: [] };
+  const ts = orch.last_tick_at || orch.ts;
+  const fresh = ts ? (ageMs(ts) || Infinity) < 10 * 60 * 1000 : false;
+  const live = fresh && orch.mode === 'live' && orch.healthy !== false;
+  const children = root.children.map((node) => {
+    if (node.id !== 'ceo_office') return node;
+    return {
+      ...node,
+      status: live ? 'live' : node.status,
+      icon: live ? 'live' : node.icon,
+      detail: live ? orch.summary : node.detail,
+      schedule: '24/7 via dashboard bridge',
+      chat_role: 'ceo',
+    };
+  });
+  return { ...root, children };
+}
+
 function renderOrgFleet(orgData, busData) {
   const tree = $('org-fleet-tree');
   const updated = $('org-fleet-updated');
@@ -1182,7 +1229,7 @@ function renderOrgFleet(orgData, busData) {
     return;
   }
   renderOrgFleetContext(orgData?.context, busData);
-  tree.innerHTML = renderOrgFleetBoard(orgData?.root || { children: [] }, busData);
+  tree.innerHTML = renderOrgFleetBoard(rootWithLiveOrchestrator(orgData?.root), busData);
   if (legend) {
     const showLegend = orgFleetFilter === 'all';
     legend.hidden = !showLegend;
@@ -1233,6 +1280,17 @@ async function loadBusLive() {
   }
 }
 
+async function loadOrchestratorStatus() {
+  const url = dataUrls.orchestrator || 'reports/orchestrator/status.json';
+  try {
+    const res = await fetch(`${url}?t=${Date.now()}`);
+    if (res.ok) return await res.json();
+  } catch (e) {
+    console.warn('orchestrator status load failed', e);
+  }
+  return null;
+}
+
 async function refreshFleetPanel() {
   const [orgFleet, busLive] = await Promise.all([loadOrgFleet(), loadBusLive()]);
   renderOrgFleet(orgFleet, busLive);
@@ -1241,6 +1299,7 @@ async function refreshFleetPanel() {
 function renderAll(state) {
   state.busLive = busLiveDataCache;
   state.ceoQueue = ceoQueueDataCache;
+  state.orchestrator = orchestratorDataCache;
   renderCurrentFocus(state);
   renderSnapshot(state);
   renderActivity(state.sorted, state);
@@ -1300,16 +1359,19 @@ async function refresh() {
   let orgFleet = null;
   let busLive = null;
   let ceoQueue = null;
+  let orchestrator = null;
   try {
-    [events, orgFleet, busLive, , ceoQueue] = await Promise.all([
+    [events, orgFleet, busLive, , ceoQueue, orchestrator] = await Promise.all([
       loadLedger(),
       loadOrgFleet(),
       loadBusLive(),
       loadDeferredWork(),
       loadCeoQueue(),
+      loadOrchestratorStatus(),
     ]);
     ceoQueueDataCache = ceoQueue;
     busLiveDataCache = busLive;
+    orchestratorDataCache = orchestrator;
     allEvents = events;
   } catch (err) {
     const hint = dataUrls.source === 'github-static'

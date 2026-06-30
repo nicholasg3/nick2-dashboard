@@ -218,10 +218,15 @@
     return Boolean(gateApi());
   }
 
-  function renderBridgeBanner(el) {
+  function renderBridgeBanner(el, context = 'gate') {
     if (bridgeLive()) {
+      const contextLabel = context === 'role'
+        ? 'this role with current dashboard context'
+        : context === 'work'
+          ? 'the agent with full work context'
+          : 'the agent with full gate context';
       el.innerHTML =
-        '<span class="gate-bridge-live">● Live web bridge</span> — messages go directly to the agent with full gate context.';
+        `<span class="gate-bridge-live">● Live web bridge</span> — messages go directly to ${contextLabel}.`;
     } else {
       el.innerHTML =
         '<span class="gate-bridge-off">○ Offline mode</span> — Set gateChatApi in config.json to the live gate bridge (HTTPS). Until then, Send falls back to Telegram.';
@@ -345,7 +350,7 @@
     const bannerEl = root.querySelector('#gate-bridge-banner');
 
     renderBrief(briefEl, cachedBrief, taskMeta);
-    renderBridgeBanner(bannerEl);
+    renderBridgeBanner(bannerEl, 'gate');
     const msgs = await fetchMessages(taskMeta.task_id);
     renderMessages(messagesEl, msgs);
     startPolling(taskMeta.task_id, messagesEl);
@@ -545,7 +550,7 @@
     const statusEl = root.querySelector('#work-chat-status');
     const bannerEl = root.querySelector('#work-bridge-banner');
 
-    renderBridgeBanner(bannerEl);
+    renderBridgeBanner(bannerEl, 'work');
     try {
       const { markdown } = await loadWorkMemo(memoTaskId);
       renderWorkMemo(memoEl, markdown, { ...taskMeta, memo_task_id: memoTaskId });
@@ -662,6 +667,11 @@
       <div class="role-room-layout">
         <div class="gate-chat-panel role-chat-panel">
           <p class="gate-bridge-banner" id="role-bridge-banner"></p>
+          ${
+            roleMeta.orchestrator?.summary
+              ? `<p class="role-orchestrator-summary"><strong>Heartbeat</strong> ${esc(roleMeta.orchestrator.summary)}</p>`
+              : ''
+          }
           <div class="gate-chat-head">
             <h3>${esc(roleMeta.title || `${role.toUpperCase()} Office`)}</h3>
             <p class="muted">${esc(roleMeta.summary || 'Talk to this role with current dashboard context.')}</p>
@@ -683,7 +693,7 @@
     const statusEl = root.querySelector('#role-chat-status');
     const bannerEl = root.querySelector('#role-bridge-banner');
 
-    renderBridgeBanner(bannerEl);
+    renderBridgeBanner(bannerEl, 'role');
     const msgs = await fetchRoleMessages(role);
     renderMessages(messagesEl, msgs);
     startRolePolling(role, messagesEl);

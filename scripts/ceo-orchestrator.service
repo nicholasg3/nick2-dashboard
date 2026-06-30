@@ -1,0 +1,17 @@
+[Unit]
+Description=Nick2 CEO orchestrator heartbeat
+After=network.target nick2-gate-chat.service
+
+[Service]
+Type=simple
+WorkingDirectory=%h/nick2-dashboard
+Environment=NICK2_ROOT=%h/nick2-dashboard
+Environment=AGENT_BUS_ROOT=%h/ai-agents-workspace/agent-bus
+Environment=CEO_ORCH_ENABLED=1
+Environment=CEO_ORCH_INTERVAL_SEC=300
+ExecStart=/usr/bin/python3 %h/nick2-dashboard/orchestrator/ceo_orchestrator.py
+Restart=on-failure
+RestartSec=10
+
+[Install]
+WantedBy=default.target
