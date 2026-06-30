@@ -196,3 +196,16 @@ Each `ceo_supervisor.py` cycle ends with `ceo_reflect.py`:
 Bus submits from CEO use `--from-harness ceo-reflect` (POL-006 still applies).
 
 Manual: `python3 scripts/ceo_reflect.py` / `--dry-run` / `--ledger`
+
+### LLM reflection (optional, env-gated)
+
+When `OPENROUTER_API_KEY` is set (or `CEO_REFLECT_LLM=1`), `ceo_reflect_llm.py` runs after the rule pass:
+
+| Env | Default | Meaning |
+|-----|---------|---------|
+| `CEO_REFLECT_LLM` | on if key present | Enable LLM synthesis |
+| `CEO_REFLECT_INTERVAL_MIN` | `60` | Min minutes between LLM calls |
+| `CEO_REFLECT_MODEL` | `openai/gpt-4.1-mini` | PMO-tier model (routing policy) |
+| `CEO_REFLECT_LLM_EXECUTE` | `1` | Apply admission-validated delegate/focus from LLM |
+
+LLM never bypasses admission caps or dispatches `dispatch: false` / decision-gated issues. CLI: `--llm` / `--force-llm`.

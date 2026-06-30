@@ -21,6 +21,7 @@ ROOT = Path(os.environ.get("NICK2_ROOT", Path(__file__).resolve().parents[1]))
 SCRIPTS = ROOT / "scripts"
 sys.path.insert(0, str(SCRIPTS))
 
+import ceo_reflect_llm as crl  # noqa: E402
 import pmo_dispatch as pd  # noqa: E402
 import work_queue_ops as wqo  # noqa: E402
 
@@ -626,6 +627,20 @@ def write_artifacts(report: dict) -> None:
             lines.append(f"- [{p.get('kind')}] {p.get('detail', p.get('suggested', ''))[:160]}")
         lines.append("")
 
+    llm = report.get("llm") or {}
+    reflection = llm.get("reflection") or {}
+    if reflection.get("situation_summary"):
+        lines.append("## LLM reflection")
+        lines.append(reflection["situation_summary"])
+        lines.append("")
+        if reflection.get("root_causes"):
+            lines.append("### Root causes")
+            for rc in reflection["root_causes"]:
+                lines.append(f"- {rc}")
+            lines.append("")
+    if llm.get("skip_reason") and not llm.get("ran"):
+        lines.append(f"_LLM reflect skipped: {llm['skip_reason']}_\n")
+
     MEMO_DIR.mkdir(parents=True, exist_ok=True)
     MEMO_LATEST.write_text("\n".join(lines) + "\n", encoding="utf-8")
 
@@ -634,6 +649,8 @@ def run_reflect(
     *,
     dry_run: bool = False,
     append_ledger: bool = False,
+    llm: bool = False,
+    force_llm: bool = False,
 ) -> dict:
     ctx = gather_context()
     bottlenecks = detect_bottlenecks(ctx)
@@ -641,6 +658,22 @@ def run_reflect(
     append_fn = pd.append_ledger if append_ledger and not dry_run else None
     actions = execute_unstick(ctx, bottlenecks, admission, dry_run=dry_run, append_fn=append_fn)
     proposals = build_proposals(ctx, bottlenecks, admission)
+
+    llm_out: dict = {"enabled": crl.llm_enabled()}
+    if llm or crl.llm_enabled():
+        llm_out = crl.run_llm_reflect(
+            ctx,
+            bottlenecks,
+            admission,
+            proposals,
+            force=force_llm or llm,
+            dry_run=dry_run,
+            append_fn=append_fn,
+        )
+        if llm_out.get("llm_proposals"):
+            proposals = proposals + llm_out["llm_proposals"]
+        if llm_out.get("actions"):
+            actions = actions + llm_out["actions"]
 
     report = {
         "ts": ctx["ts"],
@@ -655,6 +688,7 @@ def run_reflect(
         "actions": actions,
         "proposals": proposals,
         "bottleneck_count": len(bottlenecks),
+        "llm": llm_out,
     }
 
     if not dry_run:
@@ -694,8 +728,15 @@ def main() -> int:
     p = argparse.ArgumentParser(description="CEO reflection — POL-010")
     p.add_argument("--dry-run", action="store_true")
     p.add_argument("--ledger", action="store_true")
+    p.add_argument("--llm", action="store_true", help="Run LLM reflection (respects interval)")
+    p.add_argument("--force-llm", action="store_true", help="Run LLM reflection ignoring interval")
     args = p.parse_args()
-    report = run_reflect(dry_run=args.dry_run, append_ledger=args.ledger)
+    report = run_reflect(
+        dry_run=args.dry_run,
+        append_ledger=args.ledger,
+        llm=args.llm or args.force_llm,
+        force_llm=args.force_llm,
+    )
     print(json.dumps(report, indent=2))
     return 0 if report.get("healthy") else 1
 
