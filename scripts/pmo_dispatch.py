@@ -321,6 +321,8 @@ def run_dispatch(
     queued: list[dict] = []
     spent_plan = 0.0
     for item in sorted(issues, key=lambda x: x.get("rank", 99)):
+        if item.get("dispatch") is False:
+            continue
         est = float(item.get("est_cost_usd") or 1.0)
         if spent_plan + est > budget_left:
             break
@@ -507,6 +509,9 @@ def retry_undispatched(*, dry_run: bool = False) -> dict:
     for tid in sorted(tasks):
         if not tid.startswith("ISSUE-"):
             continue
+        item = catalog.get(tid, {})
+        if item.get("dispatch") is False:
+            continue
         t = tasks[tid]
         if (t.get("status") or "") not in ("queued", "blocked"):
             continue
@@ -517,7 +522,6 @@ def retry_undispatched(*, dry_run: bool = False) -> dict:
         submit_failed = "bus submit failed" in out_txt
         if not submit_failed and DISPATCH_MARKER not in out_txt:
             continue
-        item = catalog.get(tid, {})
         owner = (t.get("owner") or "coding").lower()
         worker = (item.get("worker") or ("research_worker" if owner == "research" else "coding_worker"))
         repo = (item.get("repo") or "ai-agents-workspace").strip()

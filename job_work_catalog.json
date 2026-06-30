@@ -62,8 +62,8 @@
       "touch_paths": ["Skill Library/", "agent-bus or digest scripts"]
     },
     "ISSUE-24": {
-      "problem": "Telegram PA bot permission posture may be too loose or too tight — needs a decision memo for Nick.",
-      "doing": "Research permission options (single-user vs multi-user, command surface, secrets) and produce a decision memo — no code unless Nick approves.",
+      "problem": "Telegram PA bot currently runs with bypassPermissions (full root for Nick's Telegram ID only). Nick may want read-only or acceptEdits instead — this is a personal decision, not an agent task.",
+      "doing": "**Nick's queue — not running on agents.** When Nick picks it up: compare bypassPermissions vs BRIDGE_PERMISSION_MODE=default vs acceptEdits; decide; optionally systemctl restart telegram-bridge.",
       "steps": [
         "Review telegram-bridge/control.py and current auth",
         "Draft options with risk tradeoffs",

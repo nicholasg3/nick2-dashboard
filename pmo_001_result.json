@@ -56,12 +56,15 @@
     {
       "rank": 5,
       "issue_number": 24,
+      "task_id": "ISSUE-24",
       "title": "DECISION: revisit Telegram bot permission posture",
       "roi": 0.5,
       "area": "telegram-pa",
       "repo": "ai-agents-workspace",
       "worker": "research_worker",
       "est_cost_usd": 1.0,
+      "dispatch": false,
+      "defer_reason": "Nick personal queue — decision on Telegram PA permissions (not agent research)",
       "objective": "ISSUE-24: Research Telegram bot permission posture options; produce decision memo for Nick (no gate unless new risk). PMO-001 rank #5."
     }
   ]
