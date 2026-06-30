@@ -36,17 +36,17 @@
       ]
     },
     "ISSUE-ROUTING-001": {
-      "problem": "Workers pick models via ad-hoc defaults; cost-aware routing policy exists as a skill but is not fully wired into worker_model.",
-      "doing": "Implement OpenRouter routing per model-routing-policy skill — tier selection, escalate on retry, document in registry.",
+      "problem": "PMO queued re-implementation of routing that already shipped on main.",
+      "doing": "**Done — no bus dispatch.** `worker_model.py` resolves tier + escalate on retry; `bus.py` calls it at worker spawn; policy in `references/model-routing.yaml`.",
       "steps": [
-        "Read model-routing-policy skill + references/model-routing.yaml",
-        "Extend worker_model.py tier/escalate logic",
-        "Unit tests for tier picks per session/task_type",
-        "Witness exits 0"
+        "9186153 — task-aware OpenRouter routing via worker_model",
+        "ff874d4 — registry_model kwarg fix on resolve_or_ccr_default",
+        "Optional follow-up: dedicated test_worker_model.py (not blocking)"
       ],
-      "witness": "agent-bus unit tests green after routing change",
+      "witness": "python3 agent-bus/scripts/test_dispatch_policy.py exits 0; workers log model: slug (tier=...) at spawn",
       "touch_paths": [
         "agent-bus/scripts/worker_model.py",
+        "agent-bus/scripts/bus.py",
         "references/model-routing.yaml"
       ]
     },

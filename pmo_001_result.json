@@ -40,6 +40,8 @@
       "repo": "ai-agents-workspace",
       "worker": "coding_worker",
       "est_cost_usd": 1.0,
+      "dispatch": false,
+      "defer_reason": "Landed on main — worker_model.py + model-routing.yaml wired in bus spawn (9186153, ff874d4)",
       "objective": "ISSUE-ROUTING-001: Implement cost-aware OpenRouter routing per model-routing-policy skill. PMO-001 rank #3."
     },
     {
