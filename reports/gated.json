@@ -1,11 +1,1 @@
-[
-  {
-    "rank": 1,
-    "task_id": "DEC-003",
-    "task": "Confirm Telegram alert method for $5 spend thresholds",
-    "priority": "medium",
-    "nick_priority": null,
-    "what_nick_must_do": "Alert channel for cumulative weekly spend crossing $5 increments.",
-    "since": "2026-06-30T14:57:00+08:00"
-  }
-]
+[]

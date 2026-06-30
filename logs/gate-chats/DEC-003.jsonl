@@ -1,1 +1,2 @@
 {"ts":"2026-06-30T16:40:01+08:00","role":"agent","actor":"CEO","task_id":"DEC-003","text":"Need your preference on spend alerts ($5 steps). Reply here with Telegram vs email vs dashboard-only — I'll wire the channel and log the decision."}
+{"ts":"2026-06-30T19:12:50+08:00","role":"nick","actor":"Nicholas","task_id":"DEC-003","text":"approved. do this Telegram alerts at $5 / $10 / $15 / $20 cumulative weekly spend, with reconcile as fallback witness. Pair with auto-pause at $18 if desired."}
