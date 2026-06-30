@@ -5,6 +5,8 @@
 
 const LEDGER_URL = 'logs/ceo-ledger.jsonl';
 const ORG_FLEET_URL = 'reports/org-fleet.json';
+const GATED_URL = 'reports/gated.json';
+const GATED_POLL_MS = 20000;
 const ROADMAP_LANES = {
   near_term: 'Near-term',
   capability: 'Capability-building',
@@ -717,5 +719,43 @@ $('activity-filter').addEventListener('input', (e) => {
   }
 });
 
+async function refreshGatedSection() {
+  if (!allEvents.length) return;
+  try {
+    const res = await fetch(`${GATED_URL}?t=${Date.now()}`);
+    if (res.ok) {
+      const gatedSnapshot = await res.json();
+      const st = buildState(allEvents);
+      const resolved = new Set(
+        [...allEvents]
+          .filter((e) => e.event === 'decision_resolved' || e.event === 'nick_gate_resolved')
+          .map((e) => e.task_id)
+          .filter(Boolean)
+      );
+      st.gatedByNick = gatedSnapshot
+        .filter((g) => !resolved.has(g.task_id))
+        .map((g) => ({
+          task_id: g.task_id,
+          task: g.task,
+          priority: g.priority,
+          output: g.what_nick_must_do,
+          ts: g.since,
+        }));
+      renderNickGate(st);
+      renderSnapshot(st);
+    }
+  } catch (e) {
+    console.warn('gated poll failed', e);
+  }
+}
+
+window.addEventListener('message', (ev) => {
+  if (ev.data?.type === 'nick2-gate-updated') {
+    refresh();
+    refreshGatedSection();
+  }
+});
+
 refresh();
 setInterval(refresh, 5 * 60 * 1000);
+setInterval(refreshGatedSection, GATED_POLL_MS);

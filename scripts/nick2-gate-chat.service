@@ -1,0 +1,16 @@
+[Unit]
+Description=Nick2 gate-chat bridge (agent-bus dispatch)
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=%h/nick2-dashboard
+Environment=NICK2_ROOT=%h/nick2-dashboard
+Environment=AGENT_BUS_ROOT=%h/ai-agents-workspace/agent-bus
+Environment=GATE_CHAT_PORT=8788
+ExecStart=/usr/bin/python3 %h/nick2-dashboard/scripts/gate_chat_server.py
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=default.target

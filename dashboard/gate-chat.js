@@ -64,7 +64,30 @@
     localStorage.setItem(pendingKey(taskId), JSON.stringify(prev));
   }
 
+  function clearPending(taskId) {
+    localStorage.removeItem(pendingKey(taskId));
+  }
+
+  function notifyGateUpdate(taskId) {
+    try {
+      if (window.opener && !window.opener.closed) {
+        window.opener.postMessage({ type: 'nick2-gate-updated', taskId }, '*');
+      }
+    } catch (_) { /* ignore */ }
+  }
+
   async function fetchMessages(taskId) {
+    const api = (config.gateChatApi || '').replace(/\/$/, '');
+    if (api) {
+      try {
+        const res = await fetch(`${api}/api/gate/${taskId}/messages?t=${Date.now()}`);
+        if (res.ok) {
+          const data = await res.json();
+          return (data.messages || []).sort((a, b) => new Date(a.ts) - new Date(b.ts));
+        }
+      } catch (_) { /* fall through */ }
+    }
+
     let server = [];
     try {
       const res = await fetch(`${CHAT_URL(taskId)}?t=${Date.now()}`);
@@ -193,7 +216,7 @@
         '<span class="gate-bridge-live">● Live web bridge</span> — messages go directly to the agent with full gate context.';
     } else {
       el.innerHTML =
-        '<span class="gate-bridge-off">○ Telegram workaround</span> — Send opens @NMGs_Hermes_bot with this gate\'s MKA context. Direct web chat ships with password-protected deploy + gate bridge.';
+        '<span class="gate-bridge-off">○ Offline mode</span> — Set gateChatApi in config.json to the live gate bridge (HTTPS). Until then, Send falls back to Telegram.';
     }
   }
 
@@ -208,9 +231,14 @@
           body: JSON.stringify({ text, actor: 'Nicholas' }),
         });
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        statusEl.textContent = 'Sent — agent reply will appear below.';
+        const data = await res.json();
+        clearPending(taskId);
+        statusEl.textContent = data.resolved
+          ? 'Sent and gate cleared — dashboard queue will refresh.'
+          : 'Sent — worker dispatched with full gate context.';
         const msgs = await fetchMessages(taskId);
         renderMessages(messagesEl, msgs);
+        if (data.resolved) notifyGateUpdate(taskId);
         return true;
       } catch (err) {
         statusEl.textContent = `Bridge error: ${err.message}. Falling back to Telegram.`;
@@ -224,6 +252,35 @@
     renderMessages(messagesEl, msgs);
     statusEl.textContent =
       'Opened Telegram with full gate context. Agent reply will sync here after ledger/chat update.';
+    return false;
+  }
+
+  async function resolveGate(taskId, note, taskMeta, statusEl, messagesEl) {
+    const api = (config.gateChatApi || '').replace(/\/$/, '');
+    if (api) {
+      statusEl.textContent = 'Clearing gate…';
+      try {
+        const res = await fetch(`${api}/api/gate/${taskId}/resolve`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ note, actor: 'Nicholas' }),
+        });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        clearPending(taskId);
+        statusEl.textContent = 'Gate cleared — queue will refresh on the dashboard.';
+        const msgs = await fetchMessages(taskId);
+        renderMessages(messagesEl, msgs);
+        notifyGateUpdate(taskId);
+        return true;
+      } catch (err) {
+        statusEl.textContent = `Could not clear gate: ${err.message}`;
+        return false;
+      }
+    }
+    const outbound = await buildOutboundMessage(taskId, note, taskMeta, 'clear');
+    window.open(telegramUrl(outbound), '_blank', 'noopener');
+    statusEl.textContent =
+      'Opened Telegram to confirm gate clearance. Set gateChatApi for direct web resolve.';
     return false;
   }
 
@@ -296,28 +353,8 @@
     clearBtn.addEventListener('click', async () => {
       const tid = taskMeta.task_id;
       const note = input.value.trim() || 'Gate cleared by Nicholas via dashboard.';
-      if (bridgeLive()) {
-        await sendMessage(tid, `[GATE CLEARED] ${note}`, taskMeta, statusEl, messagesEl);
-      } else {
-        const outbound = await buildOutboundMessage(tid, note, taskMeta, 'clear');
-        window.open(telegramUrl(outbound), '_blank', 'noopener');
-        statusEl.textContent =
-          'Opened Telegram to confirm gate clearance. COO will append nick_gate_resolved when processed.';
-      }
-      const snippet = JSON.stringify(
-        {
-          actor: 'Nicholas',
-          event: 'nick_gate_resolved',
-          task_id: tid,
-          task: taskMeta.task,
-          status: 'completed',
-          output: note,
-          resolved_by: 'Nicholas',
-        },
-        null,
-        2
-      );
-      statusEl.innerHTML += `<br><span class="muted">Ledger event for agents:</span><pre class="gate-ledger-snippet">${esc(snippet)}</pre>`;
+      input.value = '';
+      await resolveGate(tid, note, taskMeta, statusEl, messagesEl);
     });
   }
 

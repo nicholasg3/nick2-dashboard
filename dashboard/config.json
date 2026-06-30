@@ -1,5 +1,5 @@
 {
-  "gateChatApi": "",
+  "gateChatApi": "https://maria-pressure-guest-animation.trycloudflare.com",
   "pollIntervalMs": 8000,
   "telegramDeepLink": "https://t.me/NMGs_Hermes_bot"
 }
