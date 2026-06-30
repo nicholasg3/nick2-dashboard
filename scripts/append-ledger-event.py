@@ -17,6 +17,8 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
+SCRIPTS = ROOT / "scripts"
+sys.path.insert(0, str(SCRIPTS))
 LEDGER = ROOT / "logs" / "ceo-ledger.jsonl"
 SGT = timezone(timedelta(hours=8))
 
@@ -35,6 +37,15 @@ def load_event(args: argparse.Namespace) -> dict:
 
 
 def append_event(event: dict) -> None:
+    import ledger_write_guard as lwg  # noqa: E402
+
+    guarded = lwg.guard_ledger_event(event)
+    if guarded is None:
+        raise SystemExit(
+            "Ledger write blocked: bus snapshot stale for this verdict "
+            "(re-run export_bus_live or retry)."
+        )
+    event = guarded
     if "ts" not in event or not event["ts"]:
         event["ts"] = now_sgt()
     if "actor" not in event:
