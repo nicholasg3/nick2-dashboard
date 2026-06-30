@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nick2 Memo</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    .memo-page { max-width: 720px; margin: 0 auto; padding: 1.5rem; }
+    .memo-page a { color: var(--accent); }
+    .memo-page h1 { font-size: 1.5rem; margin: 1rem 0 0.75rem; letter-spacing: -0.02em; }
+    .memo-page h2 { font-size: 1.1rem; margin: 1.25rem 0 0.5rem; color: #c5d4e8; }
+    .memo-page p, .memo-page li { color: var(--text); line-height: 1.6; margin: 0.5rem 0; }
+    .memo-page code { background: var(--surface-2); padding: 0.1em 0.35em; border-radius: 4px; }
+    .memo-page pre { background: var(--surface-2); padding: 1rem; border-radius: 8px; overflow-x: auto; }
+    .memo-page table { width: 100%; border-collapse: collapse; margin: 0.75rem 0; }
+    .memo-page th, .memo-page td { border: 1px solid var(--border); padding: 0.45rem 0.6rem; text-align: left; }
+    .memo-nav { margin-bottom: 1rem; }
+  </style>
+</head>
+<body>
+  <div class="memo-page">
+    <p class="memo-nav"><a href="index.html">← Dashboard</a></p>
+    <div id="content"><p class="empty">Loading memo…</p></div>
+  </div>
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script>
+    const params = new URLSearchParams(location.search);
+    const path = params.get('p') || 'memos/current.md';
+    const safe = path.replace(/\.\./g, '');
+    fetch(safe + '?t=' + Date.now())
+      .then((r) => { if (!r.ok) throw new Error(r.status); return r.text(); })
+      .then((md) => {
+        document.getElementById('content').innerHTML = marked.parse(md);
+        document.title = safe.split('/').pop() + ' — Nick2';
+      })
+      .catch((e) => {
+        document.getElementById('content').innerHTML = '<p class="empty">Could not load memo: ' + e.message + '</p>';
+      });
+  </script>
+</body>
+</html>

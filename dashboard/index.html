@@ -27,7 +27,7 @@
           <h2>Currently Working On</h2>
           <p id="focus-headline" class="focus-headline">Loading…</p>
           <p id="focus-detail" class="focus-detail"></p>
-          <a id="focus-memo-link" class="focus-link" href="memos/current.md">Read focus memo →</a>
+          <a id="focus-memo-link" class="focus-link" href="memo.html?p=memos%2Fcurrent.md">Read focus memo →</a>
         </div>
         <div id="focus-meta" class="focus-meta"></div>
       </div>
@@ -85,7 +85,7 @@
           <h2>Gated by Nick — Priority Queue</h2>
           <p class="panel-policy">If work needs Nicholas, agents park it here and <strong>keep executing ungated work</strong>. Do not idle waiting on Nick.</p>
         </div>
-        <a class="focus-link" href="memos/policy.md" target="_blank" rel="noopener">Agent policy →</a>
+        <a class="focus-link" href="memo.html?p=memos%2Fpolicy.md">Agent policy →</a>
       </div>
       <div id="nick-gate-queue" class="table-wrap"></div>
     </section>
@@ -99,9 +99,9 @@
       <section id="artifacts-secondary" class="panel">
         <h2>Quick Links</h2>
         <div class="artifacts">
-          <a class="artifact-item memo-link" href="memos/current.md">Current focus memo</a>
-          <a class="artifact-item memo-link" href="memos/policy.md">Nick gate policy</a>
-          <a class="artifact-item memo-link" href="memos/gated-queue.md">Gated queue index</a>
+          <a class="artifact-item memo-link" href="memo.html?p=memos%2Fcurrent.md">Current focus memo</a>
+          <a class="artifact-item memo-link" href="memo.html?p=memos%2Fpolicy.md">Nick gate policy</a>
+          <a class="artifact-item memo-link" href="memo.html?p=memos%2Fgated-queue.md">Gated queue index</a>
           <a class="artifact-item memo-link" href="logs/ceo-ledger.jsonl">Raw ledger (JSONL)</a>
         </div>
       </section>
@@ -112,6 +112,6 @@
     <p>Source of truth: <code>logs/ceo-ledger.jsonl</code> · Append-only · SGT timestamps</p>
   </footer>
 
-  <script src="app.js"></script>
+  <script src="app.js?v=3"></script>
 </body>
 </html>

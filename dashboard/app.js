@@ -312,6 +312,10 @@ function renderActivity(events) {
 }
 
 function renderTable(el, headers, rows, emptyMsg) {
+  if (!el) {
+    console.warn('renderTable: missing element');
+    return;
+  }
   if (!rows.length) {
     el.innerHTML = `<p class="empty">${emptyMsg}</p>`;
     return;
@@ -328,35 +332,63 @@ function memoHref(kind, taskId) {
   return `memos/${kind}/${taskId}.md`;
 }
 
+function memoViewerUrl(mdPath) {
+  if (!mdPath) return null;
+  return `memo.html?p=${encodeURIComponent(mdPath)}`;
+}
+
 function memoLink(kind, taskId) {
-  const href = memoHref(kind, taskId);
+  const href = memoViewerUrl(memoHref(kind, taskId));
   if (!href) return '—';
-  return `<a class="memo-link" href="${href}" target="_blank" rel="noopener">memo</a>`;
+  return `<a class="memo-link" href="${href}">memo</a>`;
+}
+
+function pickCurrentFocus(state) {
+  const inProg = state.active.find((t) => t.status === 'in_progress');
+  if (inProg) return inProg;
+  const queued = state.active.find((t) => t.status === 'queued');
+  if (queued) return queued;
+  const snap = state.focusSnapshot;
+  if (snap?.focus_task_id) {
+    const linked = state.active.find((t) => t.task_id === snap.focus_task_id);
+    if (linked) return linked;
+  }
+  return state.active[0] || snap || null;
+}
+
+function setFocusPanel(focus) {
+  const headline = $('focus-headline');
+  const detail = $('focus-detail');
+  const meta = $('focus-meta');
+  const link = $('focus-memo-link');
+  if (!headline || !detail || !meta || !link) return;
+
+  if (!focus) {
+    headline.textContent = 'Idle — no active work in queue';
+    detail.textContent = 'Check the roadmap or authorize work in the ledger.';
+    meta.innerHTML = '';
+    link.href = memoViewerUrl('memos/current.md') || 'memo.html';
+    link.textContent = 'Focus memo →';
+    return;
+  }
+
+  const owner = focus.owner || focus.actor || 'CEO';
+  const taskId = focus.task_id || focus.focus_task_id;
+  headline.textContent = `${owner}: ${focus.task || '—'}`;
+  detail.textContent = focus.output || '';
+  const memoPath = focus.focus_task_id
+    ? memoHref('queue', focus.focus_task_id)
+    : memoHref('queue', taskId) || 'memos/current.md';
+  link.href = memoViewerUrl(memoPath) || 'memo.html';
+  link.textContent = `Task memo (${taskId || 'current'}) →`;
+  meta.innerHTML = `
+    <span class="meta-pill">${badge(focus.status)}</span>
+    <span class="meta-pill">${esc(taskId || '')}</span>
+    <span class="meta-pill">Updated ${fmtTs(focus.ts)}</span>`;
 }
 
 function renderCurrentFocus(state) {
-  const inProg = state.active.find((t) => t.status === 'in_progress');
-  const focus = inProg || state.focusSnapshot || state.active[0];
-  if (!focus) {
-    $('focus-headline').textContent = 'Idle — no active work in queue';
-    $('focus-detail').textContent = 'Check the roadmap or authorize work in the ledger.';
-    $('focus-meta').innerHTML = '';
-    return;
-  }
-  const owner = focus.owner || focus.actor || 'CEO';
-  $('focus-headline').textContent = `${owner}: ${focus.task || '—'}`;
-  $('focus-detail').textContent = focus.output || '';
-  const memoPath = focus.focus_task_id
-    ? memoHref('queue', focus.focus_task_id)
-    : memoHref('queue', focus.task_id);
-  if (memoPath) {
-    $('focus-memo-link').href = memoPath;
-    $('focus-memo-link').textContent = `Task memo (${focus.task_id || focus.focus_task_id}) →`;
-  }
-  $('focus-meta').innerHTML = `
-    <span class="meta-pill">${badge(focus.status)}</span>
-    <span class="meta-pill">${esc(focus.task_id || focus.focus_task_id || '')}</span>
-    <span class="meta-pill">Updated ${fmtTs(focus.ts)}</span>`;
+  setFocusPanel(pickCurrentFocus(state));
 }
 
 function renderQueue(state) {
@@ -473,6 +505,8 @@ function renderNickGate(state) {
 }
 
 function renderRoadmap(state) {
+  const el = $('roadmap-list');
+  if (!el) return;
   const byLane = {};
   for (const item of state.roadmap) {
     const lane = item.roadmap_lane || 'near_term';
@@ -481,7 +515,7 @@ function renderRoadmap(state) {
   }
 
   const lanes = Object.keys(ROADMAP_LANES);
-  $('roadmap-list').innerHTML = lanes
+  el.innerHTML = lanes
     .map((lane) => {
       const items = (byLane[lane] || []).sort((a, b) => (a.priority || 99) - (b.priority || 99));
       return `
@@ -498,11 +532,13 @@ function renderRoadmap(state) {
 }
 
 function renderArtifacts(state) {
+  const el = $('artifacts-list');
+  if (!el) return;
   if (!state.artifacts.length) {
-    $('artifacts-list').innerHTML = '<p class="empty">No artifacts recorded yet.</p>';
+    el.innerHTML = '<p class="empty">No artifacts recorded yet.</p>';
     return;
   }
-  $('artifacts-list').innerHTML = state.artifacts
+  el.innerHTML = state.artifacts
     .sort()
     .map((a) => `<div class="artifact-item">${esc(a)}</div>`)
     .join('');
@@ -534,13 +570,24 @@ function showError(msg) {
 }
 
 async function refresh() {
+  document.querySelector('.error-banner')?.remove();
+  let events;
   try {
-    allEvents = await loadLedger();
-    const state = buildState(allEvents);
-    renderAll(state);
+    events = await loadLedger();
+    allEvents = events;
   } catch (err) {
-    showError(`Could not load ledger: ${err.message}. Ensure GitHub Pages deployed logs/ceo-ledger.jsonl alongside the dashboard.`);
+    showError(`Could not load ledger: ${err.message}. Ensure logs/ceo-ledger.jsonl is deployed alongside the dashboard.`);
     console.error(err);
+    return;
+  }
+  try {
+    renderAll(buildState(events));
+  } catch (err) {
+    showError(`Could not render dashboard: ${err.message}`);
+    console.error(err);
+    try {
+      setFocusPanel(pickCurrentFocus(buildState(events)));
+    } catch (_) { /* ignore */ }
   }
 }
 
