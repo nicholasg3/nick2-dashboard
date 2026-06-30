@@ -1,6 +1,6 @@
 {
-  "weekly_budget_usd": 0,
-  "budget_mode": "off",
+  "weekly_budget_usd": 20,
+  "budget_mode": "capped",
   "cumulative_weekly_spend_usd": 0,
   "spend_by_model": {},
   "spend_by_actor": {},
