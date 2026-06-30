@@ -1,45 +1,6 @@
 {
-  "generated_at": "2026-06-30T14:51:02Z",
-  "running": [
-    {
-      "job_id": "JOB-20260630-578",
-      "short_job_id": "JOB-578",
-      "created_at": "2026-06-30T14:26:18Z",
-      "updated_at": "2026-06-30T14:49:30Z",
-      "started_at": "2026-06-30T14:49:30Z",
-      "display_name": "issue-24-research-telegram-bot-permissio [research] \u00b7 executing",
-      "feature_name": "issue-24-research-telegram-bot-permissio",
-      "objective_preview": "ISSUE-24: Research Telegram bot permission posture options; produce decision memo for Nick (no gate unless new risk). PMO-001 rank #5.",
-      "lane": "research",
-      "repo": "ai-agents-workspace",
-      "to_session": "research_worker",
-      "worker_status": "executing",
-      "hold_reason": "",
-      "status": "running",
-      "branch": "",
-      "mission_id": "",
-      "memo_path": "memos/jobs/JOB-20260630-578.md"
-    },
-    {
-      "job_id": "JOB-20260630-650",
-      "short_job_id": "JOB-650",
-      "created_at": "2026-06-30T14:44:10Z",
-      "updated_at": "2026-06-30T14:48:38Z",
-      "started_at": "2026-06-30T14:48:38Z",
-      "display_name": "issue-80-smoke-hourly-ledger-reconcile-t [dashboard] \u00b7 executing",
-      "feature_name": "issue-80-smoke-hourly-ledger-reconcile-t",
-      "objective_preview": "ISSUE-80 smoke: hourly ledger reconcile test",
-      "lane": "dashboard",
-      "repo": "nick2-dashboard",
-      "to_session": "dashboard_worker",
-      "worker_status": "executing",
-      "hold_reason": "",
-      "status": "running",
-      "branch": "job/20260630-650-issue-80-smoke-hourly-ledger-r",
-      "mission_id": "",
-      "memo_path": "memos/jobs/JOB-20260630-650.md"
-    }
-  ],
+  "generated_at": "2026-06-30T14:54:01Z",
+  "running": [],
   "queued": [
     {
       "job_id": "JOB-20260630-596",
@@ -85,7 +46,7 @@
       "job_id": "JOB-20260630-550",
       "short_job_id": "JOB-550",
       "created_at": "2026-06-30T14:25:50Z",
-      "updated_at": "2026-06-30T14:51:01Z",
+      "updated_at": "2026-06-30T14:53:56Z",
       "started_at": "2026-06-30T14:25:50Z",
       "display_name": "issue-15-implement-optional-skill-useful [coder] \u00b7 queued",
       "feature_name": "issue-15-implement-optional-skill-useful",
