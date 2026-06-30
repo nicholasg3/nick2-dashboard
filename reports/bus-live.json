@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-30T12:24:02Z",
+  "generated_at": "2026-06-30T12:27:01Z",
   "running": [
     {
       "job_id": "JOB-20260630-438",
@@ -16,22 +16,6 @@
       "branch": "job/20260630-438-rewrite-telegram-job-completio",
       "mission_id": "",
       "memo_path": "memos/jobs/JOB-20260630-438.md"
-    },
-    {
-      "job_id": "JOB-20260630-102",
-      "short_job_id": "JOB-102",
-      "display_name": "replace-wip-execution-brief-template-wit [dashboard] \u00b7 executing",
-      "feature_name": "replace-wip-execution-brief-template-wit",
-      "objective_preview": "Replace WIP execution brief template with McKinsey-style memo (POL-004).",
-      "lane": "dashboard",
-      "repo": "nick2-dashboard",
-      "to_session": "dashboard_worker",
-      "worker_status": "executing",
-      "hold_reason": "",
-      "status": "running",
-      "branch": "job/20260630-102-replace-wip-execution-brief-te",
-      "mission_id": "",
-      "memo_path": "memos/jobs/JOB-20260630-102.md"
     }
   ],
   "queued": [
@@ -70,6 +54,22 @@
   ],
   "held": [],
   "recent_completed": [
+    {
+      "job_id": "JOB-20260630-102",
+      "short_job_id": "JOB-102",
+      "display_name": "replace-wip-execution-brief-template-wit [dashboard] \u00b7 completed",
+      "feature_name": "replace-wip-execution-brief-template-wit",
+      "objective_preview": "Replace WIP execution brief template with McKinsey-style memo (POL-004).",
+      "lane": "dashboard",
+      "repo": "nick2-dashboard",
+      "to_session": "dashboard_worker",
+      "worker_status": "done",
+      "hold_reason": "",
+      "status": "completed",
+      "branch": "job/20260630-102-replace-wip-execution-brief-te",
+      "mission_id": "",
+      "memo_path": "memos/jobs/JOB-20260630-102.md"
+    },
     {
       "job_id": "JOB-20260630-163",
       "short_job_id": "JOB-163",
@@ -149,22 +149,6 @@
       "branch": "",
       "mission_id": "PMO-001",
       "memo_path": "memos/jobs/JOB-20260630-755.md"
-    },
-    {
-      "job_id": "JOB-20260630-453",
-      "short_job_id": "JOB-453",
-      "display_name": "gate-room-live-agent-bus-dispatch-auto-c [heavy] \u00b7 completed",
-      "feature_name": "gate-room-live-agent-bus-dispatch-auto-c",
-      "objective_preview": "Gate room: live agent-bus dispatch, auto-clear gated queue, dashboard refresh",
-      "lane": "heavy",
-      "repo": "nick2-dashboard",
-      "to_session": "heavy_coder",
-      "worker_status": "done",
-      "hold_reason": "",
-      "status": "completed",
-      "branch": "job/20260630-453-gate-room-live-agent-bus-dispa",
-      "mission_id": "PMO-001",
-      "memo_path": "memos/jobs/JOB-20260630-453.md"
     }
   ],
   "pmo_focus": {
