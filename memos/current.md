@@ -1,26 +1,150 @@
-# Current focus — Nick2
+_Current focus → [PMO-001](queue/PMO-001.html) · 2 gated · 2026-06-30 16:43 SGT_
 
-_Updated 2026-06-30 16:35 SGT (hourly cadence)_
+[Tue Jun 30, 2026]
 
-## 1. Executive Framing
+# PMO-001: Triage Ready-for-Agent GitHub Issues
 
-**Objective:** Keep Nick2 moving on the highest-leverage **ungated** work while gates wait in Nick's priority inbox.  
-**Decision this cycle:** Whether to enable worker dispatch (`worker.enabled`) and clear DEC-002 / DEC-003.
+**Owner:** PMO  
+**Status:** 🟢 Executing  
+**Last Updated:** 2026-06-30 16:35
 
-## 2. State (MECE)
+────────────────────────────────────────────
 
-| Bucket | Now |
-|--------|-----|
-| **Focus** | PMO: [Triage 13 ready-for-agent GitHub issues](queue/PMO-001.html) (`PMO-001`) |
-| **Status** | in_progress |
-| **Budget** | $20.00/wk · spent $0.00 · mode capped |
-| **Gates** | 2 item(s) waiting on Nick |
+## MISSION
 
-## 3. Root cause
+### Objective
 
-Dispatch authorized (Option B). Ranking 13 ready-for-agent GitHub issues; frontier worker enabled for autonomous execution within $20/wk cap.
+Produce a ranked execution order for 13 ready-for-agent GitHub issues and dispatch the highest-value work within the $20/week operating budget.
 
-## 5. Recommendation
+### Success Criteria
 
-**Agents:** [PMO triage](queue/PMO-001.html) **in progress** — worker enabled (Nick Option B). Append ledger + push `nick2-dashboard` on each milestone.  
-**Nick:** Clear [Approve PMO scoring framework](gated/DEC-002.html) and [Confirm Telegram alert method](gated/DEC-003.html) when ready.
+☑ All issues inventoried
+☐ Dependencies identified
+☐ Ranked backlog produced
+☐ Top issues dispatched
+☐ Dashboard updated
+
+### Mission Decomposition (MECE)
+
+1. Understand the Work
+Progress: ████░░░░░░
+
+• Inventory all 13 ready-for-agent issues
+• Classify by capability / tier
+• Estimate effort and risk
+
+2. Prioritize
+Progress: ██░░░░░░░░
+
+• Score ROI (interim rubric until DEC-002)
+• Identify dependencies
+• Produce ranked backlog
+
+3. Execute
+Progress: █░░░░░░░░░
+
+• Dispatch frontier workers
+• Monitor budget ($20/wk cap)
+• Verify outputs / witnesses
+
+4. Report & Learn
+Progress: ░░░░░░░░░░
+
+• Update nick2-dashboard ledger
+• Refresh execution brief
+• Capture lessons for postmortem
+
+────────────────────────────────────────────
+
+## EXECUTION STATUS
+
+### Overall Progress
+
+██░░░░░░░░ 18%
+
+### Budget
+
+Spent: $0.00
+Remaining: $20.00
+Limit: $20.00/week
+
+### Critical Path
+
+Issue inventory
+      ↓
+Dependency analysis
+      ↓
+Priority ranking
+      ↓
+Agent dispatch
+      ↓
+Verification
+      ↓
+Dashboard update
+
+────────────────────────────────────────────
+
+## CURRENT WORKSTREAMS
+
+████░░░░░░
+Issue analysis
+
+██░░░░░░░░
+Dependency mapping
+
+░░░░░░░░░░
+Agent dispatch
+
+░░░░░░░░░░
+Verification
+
+────────────────────────────────────────────
+
+## BLOCKERS
+
+• DEC-002 scoring framework not yet finalized — using interim rubric
+
+────────────────────────────────────────────
+
+## NEXT MILESTONES
+
+17:30
+Complete issue inventory
+
+18:00
+Publish ranked backlog (top 5)
+
+18:15
+Push dashboard ledger update
+
+────────────────────────────────────────────
+
+## WAITING ON
+
+• DEC-002 — Approve PMO scoring framework (calibration, not dispatch block)
+
+────────────────────────────────────────────
+
+## RECENT EVENTS
+
+16:35
+task_started: Dispatch authorized (Option B). Ranking 13 ready-for-agent GitHub issues; fronti
+
+16:35
+nick_decision: Nick chose Option B: enable worker.enabled and authorize PMO autonomous dispatch
+
+16:18
+task_updated: Budget authorized ($20/week). Blocked on worker.enabled=false — enable in lane.j
+
+14:58
+task_queued: Waiting for budget authorization before dispatch.
+
+────────────────────────────────────────────
+
+## LINKS
+
+- [Dashboard](https://nicholasg3.github.io/nick2-dashboard/)
+- [GitHub Issues](https://github.com/nicholasg3/ai-agents-workspace/issues)
+- [CEO Ledger](ledger.html)
+- `Projects-for-agents/frontier-orchestrator/lane.json`
+- Ledger: `logs/ceo-ledger.jsonl` (`PMO-001`)

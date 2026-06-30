@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
-"""Generate MKA-style markdown memos from ceo-ledger.jsonl for dashboard deep-links.
+"""Generate dashboard memos from ceo-ledger.jsonl.
 
-Memo shape: Executive Framing → MECE → Root Cause → Options → Recommendation.
-Task-specific briefs live in mka_memo.TASK_BRIEFS; unknown tasks get ledger-aware fallbacks.
+Memo types:
+  - Execution Brief — active queue / WIP (in_progress, queued, …)
+  - MKA Decision Memo — gated items awaiting Nicholas
+  - Postmortem-style summary — completed (mka_memo completed body)
 """
 from __future__ import annotations
 
@@ -13,12 +15,11 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from md_page import write_html
+from execution_brief import execution_brief_body
 from mka_memo import (
     mka_completed_body,
-    mka_current_body,
     mka_gated_body,
     mka_gated_queue_body,
-    mka_queue_body,
 )
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -116,18 +117,39 @@ def current_memo(events: list[dict], tasks: dict[str, dict], weekly: float) -> s
     pid = primary.get("task_id", focus_id if ungated(ft) else "—")
     now = datetime.now(SGT).strftime("%Y-%m-%d %H:%M SGT")
     spend = float(latest(events, "cumulative_weekly_spend_usd", 0) or 0)
-    mode = latest(events, "budget_mode", "—")
     gated_count = sum(1 for tid, t in tasks.items() if is_gated(tid, t, resolved))
 
-    return mka_current_body(
-        primary=primary,
-        pid=pid,
-        now=now,
+    if not primary or pid == "—":
+        return f"""{_current_date()}
+
+# Current focus — Nick2
+
+_Updated {now}_
+
+No active ungated work in queue. See [gated queue](gated-queue.html) or [roadmap](index.html#roadmap).
+
+[Dashboard](https://nicholasg3.github.io/nick2-dashboard/)
+"""
+
+    rem = float(latest(events, "budget_remaining_usd", weekly - spend) or 0)
+    body = execution_brief_body(
+        pid,
+        primary,
+        events=events,
         weekly=weekly,
         spend=spend,
-        mode=str(mode),
-        gated_count=gated_count,
+        remaining=rem,
+        memo_context="current",
     )
+    return (
+        f"_Current focus → [{pid}](queue/{pid}.html) · "
+        f"{gated_count} gated · {now}_\n\n{body}"
+    )
+
+
+def _current_date() -> str:
+    dt = datetime.now(SGT)
+    return f"[{dt.strftime('%a %b')} {dt.day}, {dt.year}]"
 
 
 def ledger_html(events: list[dict]) -> str:
@@ -180,8 +202,23 @@ def main() -> None:
             body = mka_gated_body(tid, t, rank)
             emit_pair(MEMOS / "gated" / f"{tid}.md", body, f"{tid} gated", "../../index.html")
         elif status in ACTIVE and t.get("last_event", ev) not in SKIP_QUEUE:
-            body = mka_queue_body(tid, t, weekly)
-            emit_pair(MEMOS / "queue" / f"{tid}.md", body, f"{tid} queue", "../../index.html")
+            spend = float(latest(events, "cumulative_weekly_spend_usd", 0) or 0)
+            rem = float(latest(events, "budget_remaining_usd", weekly - spend) or 0)
+            body = execution_brief_body(
+                tid,
+                t,
+                events=events,
+                weekly=weekly,
+                spend=spend,
+                remaining=rem,
+                memo_context="queue",
+            )
+            emit_pair(
+                MEMOS / "queue" / f"{tid}.md",
+                body,
+                f"{tid} execution brief",
+                "../../index.html",
+            )
 
     current = current_memo(events, tasks, weekly)
     emit_pair(MEMOS / "current.md", current, "Current focus", "../index.html")
