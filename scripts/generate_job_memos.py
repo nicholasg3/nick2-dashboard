@@ -303,7 +303,9 @@ def situation_paragraph(
 ) -> str:
     """One-line why this packet exists — not the work plan (see WHAT IT'S DOING)."""
     if work and work.get("problem"):
-        lead = str(work["problem"]).split(".")[0].strip() + "."
+        prob = str(work["problem"]).strip()
+        m = re.search(r"^(.+?\.\s)", prob)
+        lead = (m.group(1).strip() if m else prob[:200] + ("…" if len(prob) > 200 else ""))
     elif pmo_item and pmo_item.get("title"):
         lead = f"PMO dispatched: {pmo_item['title']}."
     elif ledger_tid:
@@ -345,7 +347,11 @@ def what_its_doing_section(
         verbs = re.findall(r"\b(reproduce|patch|implement|witness|research|harden)\b", objective, re.I)
         if verbs:
             lines.append("")
-            lines.append("**Steps (from objective):** " + " → ".join(dict.fromkeys(v.title() for v in verbs)))
+            lines.append("**Steps:**")
+            for i, v in enumerate(dict.fromkeys(verbs), 1):
+                lines.append(f"{i}. {v.title()} per objective")
+        lines.append("")
+        lines.append("**Done when:** witness in objective passes (see OBJECTIVE below)")
     if live:
         lines.append("")
         lines.append("**Live worktree (now):**")
