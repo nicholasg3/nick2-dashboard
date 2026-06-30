@@ -11,8 +11,11 @@ const ROADMAP_LANES = {
   revenue: 'Revenue-generating',
 };
 
-const ACTIVE_STATUSES = new Set(['queued', 'in_progress', 'blocked', 'awaiting_nicholas', 'approved']);
+const ACTIVE_STATUSES = new Set(['queued', 'in_progress', 'blocked', 'approved']);
 const COMPLETED_STATUSES = new Set(['completed']);
+const QUEUE_SKIP_EVENTS = new Set([
+  'decision_needed', 'decision_resolved', 'roadmap_item', 'trust_snapshot', 'focus_snapshot',
+]);
 
 let allEvents = [];
 let filterText = '';
@@ -80,16 +83,17 @@ function buildState(events) {
   const sorted = [...events].sort((a, b) => new Date(a.ts) - new Date(b.ts));
   const tasks = new Map();
   const trust = new Map();
-  const decisions = [];
   const roadmap = [];
   const artifacts = new Set();
   const budgetEntries = [];
+  const resolvedDecisionIds = new Set();
   let weeklyBudget = null;
   let budgetMode = 'unknown';
   let cumulativeSpend = 0;
   let modelBackend = null;
   let autonomyMode = null;
   let currentCeoTask = null;
+  let focusSnapshot = null;
 
   for (const ev of sorted) {
     if (ev.weekly_budget_usd != null) weeklyBudget = ev.weekly_budget_usd;
@@ -118,8 +122,12 @@ function buildState(events) {
       trust.set(ev.actor, rec);
     }
 
-    if (ev.needs_nicholas || ev.event === 'decision_needed') {
-      decisions.push(ev);
+    if (ev.event === 'decision_resolved' && ev.task_id) {
+      resolvedDecisionIds.add(ev.task_id);
+    }
+
+    if (ev.event === 'focus_snapshot') {
+      focusSnapshot = ev;
     }
 
     if (ev.event === 'roadmap_item') {
@@ -142,8 +150,20 @@ function buildState(events) {
   }
 
   const taskList = [...tasks.values()];
-  const active = taskList.filter((t) => ACTIVE_STATUSES.has(t.status) && !COMPLETED_STATUSES.has(t.status));
+  const active = taskList.filter(
+    (t) =>
+      ACTIVE_STATUSES.has(t.status) &&
+      !COMPLETED_STATUSES.has(t.status) &&
+      !QUEUE_SKIP_EVENTS.has(t.last_event) &&
+      !String(t.task_id || '').startsWith('DEC-')
+  );
   const completed = taskList.filter((t) => COMPLETED_STATUSES.has(t.status) || t.event === 'task_completed');
+  const decisions = taskList.filter(
+    (t) =>
+      t.last_event === 'decision_needed' &&
+      t.needs_nicholas &&
+      !resolvedDecisionIds.has(t.task_id)
+  );
 
   const spendByModel = {};
   const spendByProject = {};
@@ -170,6 +190,7 @@ function buildState(events) {
     modelBackend,
     autonomyMode,
     currentCeoTask,
+    focusSnapshot,
     active,
     completed,
     trust,
@@ -213,7 +234,12 @@ function renderSnapshot(state) {
     {
       label: 'Autonomy',
       value: state.autonomyMode?.replace(/_/g, ' ') ?? '—',
-      sub: state.autonomyMode === 'manual_only' ? 'Worker off, budget off' : 'Frontier orchestrator',
+      sub:
+        state.autonomyMode === 'manual_only'
+          ? 'Worker off'
+          : state.autonomyMode === 'recommend_only'
+            ? 'Budget on, worker off'
+            : 'Frontier orchestrator',
       badge: badge(state.autonomyMode === 'auto_dispatch' ? 'on' : 'off'),
     },
     {
@@ -282,6 +308,42 @@ function renderTable(el, headers, rows, emptyMsg) {
     </table>`;
 }
 
+function memoHref(kind, taskId) {
+  if (!taskId) return null;
+  return `memos/${kind}/${taskId}.md`;
+}
+
+function memoLink(kind, taskId) {
+  const href = memoHref(kind, taskId);
+  if (!href) return '—';
+  return `<a class="memo-link" href="${href}" target="_blank" rel="noopener">memo</a>`;
+}
+
+function renderCurrentFocus(state) {
+  const inProg = state.active.find((t) => t.status === 'in_progress');
+  const focus = inProg || state.focusSnapshot || state.active[0];
+  if (!focus) {
+    $('focus-headline').textContent = 'Idle — no active work in queue';
+    $('focus-detail').textContent = 'Check the roadmap or authorize work in the ledger.';
+    $('focus-meta').innerHTML = '';
+    return;
+  }
+  const owner = focus.owner || focus.actor || 'CEO';
+  $('focus-headline').textContent = `${owner}: ${focus.task || '—'}`;
+  $('focus-detail').textContent = focus.output || '';
+  const memoPath = focus.focus_task_id
+    ? memoHref('queue', focus.focus_task_id)
+    : memoHref('queue', focus.task_id);
+  if (memoPath) {
+    $('focus-memo-link').href = memoPath;
+    $('focus-memo-link').textContent = `Task memo (${focus.task_id || focus.focus_task_id}) →`;
+  }
+  $('focus-meta').innerHTML = `
+    <span class="meta-pill">${badge(focus.status)}</span>
+    <span class="meta-pill">${esc(focus.task_id || focus.focus_task_id || '')}</span>
+    <span class="meta-pill">Updated ${fmtTs(focus.ts)}</span>`;
+}
+
 function renderQueue(state) {
   const rows = state.active.map(
     (t) => `<tr>
@@ -289,10 +351,16 @@ function renderQueue(state) {
       <td>${esc(t.owner || t.actor)}</td>
       <td>${esc(t.task)}</td>
       <td>${esc(t.task_id || '')}</td>
+      <td>${memoLink('queue', t.task_id)}</td>
       <td>${fmtTs(t.ts)}</td>
     </tr>`
   );
-  renderTable($('work-queue'), ['Status', 'Owner', 'Task', 'ID', 'Updated'], rows, 'No active work in queue.');
+  renderTable(
+    $('work-queue'),
+    ['Status', 'Owner', 'Task', 'ID', 'Memo', 'Updated'],
+    rows,
+    'No active work in queue.'
+  );
 }
 
 function renderCompleted(state) {
@@ -302,10 +370,16 @@ function renderCompleted(state) {
       <td>${esc(t.actor)}</td>
       <td>${esc(t.task)}</td>
       <td>${fmtUsd(t.cost_usd || 0)}</td>
+      <td>${memoLink('completed', t.task_id)}</td>
       <td>${esc((t.artifacts || []).join(', ') || '—')}</td>
     </tr>`
   );
-  renderTable($('completed-work'), ['Time', 'Owner', 'Task', 'Cost', 'Artifacts'], rows, 'No completed tasks yet.');
+  renderTable(
+    $('completed-work'),
+    ['Time', 'Owner', 'Task', 'Cost', 'Memo', 'Artifacts'],
+    rows,
+    'No completed tasks yet.'
+  );
 }
 
 function renderBudget(state) {
@@ -374,7 +448,9 @@ function renderDecisions(state) {
     <div class="decision-card">
       <h3>${badge(d.priority || 'medium')} ${esc(d.task)}</h3>
       <p>${esc(d.output || '')}</p>
-      <p style="margin-top:0.35rem;font-size:0.78rem;color:var(--muted)">${esc(d.task_id || '')} · ${fmtTs(d.ts)}</p>
+      <p style="margin-top:0.35rem;font-size:0.78rem;color:var(--muted)">
+        ${esc(d.task_id || '')} · ${fmtTs(d.ts)} · ${memoLink('decisions', d.task_id)}
+      </p>
     </div>`
     )
     .join('');
@@ -417,6 +493,7 @@ function renderArtifacts(state) {
 }
 
 function renderAll(state) {
+  renderCurrentFocus(state);
   renderSnapshot(state);
   renderActivity(state.sorted);
   renderQueue(state);

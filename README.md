@@ -10,8 +10,17 @@ Public operations console for the Nick2 AI-native company.
 |-------|------|
 | `logs/ceo-ledger.jsonl` | **Source of truth** — append-only event log |
 | `dashboard/` | Static HTML/JS/CSS ops console |
-| `reports/*.json` | Derived snapshots (trust, costs, roadmap) — regenerated on deploy |
+| `memos/` | Task memos (`queue/`, `completed/`, `decisions/`, `current.md`) |
+| `reports/*.json` | Derived snapshots — regenerated on deploy |
+| `scripts/reconcile-ledger.py` | Auto-fix stale queue/decision drift (append-only) |
 | `.github/workflows/deploy.yml` | GitHub Pages deployment |
+| `.github/workflows/hourly-reconcile.yml` | Hourly reconcile + memo refresh |
+
+## GitHub issues (private repo)
+
+- [#78](https://github.com/nicholasg3/ai-agents-workspace/issues/78) — droplet + nginx basic auth
+- [#79](https://github.com/nicholasg3/ai-agents-workspace/issues/79) — Cloudflare Access + custom domain
+- [#80](https://github.com/nicholasg3/ai-agents-workspace/issues/80) — droplet hourly reconcile cron
 
 Agents never rewrite history. They append one JSON line per action.
 

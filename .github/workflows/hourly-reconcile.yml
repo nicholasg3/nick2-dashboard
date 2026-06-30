@@ -1,0 +1,38 @@
+name: Hourly Ledger Reconcile
+
+on:
+  schedule:
+    - cron: '0 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pages: read
+
+jobs:
+  reconcile:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Reconcile ledger and regenerate memos
+        run: |
+          python3 scripts/reconcile-ledger.py
+          python3 scripts/generate-memos.py
+          python3 scripts/export-json-reports.py
+
+      - name: Commit updates if changed
+        run: |
+          git config user.name "nick2-reconcile"
+          git config user.email "nick2-reconcile@users.noreply.github.com"
+          git add logs/ceo-ledger.jsonl memos/ reports/
+          if git diff --staged --quiet; then
+            echo "No changes"
+          else
+            git commit -m "chore: hourly ledger reconcile + memos [skip deploy trigger optional]"
+            git push
+          fi

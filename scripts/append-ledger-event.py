@@ -44,12 +44,13 @@ def append_event(event: dict) -> None:
 
     LEDGER.parent.mkdir(parents=True, exist_ok=True)
     line = json.dumps(event, ensure_ascii=False, separators=(",", ":"))
+    prefix = ""
+    if LEDGER.exists() and LEDGER.stat().st_size > 0:
+        raw = LEDGER.read_bytes()
+        if not raw.endswith(b"\n"):
+            prefix = "\n"
     with LEDGER.open("a", encoding="utf-8") as f:
-        if LEDGER.stat().st_size > 0:
-            f.seek(-1, 2)
-            if f.read(1) != "\n":
-                f.write("\n")
-        f.write(line + "\n")
+        f.write(prefix + line + "\n")
     print(f"Appended to {LEDGER.relative_to(ROOT)}")
     print(line)
 

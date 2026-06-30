@@ -158,6 +158,70 @@ code {
   .two-col { grid-template-columns: 1fr; }
 }
 
+.focus-panel {
+  border-color: var(--accent-dim);
+  background: linear-gradient(135deg, #1a2d4a 0%, var(--surface) 55%);
+}
+
+.focus-inner {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.focus-panel h2 {
+  color: var(--text);
+  text-transform: none;
+  letter-spacing: -0.02em;
+  font-size: 1.1rem;
+  margin-bottom: 0.5rem;
+}
+
+.focus-headline {
+  font-size: 1.35rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  margin-bottom: 0.4rem;
+}
+
+.focus-detail {
+  color: var(--muted);
+  font-size: 0.92rem;
+  max-width: 52rem;
+  margin-bottom: 0.75rem;
+}
+
+.focus-link {
+  color: var(--accent);
+  font-size: 0.88rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.focus-link:hover { text-decoration: underline; }
+
+.focus-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  min-width: 180px;
+}
+
+.focus-meta .meta-pill {
+  text-align: center;
+}
+
+.memo-link {
+  color: var(--accent);
+  font-size: 0.82rem;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.memo-link:hover { text-decoration: underline; }
+
 .snapshot-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
