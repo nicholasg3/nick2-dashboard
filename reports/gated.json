@@ -16,5 +16,14 @@
     "nick_priority": null,
     "what_nick_must_do": "work-queue:Already shipped on main (POL-009); removed from active queue. (Landed on main \u2014 worker_model.py + model-routing.yaml wired in bus spawn (9186153, ff874d4))",
     "since": "2026-06-30T23:17:10+08:00"
+  },
+  {
+    "rank": 3,
+    "task_id": "ISSUE-80",
+    "task": "Nick2 dashboard: hourly ledger reconcile + memo generation on droplet",
+    "priority": "medium",
+    "nick_priority": null,
+    "what_nick_must_do": "work-queue:POL-009 landed on main \u2014 idle from active queue; submit retry not needed. (POL-009 landed on main \u2014 witness green (witness_dashboard_honesty.py); touch_paths on main (4d73ceb, JOB-924))",
+    "since": "2026-06-30T23:25:50+08:00"
   }
 ]

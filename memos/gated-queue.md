@@ -11,6 +11,7 @@
 |---|----------|-----|-----------------|
 | 1 | medium | `ISSUE-24` | [DECISION: revisit Telegram bot permission posture](../gate-room.html?task=ISSUE-24) |
 | 2 | medium | `ISSUE-ROUTING-001` | [OpenRouter model routing policy in worker_model](../gate-room.html?task=ISSUE-ROUTING-001) |
+| 3 | medium | `ISSUE-80` | [Nick2 dashboard: hourly ledger reconcile + memo generation on droplet](../gate-room.html?task=ISSUE-80) |
 
 ## 3. Root cause
 
