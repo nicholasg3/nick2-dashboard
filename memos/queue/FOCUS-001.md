@@ -1,7 +1,3 @@
-_Current focus → [FOCUS-001](queue/FOCUS-001.html) · 0 gated · 2026-06-30 21:15 SGT_
-
-**Dashboard live mission complete — no dashboard worker on bus**
-
 [Tue Jun 30, 2026]
 
 [← Dashboard](https://nicholasg3.github.io/nick2-dashboard/index.html)
