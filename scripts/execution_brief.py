@@ -10,6 +10,7 @@ from typing import Any
 SGT = timezone(timedelta(hours=8))
 SEP = "────────────────────────────────────────────"
 DASHBOARD = "https://nicholasg3.github.io/nick2-dashboard/"
+WIP_MEMO_MAX_AGE_MIN = 30
 
 # Rich execution state keyed by task_id. Agents update via ledger + regenerate-memos.
 EXECUTION_BRIEFS: dict[str, dict[str, Any]] = {
@@ -80,6 +81,7 @@ EXECUTION_BRIEFS: dict[str, dict[str, Any]] = {
             ("Verification", 0),
         ],
         "blockers": [
+            "nick2-dashboard repo lock — JOB-453 still running (gate work already on main)",
             "DEC-002 scoring framework not yet finalized — using interim rubric",
         ],
         "milestones": [
@@ -133,6 +135,72 @@ EXECUTION_BRIEFS: dict[str, dict[str, Any]] = {
             ("PMO-001 brief", "queue/PMO-001.html"),
         ],
     },
+    "LIT-001": {
+        "mission_name": "Autonomous literature research for memory architecture paper",
+        "objective": (
+            "Bounded OA/arxiv/IS search + snowball for the 2026-07-12 agent memory architecture paper. "
+            "After cycle 1, only narrow writing passes or targeted IS-platform search — not broad trawls."
+        ),
+        "success_criteria": [
+            ("done", "Cycle 1 complete — 9 new papers ingested"),
+            ("done", "theme_06 operational memory governance synthesis memo"),
+            ("open", "Fold synthesis into paper Section 6 / construct table"),
+            ("open", "Optional targeted IS-platform portability/governance search"),
+        ],
+        "phases": [
+            {
+                "name": "Broad discovery (cycle 1)",
+                "progress": 100,
+                "activities": [
+                    "9 new papers; snowball + OA search",
+                    "Declared low-yield for further broad search",
+                ],
+            },
+            {
+                "name": "Bounded follow-up",
+                "progress": 100,
+                "activities": [
+                    "theme_06_operational_memory_governance.md written",
+                    "Recommendation: narrow writing pass or sleep",
+                ],
+            },
+            {
+                "name": "Writing / targeted search",
+                "progress": 0,
+                "activities": [
+                    "Awaiting CRO re-arm — agent is idle/slept since 09:26 UTC",
+                ],
+            },
+        ],
+        "overall_progress": 40,
+        "critical_path": [
+            "Cycle 1 search",
+            "Governance synthesis memo",
+            "Writing pass OR targeted IS search",
+            "Ledger + brief update",
+        ],
+        "workstreams": [
+            ("Literature ingestion", 100),
+            ("Synthesis memos", 100),
+            ("Paper integration", 0),
+        ],
+        "blockers": [
+            "Autonomous sub-agent slept after cycle 1 — not running on droplet",
+            "Broad literature search explicitly marked low-yield",
+        ],
+        "milestones": [
+            ("09:26 UTC", "Cycle 1 + theme_06 complete; agent recommended sleep"),
+            ("—", "Re-arm: narrow writing pass or close as idle-complete"),
+        ],
+        "waiting_on": [
+            "CRO/CEO — confirm narrow writing pass vs retire LIT-001",
+        ],
+        "links": [
+            ("Dashboard", DASHBOARD),
+            ("autonomous_update.md", "Projects-for-agents/strategic-publishing/grounded/2026-07-12-agents-need-memory-architecture-not-just-prompt/literature/autonomous_update.md"),
+            ("theme_06 memo", "Projects-for-agents/strategic-publishing/grounded/2026-07-12-agents-need-memory-architecture-not-just-prompt/literature/round-gt-theory/theme_06_operational_memory_governance.md"),
+        ],
+    },
 }
 
 
@@ -147,14 +215,48 @@ def _bar(pct: int, width: int = 10) -> str:
     return "█" * filled + "░" * (width - filled)
 
 
-def _status_emoji(status: str) -> str:
+def _parse_ts(ts: str) -> datetime | None:
+    if not ts:
+        return None
+    try:
+        raw = ts.replace("Z", "+00:00")
+        if raw.endswith("+08:00"):
+            return datetime.fromisoformat(raw)
+        return datetime.fromisoformat(raw)
+    except ValueError:
+        return None
+
+
+def _wip_age_minutes(t: dict) -> float | None:
+    dt = _parse_ts(t.get("ts") or "")
+    if not dt:
+        return None
+    if dt.tzinfo is None:
+        dt = dt.replace(tzinfo=SGT)
+    return (datetime.now(SGT) - dt.astimezone(SGT)).total_seconds() / 60.0
+
+
+def _wip_stale(t: dict) -> bool:
+    if (t.get("status") or "").lower() not in {"in_progress", "queued", "approved", "blocked"}:
+        return False
+    age = _wip_age_minutes(t)
+    return age is not None and age > WIP_MEMO_MAX_AGE_MIN
+
+
+def _status_emoji(status: str, *, stale: bool = False) -> str:
     s = (status or "").lower()
+    if stale:
+        return f"🟠 Stale — no update in {WIP_MEMO_MAX_AGE_MIN}+ min (POL-002)"
+    if s == "idle":
+        return "💤 Idle"
     if s == "in_progress":
         return "🟢 Executing"
     if s in {"blocked", "failed"}:
         return "🔴 Blocked"
     if s in {"queued", "approved"}:
         return "🟡 At Risk"
+    if s == "completed":
+        return "✅ Complete"
     return "🟡 At Risk"
 
 
@@ -220,8 +322,17 @@ def execution_brief_body(
 ) -> str:
     brief = _brief(tid, t)
     owner = t.get("owner") or t.get("actor", "—")
-    status = _status_emoji(t.get("status", ""))
+    stale = _wip_stale(t)
+    status = _status_emoji(t.get("status", ""), stale=stale)
     updated = (t.get("ts") or "")[:16].replace("T", " ")
+    stale_note = ""
+    if stale:
+        age = _wip_age_minutes(t)
+        mins = int(age) if age is not None else WIP_MEMO_MAX_AGE_MIN
+        stale_note = (
+            f"\n\n> **WIP policy (POL-002):** Last ledger touch was **{mins} minutes** ago. "
+            f"Agents must append `task_updated` every {WIP_MEMO_MAX_AGE_MIN} minutes or set `idle`/`completed`.\n"
+        )
     overall = brief["overall_progress"]
 
     criteria = "\n".join(
@@ -294,7 +405,7 @@ def execution_brief_body(
 
 **Owner:** {owner}  
 **Status:** {status}  
-**Last Updated:** {updated}
+**Last Updated:** {updated}{stale_note}
 
 {SEP}
 

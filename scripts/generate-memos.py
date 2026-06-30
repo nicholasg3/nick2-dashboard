@@ -191,12 +191,32 @@ def main() -> None:
         key=lambda x: (nick_rank(x[1]), x[1].get("ts", "")),
     )
 
+    queue_written: set[str] = set()
+
     for tid, t in tasks.items():
         ev = t.get("event", "")
         status = t.get("status", "")
         if status == "completed" or ev == "task_completed":
             body = mka_completed_body(tid, t)
             emit_pair(MEMOS / "completed" / f"{tid}.md", body, f"{tid} completed", "../../index.html")
+        elif status == "idle":
+            spend = float(latest(events, "cumulative_weekly_spend_usd", 0) or 0)
+            rem = float(latest(events, "budget_remaining_usd", weekly - spend) or 0)
+            body = execution_brief_body(
+                tid,
+                t,
+                events=events,
+                weekly=weekly,
+                spend=spend,
+                remaining=rem,
+                memo_context="queue",
+            )
+            emit_pair(
+                MEMOS / "completed" / f"{tid}.md",
+                body,
+                f"{tid} idle",
+                "../../index.html",
+            )
         elif is_gated(tid, t, resolved):
             rank = next((i + 1 for i, (g, _) in enumerate(gated_items) if g == tid), 0)
             body = mka_gated_body(tid, t, rank)
@@ -219,6 +239,14 @@ def main() -> None:
                 f"{tid} execution brief",
                 "../../index.html",
             )
+            queue_written.add(tid)
+
+    queue_dir = MEMOS / "queue"
+    if queue_dir.is_dir():
+        for path in queue_dir.glob("*.md"):
+            if path.stem not in queue_written:
+                path.unlink(missing_ok=True)
+                path.with_suffix(".html").unlink(missing_ok=True)
 
     current = current_memo(events, tasks, weekly)
     emit_pair(MEMOS / "current.md", current, "Current focus", "../index.html")

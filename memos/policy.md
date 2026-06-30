@@ -59,3 +59,17 @@ Alias: `decision_resolved` also clears the gate.
 - **Currently Working On** — always an ungated task
 
 Memos: `memos/gated/{task_id}.md`
+
+## WIP execution brief cadence (POL-002)
+
+Any task in **Active Work Queue** (`queued`, `in_progress`, `approved`, `blocked`) must keep its execution brief honest:
+
+1. Append a `task_updated` (or `task_progress`) line to `logs/ceo-ledger.jsonl` **at least every 30 minutes** while work is in flight, even if the update is “still running, no new artifacts.”
+2. Run `python3 scripts/generate-memos.py` after material progress (or include in the same commit as the ledger append).
+3. If nothing changed for **30+ minutes**, either:
+   - post a heartbeat ledger event with current step + ETA/blocker, or
+   - transition status to `idle` / `completed` / `blocked` with an explicit reason (do not leave `in_progress` with a stale timestamp).
+
+Dashboard memos surface **Last Updated** from the ledger. Stale `in_progress` without a heartbeat is a policy violation — COO may flag in reconcile.
+
+**Idle/sleep:** Autonomous sub-agents (e.g. `cro_lit_memory`) that choose to sleep must append `status: idle` and a one-line reason; they are not “Executing” on the dashboard.

@@ -4,6 +4,15 @@ Read-only view of `logs/ceo-ledger.jsonl`.
 
 | Time | Actor | Event | Task ID | Task |
 |------|-------|-------|---------|------|
+| 2026-06-30T19:24:23 | PMO | task_updated | PMO-001 | Triage 13 ready-for-agent GitHub issues |
+| 2026-06-30T19:22:08 | CRO | task_updated | LIT-001 | Autonomous literature research for memory architec |
+| 2026-06-30T19:22:07 | COO | policy_set | POL-002 | WIP execution brief cadence |
+| 2026-06-30T19:12:50 | Nicholas | nick_gate_resolved | DEC-003 | Confirm Telegram alert method for $5 spend thresho |
+| 2026-06-30T19:12:50 | Nicholas | decision_resolved | DEC-003 | Confirm Telegram alert method for $5 spend thresho |
+| 2026-06-30T19:12:50 | Nicholas | nick_gate_instruction | DEC-003 | Confirm Telegram alert method for $5 spend thresho |
+| 2026-06-30T19:09:11 | Nicholas | nick_gate_resolved | DEC-002 | Approve PMO scoring framework |
+| 2026-06-30T19:09:11 | Nicholas | decision_resolved | DEC-002 | Approve PMO scoring framework |
+| 2026-06-30T19:09:11 | Nicholas | nick_gate_instruction | DEC-002 | Approve PMO scoring framework |
 | 2026-06-30T17:46:35 | CRO | task_updated | LIT-001 | Autonomous literature research for memory architec |
 | 2026-06-30T16:35:52 | COO | focus_snapshot | FOCUS-001 | Triage 13 ready-for-agent GitHub issues |
 | 2026-06-30T16:35:52 | PMO | task_started | PMO-001 | Triage 13 ready-for-agent GitHub issues |

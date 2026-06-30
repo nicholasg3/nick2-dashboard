@@ -67,6 +67,13 @@ strong { color: #fff; }
 <h2>Dashboard</h2>
 <ul><li><strong>Gated by Nick</strong> — priority queue (sorted high → low)</li><li><strong>Active Work Queue</strong> — agents execute here; never includes gated items</li><li><strong>Currently Working On</strong> — always an ungated task</li></ul>
 <p>Memos: <code>memos/gated/{task_id}.md</code></p>
+<h2>WIP execution brief cadence (POL-002)</h2>
+<p>Any task in <strong>Active Work Queue</strong> (<code>queued</code>, <code>in_progress</code>, <code>approved</code>, <code>blocked</code>) must keep its execution brief honest:</p>
+<ol><li>1. Append a <code>task_updated</code> (or <code>task_progress</code>) line to <code>logs/ceo-ledger.jsonl</code> <strong>at least every 30 minutes</strong> while work is in flight, even if the update is “still running, no new artifacts.”</li><li>2. Run <code>python3 scripts/generate-memos.py</code> after material progress (or include in the same commit as the ledger append).</li><li>3. If nothing changed for <strong>30+ minutes</strong>, either:</li></ol>
+<p>   - post a heartbeat ledger event with current step + ETA/blocker, or</p>
+<p>   - transition status to <code>idle</code> / <code>completed</code> / <code>blocked</code> with an explicit reason (do not leave <code>in_progress</code> with a stale timestamp).</p>
+<p>Dashboard memos surface <strong>Last Updated</strong> from the ledger. Stale <code>in_progress</code> without a heartbeat is a policy violation — COO may flag in reconcile.</p>
+<p><strong>Idle/sleep:</strong> Autonomous sub-agents (e.g. <code>cro_lit_memory</code>) that choose to sleep must append <code>status: idle</code> and a one-line reason; they are not “Executing” on the dashboard.</p>
   </div>
 </body>
 </html>

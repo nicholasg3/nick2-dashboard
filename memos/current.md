@@ -1,12 +1,12 @@
-_Current focus → [PMO-001](queue/PMO-001.html) · 2 gated · 2026-06-30 16:47 SGT_
+_Current focus → [PMO-001](queue/PMO-001.html) · 0 gated · 2026-06-30 19:24 SGT_
 
 [Tue Jun 30, 2026]
 
 # PMO-001: Triage Ready-for-Agent GitHub Issues
 
 **Owner:** PMO  
-**Status:** 🟢 Executing  
-**Last Updated:** 2026-06-30 16:35
+**Status:** 🔴 Blocked  
+**Last Updated:** 2026-06-30 19:24
 
 ────────────────────────────────────────────
 
@@ -102,7 +102,10 @@ Verification
 
 ## BLOCKERS
 
+• nick2-dashboard repo lock — JOB-453 still running (gate work already on main)
 • DEC-002 scoring framework not yet finalized — using interim rubric
+• POL-002 heartbeat: triage stalled — no ranked backlog shipped since 16:35 start. nick2-dashboard repo locked by JOB-453 (gate work already on main). PMO bus jobs queued behind repo lock. Blocked until JOB-453 completes or is cancelled.
+• POL-002 heartbeat: triage stalled — no ranked backlog shipped since 16:35 start. nick2-dashboard repo locked by JOB-453 (gate work already on main). PMO bus jobs queued behind repo lock. Blocked until JOB-453 completes or is cancelled.
 
 ────────────────────────────────────────────
 
@@ -126,6 +129,9 @@ Push dashboard ledger update
 ────────────────────────────────────────────
 
 ## RECENT EVENTS
+
+19:24
+task_updated: POL-002 heartbeat: triage stalled — no ranked backlog shipped since 16:35 start.
 
 16:35
 task_started: Dispatch authorized (Option B). Ranking 13 ready-for-agent GitHub issues; fronti
