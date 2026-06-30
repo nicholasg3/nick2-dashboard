@@ -13,6 +13,10 @@ sys.path.insert(0, str(SCRIPTS))
 
 import pattern_detector as pd  # noqa: E402
 
+# Isolate the role-memory source so the live sessions dir cannot leak real
+# memory flags into the isolated-ledger count assertions.
+pd.SESSIONS_ROOT = Path(tempfile.mkdtemp(prefix="pd-test-sessions-"))
+
 SGT = timezone(timedelta(hours=8))
 
 
