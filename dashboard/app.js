@@ -348,14 +348,41 @@ function renderTable(el, headers, rows, emptyMsg) {
     </table>`;
 }
 
+const GATE_ROOM_WIN = 'popup=yes,width=1120,height=860,menubar=no,toolbar=no,location=yes,status=no';
+
+function openGateRoom(taskId) {
+  if (!taskId) return;
+  const url = `gate-room.html?task=${encodeURIComponent(taskId)}`;
+  const win = window.open(url, `nick2_gate_${taskId}`, GATE_ROOM_WIN);
+  if (win) win.focus();
+}
+
 function memoHref(kind, taskId) {
   if (!taskId || !kind) return null;
   if (kind === 'gated') return `gate-room.html?task=${encodeURIComponent(taskId)}`;
   return `memos/${kind}/${taskId}.html`;
 }
 
+/** Gated queue titles open the gate room popup (MKA + chat). */
+function gateTaskLink(text, taskId, className = 'memo-link') {
+  const label = text ?? '—';
+  if (!taskId) return esc(label);
+  return `<a class="${className} gate-open-link" href="gate-room.html?task=${encodeURIComponent(taskId)}" data-gate-id="${esc(taskId)}">${esc(label)}</a>`;
+}
+
+function bindGateOpenLinks(root) {
+  if (!root) return;
+  root.querySelectorAll('.gate-open-link').forEach((a) => {
+    a.addEventListener('click', (e) => {
+      e.preventDefault();
+      openGateRoom(a.dataset.gateId);
+    });
+  });
+}
+
 /** Wrap label in memo link when a memo exists; otherwise plain escaped text. */
 function taskMemoLink(text, kind, taskId, className = 'memo-link') {
+  if (kind === 'gated') return gateTaskLink(text, taskId, className);
   const label = text ?? '—';
   const href = memoHref(kind, taskId);
   if (!href) return esc(label);
@@ -501,39 +528,16 @@ function renderTrust(state) {
   );
 }
 
-let selectedGateId = null;
-
-function openGateChat(g) {
-  selectedGateId = g.task_id;
-  const panel = $('gate-chat-drawer');
-  const host = $('gate-chat-host');
-  if (!panel || !host || !window.Nick2GateChat) return;
-  panel.classList.remove('hidden');
-  panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-  Nick2GateChat.unmountGateChat();
-  host.innerHTML = '<p class="empty">Loading gate room…</p>';
-  Nick2GateChat.mountGateChat(host, {
-    task_id: g.task_id,
-    task: g.task,
-    priority: g.priority,
-    output: g.output,
-  });
-  document.querySelectorAll('#nick-gate-queue tbody tr').forEach((tr) => {
-    tr.classList.toggle('gate-row-active', tr.dataset.taskId === g.task_id);
-  });
-}
-
 function renderNickGate(state) {
-  window._nickGateItems = state.gatedByNick;
   const rows = state.gatedByNick.map(
-    (g, i) => `<tr class="gate-row" data-task-id="${esc(g.task_id || '')}" tabindex="0">
+    (g, i) => `<tr>
       <td><strong>${i + 1}</strong></td>
       <td>${badge(g.priority || 'medium')}</td>
-      <td>${taskMemoLink(g.task, 'gated', g.task_id)}</td>
+      <td>${gateTaskLink(g.task, g.task_id)}</td>
       <td>${esc(g.task_id || '')}</td>
       <td>${esc(g.output?.slice(0, 80) || '')}</td>
       <td>${fmtTs(g.ts)}</td>
-      <td><button type="button" class="btn btn-sm gate-discuss-btn" data-task-id="${esc(g.task_id || '')}">Discuss</button></td>
+      <td><button type="button" class="btn btn-sm gate-discuss-btn" data-gate-id="${esc(g.task_id || '')}">Discuss</button></td>
     </tr>`
   );
   renderTable(
@@ -545,40 +549,10 @@ function renderNickGate(state) {
 
   const table = $('nick-gate-queue');
   if (!table) return;
+  bindGateOpenLinks(table);
   table.querySelectorAll('.gate-discuss-btn').forEach((btn) => {
-    btn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      const tid = btn.dataset.taskId;
-      const g = state.gatedByNick.find((x) => x.task_id === tid);
-      if (g) openGateChat(g);
-    });
+    btn.addEventListener('click', () => openGateRoom(btn.dataset.gateId));
   });
-  table.querySelectorAll('tbody tr.gate-row').forEach((tr) => {
-    const tid = tr.dataset.taskId;
-    const g = state.gatedByNick.find((x) => x.task_id === tid);
-    if (!g) return;
-    tr.addEventListener('click', () => openGateChat(g));
-    tr.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter' || e.key === ' ') {
-        e.preventDefault();
-        openGateChat(g);
-      }
-    });
-  });
-
-  const drawer = $('gate-chat-drawer');
-  if (!state.gatedByNick.length) {
-    selectedGateId = null;
-    drawer?.classList.add('hidden');
-    Nick2GateChat?.unmountGateChat();
-    return;
-  }
-  if (selectedGateId && state.gatedByNick.some((g) => g.task_id === selectedGateId)) {
-    const g = state.gatedByNick.find((x) => x.task_id === selectedGateId);
-    if (g) openGateChat(g);
-  } else if (!selectedGateId) {
-    openGateChat(state.gatedByNick[0]);
-  }
 }
 
 function renderRoadmap(state) {

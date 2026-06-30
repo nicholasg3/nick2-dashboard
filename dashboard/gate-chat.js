@@ -1,6 +1,9 @@
 /**
- * Gate chat — Nick ↔ agent thread for gated priority-queue items.
- * Messages persist in logs/gate-chats/{task_id}.jsonl (polled) or via gateChatApi POST.
+ * Gate room — MKA brief (HTML) + Nick ↔ agent chat per gated item.
+ * Opens in its own window from the dashboard Discuss button.
+ *
+ * Live web chat: set config.gateChatApi (gate_chat_server.py behind auth).
+ * Until then: Send opens Telegram with full gate context (temporary workaround).
  */
 (function (global) {
   const CHAT_URL = (taskId) => `logs/gate-chats/${taskId}.jsonl`;
@@ -9,6 +12,7 @@
   let config = { gateChatApi: '', pollIntervalMs: 8000, telegramDeepLink: '' };
   let pollTimer = null;
   let activeTaskId = null;
+  let cachedBrief = null;
 
   async function loadConfig() {
     try {
@@ -21,6 +25,10 @@
     const d = document.createElement('div');
     d.textContent = s ?? '';
     return d.innerHTML;
+  }
+
+  function stripMd(s) {
+    return String(s || '').replace(/\*\*/g, '');
   }
 
   function fmtTs(ts) {
@@ -38,35 +46,68 @@
     }
   }
 
+  function pendingKey(taskId) {
+    return `nick2-gate-pending-${taskId}`;
+  }
+
+  function loadPending(taskId) {
+    try {
+      return JSON.parse(localStorage.getItem(pendingKey(taskId)) || '[]');
+    } catch {
+      return [];
+    }
+  }
+
+  function savePending(taskId, text) {
+    const prev = loadPending(taskId);
+    prev.push({ ts: new Date().toISOString(), text, role: 'nick', actor: 'Nicholas' });
+    localStorage.setItem(pendingKey(taskId), JSON.stringify(prev));
+  }
+
   async function fetchMessages(taskId) {
-    const res = await fetch(`${CHAT_URL(taskId)}?t=${Date.now()}`);
-    if (!res.ok) return [];
-    const text = await res.text();
-    return text
-      .trim()
-      .split('\n')
-      .filter(Boolean)
-      .map((line) => {
-        try {
-          return JSON.parse(line);
-        } catch {
-          return null;
-        }
-      })
-      .filter(Boolean);
+    let server = [];
+    try {
+      const res = await fetch(`${CHAT_URL(taskId)}?t=${Date.now()}`);
+      if (res.ok) {
+        const text = await res.text();
+        server = text
+          .trim()
+          .split('\n')
+          .filter(Boolean)
+          .map((line) => {
+            try {
+              return JSON.parse(line);
+            } catch {
+              return null;
+            }
+          })
+          .filter(Boolean);
+      }
+    } catch (_) { /* offline */ }
+
+    const pending = loadPending(taskId).map((p) => ({
+      ts: p.ts,
+      role: 'nick',
+      actor: p.actor || 'Nicholas',
+      text: p.text,
+      pending: true,
+    }));
+    return [...server, ...pending].sort((a, b) => new Date(a.ts) - new Date(b.ts));
   }
 
   function renderMessages(el, messages) {
     if (!messages.length) {
-      el.innerHTML = '<p class="gate-chat-empty">No messages yet. Tell the agent what you need to clear this gate.</p>';
+      el.innerHTML =
+        '<p class="gate-chat-empty">No messages yet. Tell the agent what you need to clear this gate.</p>';
       return;
     }
     el.innerHTML = messages
       .map((m) => {
         const role = m.role === 'nick' ? 'nick' : 'agent';
         const who = m.actor || (role === 'nick' ? 'Nicholas' : 'Agent');
+        const pending = m.pending ? ' <em>(pending sync)</em>' : '';
         return `<div class="gate-chat-msg gate-chat-msg-${role}">
-          <div class="gate-chat-msg-head"><strong>${esc(who)}</strong> <span>${fmtTs(m.ts)}</span></div>
+          <div class="gate-chat-msg-head"><strong>${esc(who)}</strong> <span>${fmtTs(m.ts)}${pending}</span></div>
           <div class="gate-chat-msg-body">${esc(m.text)}</div>
         </div>`;
       })
@@ -80,7 +121,10 @@
       return;
     }
     const mece = (brief.mece || [])
-      .map(([b, scope, state]) => `<tr><td>${esc(b)}</td><td>${esc(scope)}</td><td>${esc(state)}</td></tr>`)
+      .map(
+        ([b, scope, state]) =>
+          `<tr><td>${esc(b)}</td><td>${esc(scope)}</td><td>${esc(state)}</td></tr>`
+      )
       .join('');
     const options = (brief.options || [])
       .map((o, i) => {
@@ -93,12 +137,13 @@
       <div class="gate-brief-tag">MKA Decision Memo</div>
       <h3>${esc(brief.task_id)}: ${esc(brief.title)}</h3>
       <p class="gate-brief-meta">Priority ${esc(brief.priority)} · #${brief.rank} in queue</p>
-      <h4>Objective</h4><p>${esc(brief.objective)}</p>
-      <h4>Decision</h4><p>${esc(brief.decision)}</p>
-      ${mece ? `<h4>MECE</h4><table class="gate-brief-table"><thead><tr><th>Bucket</th><th>Scope</th><th>State</th></tr></thead><tbody>${mece}</tbody></table>` : ''}
-      <h4>Root cause</h4><p>${esc(brief.root_cause)}</p>
-      ${options ? `<h4>Options</h4>${options}` : ''}
-      <h4>Recommendation</h4><p>${esc(brief.recommendation)}</p>
+      <h4>1. Executive Framing</h4>
+      <p><strong>Objective</strong><br>${esc(brief.objective)}</p>
+      <p><strong>Decision</strong><br>${esc(stripMd(brief.decision))}</p>
+      ${mece ? `<h4>2. MECE</h4><table class="gate-brief-table"><thead><tr><th>Bucket</th><th>Scope</th><th>State</th></tr></thead><tbody>${mece}</tbody></table>` : ''}
+      <h4>3. Root cause</h4><p>${esc(brief.root_cause)}</p>
+      ${options ? `<h4>4. Strategic options</h4>${options}` : ''}
+      <h4>5. Recommendation</h4><p>${esc(stripMd(brief.recommendation))}</p>
       <h4>What Nick must do</h4><p>${esc(brief.what_nick_must_do)}</p>`;
   }
 
@@ -113,33 +158,49 @@
     }
   }
 
-  function pendingKey(taskId) {
-    return `nick2-gate-pending-${taskId}`;
-  }
-
-  function savePending(taskId, text) {
-    const key = pendingKey(taskId);
-    const prev = JSON.parse(localStorage.getItem(key) || '[]');
-    prev.push({ ts: new Date().toISOString(), text });
-    localStorage.setItem(key, JSON.stringify(prev));
-  }
-
-  function buildFallbackCommand(taskId, text) {
-    const payload = JSON.stringify({ text }).replace(/'/g, "'\\''");
-    const api = config.gateChatApi || 'http://127.0.0.1:8787';
-    return `curl -s -X POST '${api}/api/gate/${taskId}/message' -H 'Content-Type: application/json' -d '${payload}'`;
-  }
-
-  function telegramLink(taskId, text) {
+  function telegramUrl(text) {
     const base = config.telegramDeepLink || 'https://t.me/NMGs_Hermes_bot';
-    const msg = `[Gate ${taskId}] ${text}`;
-    return `${base}?text=${encodeURIComponent(msg)}`;
+    return `${base}?text=${encodeURIComponent(text)}`;
   }
 
-  async function sendMessage(taskId, text, statusEl) {
+  async function buildOutboundMessage(taskId, text, taskMeta, kind) {
+    const brief = cachedBrief || (await loadBrief(taskId));
+    const title = brief?.title || taskMeta?.task || taskId;
+    const lines = [`[Nick2 Gate ${taskId}]`, title, ''];
+    if (brief?.objective) lines.push(`Objective: ${brief.objective}`);
+    if (brief?.decision) lines.push(`Decision: ${stripMd(brief.decision)}`);
+    if (brief?.what_nick_must_do) lines.push(`Needs: ${brief.what_nick_must_do}`);
+    lines.push('');
+    if (kind === 'clear') {
+      lines.push(`Nick clears gate ${taskId}:`);
+      lines.push(text || 'Approved / resolved. Append nick_gate_resolved to ledger.');
+    } else {
+      lines.push('Nick instructs:');
+      lines.push(text);
+    }
+    lines.push('');
+    lines.push('(Reply in gate thread; COO will append ledger events.)');
+    return lines.join('\n');
+  }
+
+  function bridgeLive() {
+    return Boolean((config.gateChatApi || '').trim());
+  }
+
+  function renderBridgeBanner(el) {
+    if (bridgeLive()) {
+      el.innerHTML =
+        '<span class="gate-bridge-live">● Live web bridge</span> — messages go directly to the agent with full gate context.';
+    } else {
+      el.innerHTML =
+        '<span class="gate-bridge-off">○ Telegram workaround</span> — Send opens @NMGs_Hermes_bot with this gate\'s MKA context. Direct web chat ships with password-protected deploy + gate bridge.';
+    }
+  }
+
+  async function sendMessage(taskId, text, taskMeta, statusEl, messagesEl) {
     const api = (config.gateChatApi || '').replace(/\/$/, '');
     if (api) {
-      statusEl.textContent = 'Sending…';
+      statusEl.textContent = 'Sending to agent…';
       try {
         const res = await fetch(`${api}/api/gate/${taskId}/message`, {
           method: 'POST',
@@ -147,16 +208,22 @@
           body: JSON.stringify({ text, actor: 'Nicholas' }),
         });
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        statusEl.textContent = 'Sent — agent is responding.';
+        statusEl.textContent = 'Sent — agent reply will appear below.';
+        const msgs = await fetchMessages(taskId);
+        renderMessages(messagesEl, msgs);
         return true;
       } catch (err) {
-        statusEl.textContent = `Bridge error: ${err.message}`;
-        savePending(taskId, text);
-        return false;
+        statusEl.textContent = `Bridge error: ${err.message}. Falling back to Telegram.`;
       }
     }
+
     savePending(taskId, text);
-    statusEl.innerHTML = `Bridge offline — message saved locally. Run on your Mac:<br><code class="gate-curl">${esc(buildFallbackCommand(taskId, text))}</code><br>Or <a href="${telegramLink(taskId, text)}" target="_blank" rel="noopener">send via Telegram</a>.`;
+    const outbound = await buildOutboundMessage(taskId, text, taskMeta, 'send');
+    window.open(telegramUrl(outbound), '_blank', 'noopener');
+    const msgs = await fetchMessages(taskId);
+    renderMessages(messagesEl, msgs);
+    statusEl.textContent =
+      'Opened Telegram with full gate context. Agent reply will sync here after ledger/chat update.';
     return false;
   }
 
@@ -178,25 +245,23 @@
     pollTimer = null;
   }
 
-  /**
-   * Mount gate chat into container.
-   * @param {HTMLElement} root
-   * @param {{ task_id, task, priority, output }} taskMeta
-   */
   async function mountGateChat(root, taskMeta) {
     await loadConfig();
     activeTaskId = taskMeta.task_id;
+    cachedBrief = await loadBrief(taskMeta.task_id);
+
     root.innerHTML = `
       <div class="gate-room-layout">
         <div class="gate-brief-panel" id="gate-brief-panel"></div>
         <div class="gate-chat-panel">
+          <p class="gate-bridge-banner" id="gate-bridge-banner"></p>
           <div class="gate-chat-head">
             <h3>Discuss with agent</h3>
-            <p class="muted">Give instructions to clear <strong>${esc(taskMeta.task_id)}</strong>. Agent replies appear here and in the ledger.</p>
+            <p class="muted">Instructions for <strong>${esc(taskMeta.task_id)}</strong> — agent uses the MKA brief on the left.</p>
           </div>
           <div class="gate-chat-messages" id="gate-chat-messages"></div>
           <form class="gate-chat-form" id="gate-chat-form">
-            <textarea id="gate-chat-input" rows="3" placeholder="e.g. Approve default framework for pilot. Use interim weights until we tune…" required></textarea>
+            <textarea id="gate-chat-input" rows="4" placeholder="e.g. Approve default PMO scoring framework for pilot on top 3 issues…" required></textarea>
             <div class="gate-chat-actions">
               <button type="submit" class="btn btn-primary">Send to agent</button>
               <button type="button" class="btn btn-ghost" id="gate-chat-clear-gate">Mark gate cleared</button>
@@ -212,9 +277,12 @@
     const input = root.querySelector('#gate-chat-input');
     const statusEl = root.querySelector('#gate-chat-status');
     const clearBtn = root.querySelector('#gate-chat-clear-gate');
+    const bannerEl = root.querySelector('#gate-bridge-banner');
 
-    const brief = await loadBrief(taskMeta.task_id);
-    renderBrief(briefEl, brief, taskMeta);
+    renderBrief(briefEl, cachedBrief, taskMeta);
+    renderBridgeBanner(bannerEl);
+    const msgs = await fetchMessages(taskMeta.task_id);
+    renderMessages(messagesEl, msgs);
     startPolling(taskMeta.task_id, messagesEl);
 
     form.addEventListener('submit', async (e) => {
@@ -222,13 +290,20 @@
       const text = input.value.trim();
       if (!text) return;
       input.value = '';
-      await sendMessage(taskMeta.task_id, text, statusEl);
-      const msgs = await fetchMessages(taskMeta.task_id);
-      renderMessages(messagesEl, msgs);
+      await sendMessage(taskMeta.task_id, text, taskMeta, statusEl, messagesEl);
     });
 
-    clearBtn.addEventListener('click', () => {
+    clearBtn.addEventListener('click', async () => {
       const tid = taskMeta.task_id;
+      const note = input.value.trim() || 'Gate cleared by Nicholas via dashboard.';
+      if (bridgeLive()) {
+        await sendMessage(tid, `[GATE CLEARED] ${note}`, taskMeta, statusEl, messagesEl);
+      } else {
+        const outbound = await buildOutboundMessage(tid, note, taskMeta, 'clear');
+        window.open(telegramUrl(outbound), '_blank', 'noopener');
+        statusEl.textContent =
+          'Opened Telegram to confirm gate clearance. COO will append nick_gate_resolved when processed.';
+      }
       const snippet = JSON.stringify(
         {
           actor: 'Nicholas',
@@ -236,20 +311,21 @@
           task_id: tid,
           task: taskMeta.task,
           status: 'completed',
-          output: 'Cleared via gate chat on dashboard.',
+          output: note,
           resolved_by: 'Nicholas',
         },
         null,
         2
       );
-      statusEl.innerHTML = `Append to ledger when ready:<br><pre class="gate-ledger-snippet">${esc(snippet)}</pre>`;
+      statusEl.innerHTML += `<br><span class="muted">Ledger event for agents:</span><pre class="gate-ledger-snippet">${esc(snippet)}</pre>`;
     });
   }
 
   function unmountGateChat() {
     activeTaskId = null;
+    cachedBrief = null;
     stopPolling();
   }
 
-  global.Nick2GateChat = { mountGateChat, unmountGateChat, loadConfig };
+  global.Nick2GateChat = { mountGateChat, unmountGateChat, loadConfig, openGateRoom: null };
 })(window);

@@ -6,23 +6,23 @@
   <title>Gate room — Nick2</title>
   <link rel="stylesheet" href="style.css">
 </head>
-<body>
+<body class="gate-room-body">
   <header class="site-header">
     <div class="header-inner">
       <div class="brand">
-        <h1>Gate room</h1>
+        <h1 id="gate-room-title">Gate room</h1>
         <p id="gate-room-subtitle" class="tagline">Loading…</p>
       </div>
       <div class="header-meta">
-        <a class="btn btn-ghost" href="index.html">← Dashboard</a>
+        <button type="button" class="btn btn-ghost" id="gate-room-close">Close</button>
       </div>
     </div>
   </header>
-  <main class="container">
+  <main class="container gate-room-main">
     <div id="gate-room-root" class="panel gate-room-panel"></div>
     <p id="gate-room-error" class="empty" hidden></p>
   </main>
-  <script src="gate-chat.js"></script>
+  <script src="gate-chat.js?v=2"></script>
   <script>
     (async function () {
       const params = new URLSearchParams(location.search);
@@ -43,8 +43,10 @@
           if (hit) meta = { ...meta, ...hit };
         }
       } catch (_) { /* fallback */ }
-      document.getElementById('gate-room-subtitle').textContent =
-        `${meta.task_id}: ${meta.task || 'Gated item'}`;
+      document.title = `${taskId} — Gate room — Nick2`;
+      document.getElementById('gate-room-title').textContent = taskId;
+      document.getElementById('gate-room-subtitle').textContent = meta.task || 'Gated by Nick';
+      document.getElementById('gate-room-close').addEventListener('click', () => window.close());
       await Nick2GateChat.mountGateChat(root, meta);
     })();
   </script>

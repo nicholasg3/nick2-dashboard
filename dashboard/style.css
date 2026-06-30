@@ -556,18 +556,7 @@ tr:hover td { background: rgba(79, 156, 249, 0.05); }
   color: var(--text);
 }
 
-.gate-row { cursor: pointer; }
-.gate-row:hover td { background: rgba(79, 156, 249, 0.06); }
-.gate-row-active td { background: rgba(79, 156, 249, 0.12) !important; }
-
-.gate-chat-drawer {
-  margin-top: 1rem;
-  padding-top: 1rem;
-  border-top: 1px solid var(--border);
-}
-
-.gate-chat-drawer-head { margin-bottom: 0.75rem; }
-.gate-chat-drawer-head h3 { font-size: 1rem; margin-bottom: 0.25rem; }
+.gate-room-body .gate-room-main { max-width: 1400px; }
 
 .gate-room-layout {
   display: grid;
@@ -586,9 +575,21 @@ tr:hover td { background: rgba(79, 156, 249, 0.05); }
   border: 1px solid var(--border);
   border-radius: var(--radius);
   padding: 1rem;
-  max-height: 520px;
+  max-height: calc(100vh - 140px);
   overflow-y: auto;
 }
+
+.gate-bridge-banner {
+  font-size: 0.82rem;
+  padding: 0.5rem 0.65rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  margin-bottom: 0.75rem;
+}
+
+.gate-bridge-live { color: var(--success); font-weight: 600; }
+.gate-bridge-off { color: var(--warning); font-weight: 600; }
 
 .gate-brief-tag {
   font-size: 0.72rem;

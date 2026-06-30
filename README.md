@@ -34,8 +34,8 @@ See `memos/policy.md`. Do not idle waiting on Nick.
 
 Gated items open an **interactive gate room** (not a static markdown page):
 
-- **On dashboard:** click a gated row or **Discuss** — chat panel opens below the queue
-- **Deep link:** `gate-room.html?task=DEC-002`
+- **On dashboard:** click **Discuss** (or the task title) — opens a **popup window** per gate
+- **Deep link:** `gate-room.html?task=DEC-002` (MKA brief in HTML + chat)
 
 Messages live in `logs/gate-chats/{task_id}.jsonl` and deploy with the site. Nick's instructions also append `nick_gate_instruction` to the ledger when the bridge is running.
 
@@ -53,7 +53,7 @@ Set `dashboard/config.json`:
 { "gateChatApi": "http://YOUR_HOST:8787" }
 ```
 
-Use ngrok/Cloudflare tunnel or the droplet (issue #78) so the public dashboard can reach it. Without the bridge, the UI still works: messages save locally and show a `curl` command + Telegram deep link.
+Use ngrok/Cloudflare tunnel or the droplet (issue #78) so the public dashboard can reach it. Without the bridge, **Send** opens Telegram with the full MKA context (temporary). Direct web chat is the target once the site is password-protected and `gateChatApi` points at the bridge behind auth.
 
 Optional agent hook: `GATE_AGENT_CMD='python3 path/to/agent.py'` — receives JSON on stdin.
 
