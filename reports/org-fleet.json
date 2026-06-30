@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-30T15:25:51Z",
+  "generated_at": "2026-06-30T15:31:34Z",
   "legend": {
     "live": "\ud83d\udfe2 Running now (24/7 service)",
     "timer": "\u23f0 Scheduled \u2014 fires on systemd timer",
@@ -13,9 +13,9 @@
     "gates": [],
     "focus": {
       "task_id": "ISSUE-BUS-001",
-      "task": "Fix agent-bus worker_model crash",
-      "status": "queued",
-      "owner": "PMO"
+      "task": "CEO supervision",
+      "status": "completed",
+      "owner": "CEO"
     },
     "pmo_status": "completed",
     "pmo_task": "Triage 13 ready-for-agent GitHub issues",
@@ -34,7 +34,7 @@
     "status": "active",
     "icon": "\ud83d\udfe1",
     "maps_to": "frontier-orchestrator",
-    "detail": "ISSUE-BUS-001 (queued) \u00b7 $20/wk cap ($20.0 left)",
+    "detail": "ISSUE-BUS-001 (completed) \u00b7 $20/wk cap ($20.0 left)",
     "schedule": "",
     "children": [
       {

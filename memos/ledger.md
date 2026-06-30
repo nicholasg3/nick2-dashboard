@@ -4,6 +4,12 @@ Read-only view of `logs/ceo-ledger.jsonl`.
 
 | Time | Actor | Event | Task ID | Task |
 |------|-------|-------|---------|------|
+| 2026-06-30T23:31:34 | COO | pattern_flag | FOCUS-001 |  |
+| 2026-06-30T23:31:31 | CEO | focus_snapshot | FOCUS-001 | CEO supervision |
+| 2026-06-30T23:29:51 | CEO | ceo_reflect | FOCUS-001 | CEO reflection and bottleneck pass |
+| 2026-06-30T23:29:51 | CEO | focus_snapshot | FOCUS-001 | CEO supervision |
+| 2026-06-30T23:29:51 | CEO | ceo_reflect_llm | FOCUS-001 | CEO LLM reflection |
+| 2026-06-30T23:29:23 | CEO | ceo_reflect_llm | FOCUS-001 | CEO LLM reflection |
 | 2026-06-30T23:25:50 | Nicholas | work_removed | ISSUE-80 | Nick2 dashboard: hourly ledger reconcile + memo ge |
 | 2026-06-30T23:25:38 | CEO | ceo_reflect | FOCUS-001 | CEO reflection and bottleneck pass |
 | 2026-06-30T23:25:38 | CEO | ceo_reflect_llm | FOCUS-001 | CEO LLM reflection |
@@ -38,9 +44,3 @@ Read-only view of `logs/ceo-ledger.jsonl`.
 | 2026-06-30T19:12:50 | Nicholas | nick_gate_resolved | DEC-003 | Confirm Telegram alert method for $5 spend thresho |
 | 2026-06-30T19:12:50 | Nicholas | decision_resolved | DEC-003 | Confirm Telegram alert method for $5 spend thresho |
 | 2026-06-30T19:12:50 | Nicholas | nick_gate_instruction | DEC-003 | Confirm Telegram alert method for $5 spend thresho |
-| 2026-06-30T19:09:11 | Nicholas | nick_gate_resolved | DEC-002 | Approve PMO scoring framework |
-| 2026-06-30T19:09:11 | Nicholas | decision_resolved | DEC-002 | Approve PMO scoring framework |
-| 2026-06-30T19:09:11 | Nicholas | nick_gate_instruction | DEC-002 | Approve PMO scoring framework |
-| 2026-06-30T17:46:35 | CRO | task_updated | LIT-001 | Autonomous literature research for memory architec |
-| 2026-06-30T16:35:52 | COO | focus_snapshot | FOCUS-001 | Triage 13 ready-for-agent GitHub issues |
-| 2026-06-30T16:35:52 | PMO | task_started | PMO-001 | Triage 13 ready-for-agent GitHub issues |

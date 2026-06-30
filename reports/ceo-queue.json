@@ -1,5 +1,5 @@
 {
-  "ts": "2026-06-30T15:29:42Z",
+  "ts": "2026-06-30T15:31:34Z",
   "mode": "ceo_reflect",
   "context": {
     "counts": {
@@ -24,13 +24,7 @@
       "one delegation slot available"
     ]
   },
-  "actions": [
-    {
-      "action": "llm_delegate_rejected",
-      "task_id": "ISSUE-BUS-001",
-      "reason": "ISSUE-BUS-001 already active on ledger"
-    }
-  ],
+  "actions": [],
   "proposals": [
     {
       "kind": "already_deferred",
@@ -51,123 +45,13 @@
       "kind": "already_deferred",
       "task_id": "ISSUE-24",
       "detail": "Nick personal queue \u2014 decision on Telegram PA permissions (not agent research)"
-    },
-    {
-      "kind": "llm_unstick",
-      "detail": "Promote one blocked job from ISSUE-BUS-001 to running to test if it can proceed.",
-      "suggested": "Since one delegation slot is available and no retries are allowed, promoting a blocked job to running may unstick the pipeline without adding new work."
-    },
-    {
-      "kind": "llm_unstick",
-      "detail": "Perform janitor checks on blocked jobs to identify and clear any stale holds or environment issues.",
-      "suggested": "Blocked jobs may be stuck due to transient conditions; janitor cleanup can free them without new delegations."
-    },
-    {
-      "kind": "llm_delegate",
-      "task_id": "ISSUE-BUS-001",
-      "detail": "ISSUE-BUS-001 is the highest-ranked active issue with blocked jobs and one delegation slot available. Delegating this task can help resolve the critical bus worker_model crash and unblock the system."
-    },
-    {
-      "kind": "llm_nick_attention",
-      "detail": "Decision-gated issues ISSUE-15 and ISSUE-24 require Nick's input to proceed."
-    },
-    {
-      "kind": "llm_nick_attention",
-      "detail": "Review the status and priority of ISSUE-80 and ISSUE-BUS-001 to ensure alignment with current goals."
     }
   ],
   "bottleneck_count": 0,
   "llm": {
     "enabled": true,
-    "ran": true,
-    "skip_reason": "forced",
-    "execute": true,
-    "meta": {
-      "model": "openai/gpt-4.1-mini",
-      "usage": {
-        "prompt_tokens": 1605,
-        "completion_tokens": 407,
-        "total_tokens": 2012,
-        "cost": 0.0012932,
-        "is_byok": false,
-        "prompt_tokens_details": {
-          "cached_tokens": 0,
-          "cache_write_tokens": 0,
-          "audio_tokens": 0,
-          "video_tokens": 0
-        },
-        "cost_details": {
-          "upstream_inference_cost": 0.0012932,
-          "upstream_inference_prompt_cost": 0.000642,
-          "upstream_inference_completions_cost": 0.0006512
-        },
-        "completion_tokens_details": {
-          "reasoning_tokens": 0,
-          "image_tokens": 0,
-          "audio_tokens": 0
-        }
-      },
-      "cost_usd": 0.0008
-    },
-    "reflection": {
-      "situation_summary": "The system currently has no running or queued tasks but has 7 blocked jobs, all related to ISSUE-80 and ISSUE-BUS-001. No retries are allowed, and only one new delegation slot is available. Several decision-gated issues remain deferred, preventing progress on related tasks.",
-      "root_causes": [
-        "Blocked jobs are stuck on ISSUE-80 and ISSUE-BUS-001, preventing forward progress.",
-        "No retries allowed to attempt unblocking failed jobs.",
-        "Decision-gated issues (ISSUE-15 and ISSUE-24) are deferred awaiting Nick's input, limiting new work initiation.",
-        "No running or queued tasks to absorb the workload, causing a stall."
-      ],
-      "unstick_ideas": [
-        {
-          "idea": "Promote one blocked job from ISSUE-BUS-001 to running to test if it can proceed.",
-          "rationale": "Since one delegation slot is available and no retries are allowed, promoting a blocked job to running may unstick the pipeline without adding new work."
-        },
-        {
-          "idea": "Perform janitor checks on blocked jobs to identify and clear any stale holds or environment issues.",
-          "rationale": "Blocked jobs may be stuck due to transient conditions; janitor cleanup can free them without new delegations."
-        }
-      ],
-      "delegate_recommendation": {
-        "task_id": "ISSUE-BUS-001",
-        "rationale": "ISSUE-BUS-001 is the highest-ranked active issue with blocked jobs and one delegation slot available. Delegating this task can help resolve the critical bus worker_model crash and unblock the system."
-      },
-      "focus_shift": null,
-      "nick_attention": [
-        "Decision-gated issues ISSUE-15 and ISSUE-24 require Nick's input to proceed.",
-        "Review the status and priority of ISSUE-80 and ISSUE-BUS-001 to ensure alignment with current goals."
-      ]
-    },
-    "llm_proposals": [
-      {
-        "kind": "llm_unstick",
-        "detail": "Promote one blocked job from ISSUE-BUS-001 to running to test if it can proceed.",
-        "suggested": "Since one delegation slot is available and no retries are allowed, promoting a blocked job to running may unstick the pipeline without adding new work."
-      },
-      {
-        "kind": "llm_unstick",
-        "detail": "Perform janitor checks on blocked jobs to identify and clear any stale holds or environment issues.",
-        "suggested": "Blocked jobs may be stuck due to transient conditions; janitor cleanup can free them without new delegations."
-      },
-      {
-        "kind": "llm_delegate",
-        "task_id": "ISSUE-BUS-001",
-        "detail": "ISSUE-BUS-001 is the highest-ranked active issue with blocked jobs and one delegation slot available. Delegating this task can help resolve the critical bus worker_model crash and unblock the system."
-      },
-      {
-        "kind": "llm_nick_attention",
-        "detail": "Decision-gated issues ISSUE-15 and ISSUE-24 require Nick's input to proceed."
-      },
-      {
-        "kind": "llm_nick_attention",
-        "detail": "Review the status and priority of ISSUE-80 and ISSUE-BUS-001 to ensure alignment with current goals."
-      }
-    ],
-    "actions": [
-      {
-        "action": "llm_delegate_rejected",
-        "task_id": "ISSUE-BUS-001",
-        "reason": "ISSUE-BUS-001 already active on ledger"
-      }
-    ]
+    "ran": false,
+    "skip_reason": "interval not elapsed (2m < 60m)",
+    "execute": true
   }
 }
