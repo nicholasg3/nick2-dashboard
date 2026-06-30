@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PMO-001 queue — Nick2</title>
+  <style>
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: #0f1419; color: #e8edf4; line-height: 1.55; margin: 0; }
+.wrap { max-width: 720px; margin: 0 auto; padding: 1.5rem; }
+a { color: #4f9cf9; }
+.nav { margin-bottom: 1.25rem; font-size: 0.9rem; }
+h1 { font-size: 1.55rem; letter-spacing: -0.02em; margin: 1rem 0 0.75rem; }
+h2 { font-size: 1.15rem; margin: 1.35rem 0 0.5rem; color: #c5d4e8; }
+h3 { font-size: 1rem; margin: 1rem 0 0.4rem; color: #a8b8cc; }
+p { margin: 0.55rem 0; }
+ul, ol { margin: 0.5rem 0 0.5rem 1.25rem; }
+li { margin: 0.25rem 0; }
+code { background: #243044; padding: 0.12em 0.38em; border-radius: 4px; font-size: 0.9em; }
+pre { background: #1a2332; border: 1px solid #2d3a4f; padding: 1rem; border-radius: 8px;
+  overflow-x: auto; font-size: 0.85rem; }
+pre code { background: none; padding: 0; }
+table { width: 100%; border-collapse: collapse; margin: 0.75rem 0; font-size: 0.92rem; }
+th, td { border: 1px solid #2d3a4f; padding: 0.45rem 0.6rem; text-align: left; }
+th { color: #8b9cb3; }
+em { color: #8b9cb3; }
+strong { color: #fff; }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <p class="nav"><a href="../../index.html">← Dashboard</a></p>
+    <h1>PMO-001: Triage 13 ready-for-agent GitHub issues</h1>
+<p>_Active Work Queue_</p>
+<p><strong>Owner:</strong> PMO · <strong>Status:</strong> queued · <strong>Updated:</strong> 2026-06-30T16:18</p>
+<h2>1. Executive Framing</h2>
+<p><strong>Objective:</strong> Produce a ranked execution order for 13 ready-for-agent GitHub issues — highest ROI first within the $20/week budget.</p>
+<p><strong>Decision:</strong> How PMO proceeds while worker dispatch remains off.</p>
+<p><strong>Weekly budget:</strong> $20.00 (capped)</p>
+<p>_Ledger note:_ Budget authorized ($20/week). Blocked on worker.enabled=false — enable in lane.json to dispatch.</p>
+<h2>2. Problem Decomposition (MECE)</h2>
+<table><thead><tr><th>Bucket</th><th>Scope</th><th>Current state</th></tr></thead><tbody>
+<tr><td>Inventory</td><td>13 issues, tiers, dependencies</td><td>Queued; proposal P-001 approved (Tier B)</td></tr>
+<tr><td>Scoring</td><td>Framework weights and rank output</td><td>Blocked on DEC-002 unless Nick approves interim rubric</td></tr>
+<tr><td>Dispatch readiness</td><td>Budget, worker flag, model routing</td><td>Budget OK ($20/wk); <code>worker.enabled=false</code></td></tr>
+<tr><td>Deliverable</td><td>Ranked list + memos for top 3</td><td>Not yet produced</td></tr>
+</tbody></table>
+<h2>3. Root Cause</h2>
+<p>Execution switch is off (<code>worker.enabled=false</code>) even though capital is authorized — PMO can analyze but cannot auto-dispatch.</p>
+<h2>4. Strategic Options</h2>
+<h3>Option A: Analysis-only triage now</h3>
+<ul><li><strong>Upside:</strong> Zero spend; delivers ranked list for Nick review.</li><li><strong>Downside:</strong> No autonomous execution until worker enabled.</li><li><strong>When to choose:</strong> Default path — do this now.</li></ul>
+<h3>Option B: Nick enables worker.enabled</h3>
+<ul><li><strong>Upside:</strong> Full autonomous dispatch after triage.</li><li><strong>Downside:</strong> Spend starts; needs DEC-002 for consistent scoring.</li><li><strong>When to choose:</strong> After framework approval or explicit Nick OK.</li></ul>
+<h3>Option C: CEO manual top-3 pick</h3>
+<ul><li><strong>Upside:</strong> Fastest single decision.</li><li><strong>Downside:</strong> Bypasses PMO; not repeatable.</li><li><strong>When to choose:</strong> Emergency only.</li></ul>
+<h2>5. Recommendation</h2>
+<p><strong>Run analysis-only triage immediately</strong> (no spend). Nick enables <code>worker.enabled</code> in <code>lane.json</code> when DEC-002 is cleared.</p>
+<h3>Nick action (if any)</h3>
+<p>Optional: set <code>worker.enabled: true</code> in <code>ai-agents-workspace/Projects-for-agents/frontier-orchestrator/lane.json</code>.</p>
+<h3>Links</h3>
+<ul><li><a href="https://nicholasg3.github.io/nick2-dashboard/">Dashboard</a></li><li>Ledger: <code>logs/ceo-ledger.jsonl</code> (<code>PMO-001</code>)</li></ul>
+  </div>
+</body>
+</html>

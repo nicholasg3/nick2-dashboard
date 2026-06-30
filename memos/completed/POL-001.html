@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>POL-001 completed — Nick2</title>
+  <style>
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: #0f1419; color: #e8edf4; line-height: 1.55; margin: 0; }
+.wrap { max-width: 720px; margin: 0 auto; padding: 1.5rem; }
+a { color: #4f9cf9; }
+.nav { margin-bottom: 1.25rem; font-size: 0.9rem; }
+h1 { font-size: 1.55rem; letter-spacing: -0.02em; margin: 1rem 0 0.75rem; }
+h2 { font-size: 1.15rem; margin: 1.35rem 0 0.5rem; color: #c5d4e8; }
+h3 { font-size: 1rem; margin: 1rem 0 0.4rem; color: #a8b8cc; }
+p { margin: 0.55rem 0; }
+ul, ol { margin: 0.5rem 0 0.5rem 1.25rem; }
+li { margin: 0.25rem 0; }
+code { background: #243044; padding: 0.12em 0.38em; border-radius: 4px; font-size: 0.9em; }
+pre { background: #1a2332; border: 1px solid #2d3a4f; padding: 1rem; border-radius: 8px;
+  overflow-x: auto; font-size: 0.85rem; }
+pre code { background: none; padding: 0; }
+table { width: 100%; border-collapse: collapse; margin: 0.75rem 0; font-size: 0.92rem; }
+th, td { border: 1px solid #2d3a4f; padding: 0.45rem 0.6rem; text-align: left; }
+th { color: #8b9cb3; }
+em { color: #8b9cb3; }
+strong { color: #fff; }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <p class="nav"><a href="../../index.html">← Dashboard</a></p>
+    <h1>POL-001: Nick gate queue convention — Completed</h1>
+<p><strong>Owner:</strong> CEO · <strong>Status:</strong> completed · <strong>Updated:</strong> 2026-06-30T16:22 · <strong>Cost:</strong> $0.00</p>
+<h2>1. Executive Framing</h2>
+<p><strong>Objective:</strong> Prevent agent idle time when work is gated on Nick.  </p>
+<p><strong>Outcome:</strong> If work needs Nicholas, append nick_gate to ledger and memos/gated/. Agents keep executing ungated Active Work Queue items — never idle on Nick.</p>
+<h2>2. What shipped (MECE)</h2>
+<table><thead><tr><th>Bucket</th><th>Scope</th><th>Current state</th></tr></thead><tbody>
+<tr><td>Gate</td><td>nick_gate / decision_needed</td><td>Park in Gated queue</td></tr>
+<tr><td>Execute</td><td>Active Work Queue</td><td>Ungated only</td></tr>
+<tr><td>Clear</td><td>nick_gate_resolved</td><td>Nick or reconcile</td></tr>
+<tr><td>Anti-pattern</td><td>Blocking on Nick</td><td>Explicitly forbidden</td></tr>
+</tbody></table>
+<h2>3. Root cause addressed</h2>
+<p>Without a gate convention, agents stall on human dependencies.</p>
+<h2>5. Recommendation</h2>
+<p><strong>Policy active.</strong> Agents continue ungated work while Nick clears gates.</p>
+<h2>Artifacts</h2>
+<ul><li><code>memos/policy.md</code></li></ul>
+  </div>
+</body>
+</html>

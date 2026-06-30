@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DEC-003 gated — Nick2</title>
+  <style>
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: #0f1419; color: #e8edf4; line-height: 1.55; margin: 0; }
+.wrap { max-width: 720px; margin: 0 auto; padding: 1.5rem; }
+a { color: #4f9cf9; }
+.nav { margin-bottom: 1.25rem; font-size: 0.9rem; }
+h1 { font-size: 1.55rem; letter-spacing: -0.02em; margin: 1rem 0 0.75rem; }
+h2 { font-size: 1.15rem; margin: 1.35rem 0 0.5rem; color: #c5d4e8; }
+h3 { font-size: 1rem; margin: 1rem 0 0.4rem; color: #a8b8cc; }
+p { margin: 0.55rem 0; }
+ul, ol { margin: 0.5rem 0 0.5rem 1.25rem; }
+li { margin: 0.25rem 0; }
+code { background: #243044; padding: 0.12em 0.38em; border-radius: 4px; font-size: 0.9em; }
+pre { background: #1a2332; border: 1px solid #2d3a4f; padding: 1rem; border-radius: 8px;
+  overflow-x: auto; font-size: 0.85rem; }
+pre code { background: none; padding: 0; }
+table { width: 100%; border-collapse: collapse; margin: 0.75rem 0; font-size: 0.92rem; }
+th, td { border: 1px solid #2d3a4f; padding: 0.45rem 0.6rem; text-align: left; }
+th { color: #8b9cb3; }
+em { color: #8b9cb3; }
+strong { color: #fff; }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <p class="nav"><a href="../../index.html">← Dashboard</a></p>
+    <h1>DEC-003: Confirm Telegram alert method for $5 spend thresholds</h1>
+<p>_Gated by Nick · priority #2 · medium_</p>
+<p><strong>Owner:</strong> CEO · <strong>Status:</strong> awaiting_nicholas · <strong>Updated:</strong> 2026-06-30T14:57</p>
+<h2>1. Executive Framing</h2>
+<p><strong>Objective:</strong> Give Nicholas real-time visibility when weekly OpenRouter spend crosses material thresholds — before the $20 cap is silently exhausted.</p>
+<p><strong>Decision:</strong> Which alert channel and threshold rules to use for spend notifications.</p>
+<p>_Ledger note:_ Alert channel for cumulative weekly spend crossing $5 increments.</p>
+<h2>2. Problem Decomposition (MECE)</h2>
+<table><thead><tr><th>Bucket</th><th>Scope</th><th>Current state</th></tr></thead><tbody>
+<tr><td>Channel</td><td>How Nick receives the signal</td><td>No push channel configured</td></tr>
+<tr><td>Threshold logic</td><td>When alerts fire</td><td>Proposed: every $5 of cumulative weekly spend</td></tr>
+<tr><td>Recipient &amp; escalation</td><td>Who acts on the alert</td><td>Nick (budget owner)</td></tr>
+<tr><td>Fallback</td><td>Behavior if delivery fails</td><td>Hourly reconcile + dashboard only today</td></tr>
+</tbody></table>
+<h2>3. Root Cause</h2>
+<p>Budget is authorized and capped, but spend is only visible on reconcile — no interrupt path for Nick to throttle or reprioritize mid-week.</p>
+<h2>4. Strategic Options</h2>
+<h3>Option A: Telegram bot → Nick</h3>
+<ul><li><strong>Upside:</strong> Real-time; mobile; low friction once bot token is set.</li><li><strong>Downside:</strong> Requires one-time bot setup and chat ID.</li><li><strong>When to choose:</strong> Nick wants push alerts (recommended).</li></ul>
+<h3>Option B: Email digest (hourly)</h3>
+<ul><li><strong>Upside:</strong> No new infra beyond SMTP.</li><li><strong>Downside:</strong> Slower; easy to miss.</li><li><strong>When to choose:</strong> Telegram is undesirable.</li></ul>
+<h3>Option C: Dashboard + reconcile only</h3>
+<ul><li><strong>Upside:</strong> Zero setup.</li><li><strong>Downside:</strong> No proactive signal; Nick must pull.</li><li><strong>When to choose:</strong> Acceptable only at very low spend velocity.</li></ul>
+<h3>Option D: Hard stop at $18 auto-pause</h3>
+<ul><li><strong>Upside:</strong> Automatic cap protection.</li><li><strong>Downside:</strong> No human judgment before pause; may halt good work.</li><li><strong>When to choose:</strong> Combine with A or B, not alone.</li></ul>
+<h2>5. Recommendation</h2>
+<p><strong>Telegram alerts at $5 / $10 / $15 / $20 cumulative weekly spend</strong>, with reconcile as fallback witness. Pair with auto-pause at $18 if desired.</p>
+<h3>What Nick must do</h3>
+<p>Confirm Telegram (provide chat ID or approve CTO to wire bot) or choose email/dashboard-only.</p>
+<h3>Context for agents</h3>
+<p>This item is <strong>gated</strong>. Do not idle — continue ungated work in the Active Work Queue.</p>
+<h3>Clear this gate</h3>
+<p>Append <code>nick_gate_resolved</code> or <code>decision_resolved</code> for <code>DEC-003</code>.</p>
+<p><a href="../policy.html">Policy</a></p>
+  </div>
+</body>
+</html>

@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nick gate policy — Nick2</title>
+  <style>
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: #0f1419; color: #e8edf4; line-height: 1.55; margin: 0; }
+.wrap { max-width: 720px; margin: 0 auto; padding: 1.5rem; }
+a { color: #4f9cf9; }
+.nav { margin-bottom: 1.25rem; font-size: 0.9rem; }
+h1 { font-size: 1.55rem; letter-spacing: -0.02em; margin: 1rem 0 0.75rem; }
+h2 { font-size: 1.15rem; margin: 1.35rem 0 0.5rem; color: #c5d4e8; }
+h3 { font-size: 1rem; margin: 1rem 0 0.4rem; color: #a8b8cc; }
+p { margin: 0.55rem 0; }
+ul, ol { margin: 0.5rem 0 0.5rem 1.25rem; }
+li { margin: 0.25rem 0; }
+code { background: #243044; padding: 0.12em 0.38em; border-radius: 4px; font-size: 0.9em; }
+pre { background: #1a2332; border: 1px solid #2d3a4f; padding: 1rem; border-radius: 8px;
+  overflow-x: auto; font-size: 0.85rem; }
+pre code { background: none; padding: 0; }
+table { width: 100%; border-collapse: collapse; margin: 0.75rem 0; font-size: 0.92rem; }
+th, td { border: 1px solid #2d3a4f; padding: 0.45rem 0.6rem; text-align: left; }
+th { color: #8b9cb3; }
+em { color: #8b9cb3; }
+strong { color: #fff; }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <p class="nav"><a href="../index.html">← Dashboard</a></p>
+    <h1>Nick gate policy — CEO &amp; agents</h1>
+<h2>Rule</h2>
+<p><strong>If anything needs Nicholas, park it in the Gated by Nick queue and keep working on ungated items.</strong></p>
+<p>Do not block the company waiting on Nick. The gate is a priority inbox for Nick, not a stop sign for agents.</p>
+<h2>How to gate an item</h2>
+<p>Append one line to <code>logs/ceo-ledger.jsonl</code>:</p>
+<pre><code>{
+  &quot;actor&quot;: &quot;CEO&quot;,
+  &quot;event&quot;: &quot;nick_gate&quot;,
+  &quot;task_id&quot;: &quot;GATE-004&quot;,
+  &quot;task&quot;: &quot;Short title of what Nick must decide&quot;,
+  &quot;status&quot;: &quot;awaiting_nicholas&quot;,
+  &quot;gated_by_nick&quot;: true,
+  &quot;needs_nicholas&quot;: true,
+  &quot;nick_priority&quot;: 1,
+  &quot;priority&quot;: &quot;high&quot;,
+  &quot;output&quot;: &quot;Exactly what Nick needs to do or decide.&quot;,
+  &quot;what_nick_must_do&quot;: &quot;Approve X / reply Y / flip flag Z&quot;
+}</code></pre>
+<p><strong>Priority:</strong> <code>nick_priority</code> 1 = highest (or <code>priority</code>: <code>high</code> | <code>medium</code> | <code>low</code>).</p>
+<p><code>decision_needed</code> events are treated the same as <code>nick_gate</code>.</p>
+<h2>How Nick clears a gate</h2>
+<pre><code>{
+  &quot;actor&quot;: &quot;CEO&quot;,
+  &quot;event&quot;: &quot;nick_gate_resolved&quot;,
+  &quot;task_id&quot;: &quot;GATE-004&quot;,
+  &quot;task&quot;: &quot;Same title&quot;,
+  &quot;status&quot;: &quot;completed&quot;,
+  &quot;output&quot;: &quot;Nick approved via Telegram on 2026-06-30.&quot;,
+  &quot;resolved_by&quot;: &quot;Nicholas&quot;
+}</code></pre>
+<p>Alias: <code>decision_resolved</code> also clears the gate.</p>
+<h2>What stays OUT of the gate</h2>
+<ul><li>Mechanical work with a runnable witness</li><li>Tier-A auto-runs</li><li>Optional improvements Nick might like but did not block on (note in queue memo, do not gate)</li></ul>
+<h2>Dashboard</h2>
+<ul><li><strong>Gated by Nick</strong> — priority queue (sorted high → low)</li><li><strong>Active Work Queue</strong> — agents execute here; never includes gated items</li><li><strong>Currently Working On</strong> — always an ungated task</li></ul>
+<p>Memos: <code>memos/gated/{task_id}.md</code></p>
+  </div>
+</body>
+</html>

@@ -1,25 +1,28 @@
 # Current focus — Nick2
 
-_Updated 2026-06-30 16:22 SGT (hourly cadence)_
+_Updated 2026-06-30 16:30 SGT (hourly cadence)_
 
-## Working on now
+## 1. Executive Framing
 
-**PMO:** Triage 13 ready-for-agent GitHub issues
+**Objective:** Keep Nick2 moving on the highest-leverage **ungated** work while gates wait in Nick's priority inbox.  
+**Decision this cycle:** Whether to enable worker dispatch (`worker.enabled`) and clear DEC-002 / DEC-003.
+
+## 2. State (MECE)
+
+| Bucket | Now |
+|--------|-----|
+| **Focus** | PMO: Triage 13 ready-for-agent GitHub issues (`PMO-001`) |
+| **Status** | queued |
+| **Budget** | $20.00/wk · spent $0.00 · mode capped |
+| **Gates** | 2 item(s) waiting on Nick |
+
+## 3. Root cause
 
 Budget authorized ($20/week). Blocked on worker.enabled=false — enable in lane.json to dispatch.
 
-**Task ID:** `PMO-001` · **Status:** queued
+## 5. Recommendation
 
-[Full memo](queue/PMO-001.md)
+**Agents:** Execute analysis-only PMO triage (PMO-001) — no spend required.  
+**Nick:** Clear [DEC-002](gated/DEC-002.html) (scoring framework), then [DEC-003](gated/DEC-003.html) (alerts). Optionally enable `worker.enabled` in `lane.json`.
 
-## Executive context
-
-| Metric | Value |
-|--------|-------|
-| Weekly budget | $20.00 |
-| Spend | $0.00 |
-| Mode | capped |
-
-## Next unblocked step
-
-PMO triage is queued — enable `worker.enabled` in lane.json to dispatch.
+[Full task memo](queue/PMO-001.html)

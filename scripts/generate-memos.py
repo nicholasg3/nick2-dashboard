@@ -1,10 +1,25 @@
 #!/usr/bin/env python3
-"""Generate markdown memos from ceo-ledger.jsonl for dashboard deep-links."""
+"""Generate MKA-style markdown memos from ceo-ledger.jsonl for dashboard deep-links.
+
+Memo shape: Executive Framing → MECE → Root Cause → Options → Recommendation.
+Task-specific briefs live in mka_memo.TASK_BRIEFS; unknown tasks get ledger-aware fallbacks.
+"""
 from __future__ import annotations
 
 import json
+import sys
 from datetime import datetime, timezone, timedelta
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from md_page import write_html
+from mka_memo import (
+    mka_completed_body,
+    mka_current_body,
+    mka_gated_body,
+    mka_gated_queue_body,
+    mka_queue_body,
+)
 
 ROOT = Path(__file__).resolve().parents[1]
 LEDGER = ROOT / "logs" / "ceo-ledger.jsonl"
@@ -77,92 +92,6 @@ def write(path: Path, body: str) -> None:
     path.write_text(body, encoding="utf-8")
 
 
-def queue_memo(tid: str, t: dict, weekly: float) -> str:
-    needs = "Yes" if t.get("needs_nicholas") else "No"
-    nicholas_section = ""
-    if t.get("needs_nicholas"):
-        nicholas_section = f"\n## What Nicholas needs to do\n\n{t.get('output', 'Review and approve.')}\n"
-    elif tid == "PMO-001" and weekly > 0:
-        nicholas_section = (
-            "\n## What Nicholas needs to do\n\n"
-            "Optional: set `worker.enabled: true` in "
-            "`ai-agents-workspace/Projects-for-agents/frontier-orchestrator/lane.json` "
-            "to allow autonomous PMO dispatch. Budget is already authorized.\n"
-        )
-    elif tid == "SYS-001":
-        nicholas_section = (
-            "\n## What Nicholas needs to do\n\n"
-            "Enable frontier worker in `lane.json` when ready for auto-dispatch.\n"
-        )
-
-    return f"""# {tid}: {t.get('task', 'Task')}
-
-**Status:** {t.get('status', '—')}  
-**Owner:** {t.get('owner') or t.get('actor', '—')}  
-**Updated:** {(t.get('ts') or '')[:16]}
-
-## What this is
-
-{t.get('output', 'No detail recorded yet.')}
-
-## Needs Nicholas?
-
-{needs}
-{nicholas_section}
-## Links
-
-- [Dashboard](https://nicholasg3.github.io/nick2-dashboard/)
-- Ledger: `logs/ceo-ledger.jsonl` (task_id `{tid}`)
-"""
-
-
-def completed_memo(tid: str, t: dict) -> str:
-    arts = t.get("artifacts") or []
-    art_block = "\n".join(f"- `{a}`" for a in arts) if arts else "_None listed._"
-    return f"""# {tid}: {t.get('task', 'Task')} — Completed
-
-**Owner:** {t.get('actor', '—')}  
-**Completed:** {(t.get('ts') or '')[:16]}  
-**Cost:** ${float(t.get('cost_usd') or 0):.2f}
-
-## Summary
-
-{t.get('output', 'Task completed.')}
-
-## Artifacts
-
-{art_block}
-"""
-
-
-def gated_memo(tid: str, t: dict, rank: int) -> str:
-    what = t.get("what_nick_must_do") or t.get("output", "Review and respond.")
-    return f"""# {tid}: Gated by Nick (priority #{rank})
-
-**Priority:** {t.get('priority', 'medium')}  
-**Status:** {t.get('status', 'awaiting_nicholas')}  
-**Queue rank:** #{rank}
-
-## Waiting on Nicholas
-
-{t.get('task', '')}
-
-## What Nicholas must do
-
-{what}
-
-## Context for agents
-
-This item is **gated**. Agents must not idle on it — continue ungated work in the Active Work Queue.
-
-## How Nick clears this
-
-Append `nick_gate_resolved` or `decision_resolved` for `{tid}`.
-
-[Policy](../policy.md)
-"""
-
-
 def current_memo(events: list[dict], tasks: dict[str, dict], weekly: float) -> str:
     focus_ev = next((e for e in reversed(events) if e.get("event") == "focus_snapshot"), None)
     focus_id = (focus_ev or {}).get("focus_task_id") or "PMO-001"
@@ -186,33 +115,47 @@ def current_memo(events: list[dict], tasks: dict[str, dict], weekly: float) -> s
     primary = in_prog[0] if in_prog else (ft if ungated(ft) else (ungated_active[0] if ungated_active else {}))
     pid = primary.get("task_id", focus_id if ungated(ft) else "—")
     now = datetime.now(SGT).strftime("%Y-%m-%d %H:%M SGT")
+    spend = float(latest(events, "cumulative_weekly_spend_usd", 0) or 0)
+    mode = latest(events, "budget_mode", "—")
+    gated_count = sum(1 for tid, t in tasks.items() if is_gated(tid, t, resolved))
 
-    return f"""# Current focus — Nick2
+    return mka_current_body(
+        primary=primary,
+        pid=pid,
+        now=now,
+        weekly=weekly,
+        spend=spend,
+        mode=str(mode),
+        gated_count=gated_count,
+    )
 
-_Updated {now} (hourly cadence)_
 
-## Working on now
+def ledger_html(events: list[dict]) -> str:
+    return f"""# CEO ledger (last 40 events)
 
-**{primary.get('owner') or primary.get('actor', 'CEO')}:** {primary.get('task', 'Idle')}
+Read-only view of `logs/ceo-ledger.jsonl`.
 
-{primary.get('output', '')}
-
-**Task ID:** `{pid}` · **Status:** {primary.get('status', '—')}
-
-[Full memo](queue/{pid}.md)
-
-## Executive context
-
-| Metric | Value |
-|--------|-------|
-| Weekly budget | ${weekly:.2f} |
-| Spend | ${float(latest(events, 'cumulative_weekly_spend_usd', 0) or 0):.2f} |
-| Mode | {latest(events, 'budget_mode', '—')} |
-
-## Next unblocked step
-
-{"PMO triage is queued — enable `worker.enabled` in lane.json to dispatch." if weekly > 0 else "Authorize weekly budget in ledger."}
+| Time | Actor | Event | Task ID | Task |
+|------|-------|-------|---------|------|
+{chr(10).join(
+    f"| {(e.get('ts') or '')[:19]} | {e.get('actor', '')} | {e.get('event', '')} | {e.get('task_id', '')} | {(e.get('task') or '')[:50]} |"
+    for e in reversed(events[-40:])
+)}
 """
+
+
+def html_escape(s: str) -> str:
+    return (
+        str(s)
+        .replace("&", "&amp;")
+        .replace("<", "&lt;")
+        .replace(">", "&gt;")
+    )
+
+
+def emit_pair(md_path: Path, md: str, title: str, back: str) -> None:
+    write(md_path, md)
+    write_html(md_path.with_suffix(".html"), md, title, back)
 
 
 def main() -> None:
@@ -230,29 +173,31 @@ def main() -> None:
         ev = t.get("event", "")
         status = t.get("status", "")
         if status == "completed" or ev == "task_completed":
-            write(MEMOS / "completed" / f"{tid}.md", completed_memo(tid, t))
+            body = mka_completed_body(tid, t)
+            emit_pair(MEMOS / "completed" / f"{tid}.md", body, f"{tid} completed", "../../index.html")
         elif is_gated(tid, t, resolved):
             rank = next((i + 1 for i, (g, _) in enumerate(gated_items) if g == tid), 0)
-            write(MEMOS / "gated" / f"{tid}.md", gated_memo(tid, t, rank))
+            body = mka_gated_body(tid, t, rank)
+            emit_pair(MEMOS / "gated" / f"{tid}.md", body, f"{tid} gated", "../../index.html")
         elif status in ACTIVE and t.get("last_event", ev) not in SKIP_QUEUE:
-            write(MEMOS / "queue" / f"{tid}.md", queue_memo(tid, t, weekly))
+            body = mka_queue_body(tid, t, weekly)
+            emit_pair(MEMOS / "queue" / f"{tid}.md", body, f"{tid} queue", "../../index.html")
 
-    write(MEMOS / "current.md", current_memo(events, tasks, weekly))
-    write(
-        MEMOS / "gated-queue.md",
-        "# Gated by Nick — priority queue\n\n"
-        + (
-            "\n".join(
-                f"{i + 1}. **{t.get('task', tid)}** (`{tid}`) — "
-                f"[memo](gated/{tid}.md) — {t.get('priority', 'medium')}"
-                for i, (tid, t) in enumerate(gated_items)
-            )
-            if gated_items
-            else "_No items gated. Agents: keep executing ungated work._"
-        )
-        + "\n",
-    )
-    print(f"generate-memos: wrote memos under {MEMOS.relative_to(ROOT)}")
+    current = current_memo(events, tasks, weekly)
+    emit_pair(MEMOS / "current.md", current, "Current focus", "../index.html")
+
+    gated_md = mka_gated_queue_body(gated_items)
+    emit_pair(MEMOS / "gated-queue.md", gated_md, "Gated queue", "../index.html")
+
+    policy_path = MEMOS / "policy.md"
+    if policy_path.exists():
+        policy_md = policy_path.read_text(encoding="utf-8")
+        write_html(MEMOS / "policy.html", policy_md, "Nick gate policy", "../index.html")
+
+    ledger_md = ledger_html(events)
+    emit_pair(MEMOS / "ledger.md", ledger_md, "CEO ledger", "../index.html")
+
+    print(f"generate-memos: wrote memos (.md + .html) under {MEMOS.relative_to(ROOT)}")
 
 
 if __name__ == "__main__":

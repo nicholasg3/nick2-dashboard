@@ -329,16 +329,11 @@ function renderTable(el, headers, rows, emptyMsg) {
 
 function memoHref(kind, taskId) {
   if (!taskId) return null;
-  return `memos/${kind}/${taskId}.md`;
-}
-
-function memoViewerUrl(mdPath) {
-  if (!mdPath) return null;
-  return `memo.html?p=${encodeURIComponent(mdPath)}`;
+  return `memos/${kind}/${taskId}.html`;
 }
 
 function memoLink(kind, taskId) {
-  const href = memoViewerUrl(memoHref(kind, taskId));
+  const href = memoHref(kind, taskId);
   if (!href) return '—';
   return `<a class="memo-link" href="${href}">memo</a>`;
 }
@@ -367,7 +362,7 @@ function setFocusPanel(focus) {
     headline.textContent = 'Idle — no active work in queue';
     detail.textContent = 'Check the roadmap or authorize work in the ledger.';
     meta.innerHTML = '';
-    link.href = memoViewerUrl('memos/current.md') || 'memo.html';
+    link.href = 'memos/current.html';
     link.textContent = 'Focus memo →';
     return;
   }
@@ -378,8 +373,8 @@ function setFocusPanel(focus) {
   detail.textContent = focus.output || '';
   const memoPath = focus.focus_task_id
     ? memoHref('queue', focus.focus_task_id)
-    : memoHref('queue', taskId) || 'memos/current.md';
-  link.href = memoViewerUrl(memoPath) || 'memo.html';
+    : memoHref('queue', taskId) || 'memos/current.html';
+  link.href = memoPath;
   link.textContent = `Task memo (${taskId || 'current'}) →`;
   meta.innerHTML = `
     <span class="meta-pill">${badge(focus.status)}</span>
