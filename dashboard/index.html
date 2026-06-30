@@ -40,6 +40,13 @@
         </div>
       </div>
       <div id="nick-gate-queue" class="table-wrap"></div>
+      <div id="gate-chat-drawer" class="gate-chat-drawer hidden">
+        <div class="gate-chat-drawer-head">
+          <h3>Gate chat</h3>
+          <p class="muted">Chat with the agent about the selected gate — give instructions to clear blockers.</p>
+        </div>
+        <div id="gate-chat-host"></div>
+      </div>
     </section>
 
     <section id="roadmap" class="panel">
@@ -108,6 +115,7 @@
     <p>Source of truth: <code>logs/ceo-ledger.jsonl</code> · Append-only · SGT timestamps</p>
   </footer>
 
-  <script src="app.js?v=5"></script>
+  <script src="gate-chat.js"></script>
+  <script src="app.js?v=6"></script>
 </body>
 </html>

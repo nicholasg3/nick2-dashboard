@@ -1,0 +1,120 @@
+{
+  "DEC-002": {
+    "task_id": "DEC-002",
+    "title": "Approve PMO scoring framework",
+    "priority": "high",
+    "rank": 1,
+    "objective": "Enable consistent, repeatable ranking of ready-for-agent GitHub issues before autonomous dispatch consumes the weekly budget.",
+    "decision": "Approve, modify, or defer the PMO scoring framework.",
+    "mece": [
+      [
+        "Impact",
+        "Strategic value, unblocker effect, revenue adjacency",
+        "13 issues waiting; no agreed rank order"
+      ],
+      [
+        "Effort & risk",
+        "Agent complexity, external writes, rollback cost",
+        "Tier-B proposal exists; scores not standardized"
+      ],
+      [
+        "Readiness",
+        "Issue clarity, artifacts, runnable witness",
+        "Issues marked ready-for-agent in workspace"
+      ],
+      [
+        "Governance",
+        "Budget fit ($20/wk), trust tier, Nick-only gates",
+        "DEC-002 is the last high-priority framework gate"
+      ]
+    ],
+    "root_cause": "PMO cannot scale triage without a shared rubric — ad-hoc ranking would misallocate the $20/week cap across low-ROI agent runs.",
+    "options": [
+      {
+        "name": "Approve default framework (pilot)",
+        "upside": "Unblocks PMO-001 immediately; impact×readiness/effort is good enough for first cycle.",
+        "downside": "Weights may need tuning after first spend report.",
+        "when": "Nick wants velocity over perfect calibration."
+      },
+      {
+        "name": "Approve with Nick-tuned weights",
+        "upside": "Better fit to Nick's ROI preferences before any spend.",
+        "downside": "Adds one review round; delays first dispatch.",
+        "when": "Nick has strong priors on issue priority."
+      },
+      {
+        "name": "Defer — manual CEO triage only",
+        "upside": "Zero framework risk.",
+        "downside": "Does not scale; wastes PMO capacity; blocks autonomous loop.",
+        "when": "Only if autonomous dispatch is off indefinitely."
+      },
+      {
+        "name": "Reject — revert to ad-hoc picks",
+        "upside": "No process overhead.",
+        "downside": "Highest risk of budget waste and inconsistent outcomes.",
+        "when": "Not recommended while budget is capped and worker may enable."
+      }
+    ],
+    "recommendation": "**Approve the default framework for a pilot on the top 3 issues.** Revisit weights after the first weekly spend report (CFO).",
+    "what_nick_must_do": "Reply approve / approve-with-weights / defer. CEO appends `decision_resolved` for DEC-002."
+  },
+  "DEC-003": {
+    "task_id": "DEC-003",
+    "title": "Confirm Telegram alert method for $5 spend thresholds",
+    "priority": "medium",
+    "rank": 2,
+    "objective": "Give Nicholas real-time visibility when weekly OpenRouter spend crosses material thresholds — before the $20 cap is silently exhausted.",
+    "decision": "Which alert channel and threshold rules to use for spend notifications.",
+    "mece": [
+      [
+        "Channel",
+        "How Nick receives the signal",
+        "No push channel configured"
+      ],
+      [
+        "Threshold logic",
+        "When alerts fire",
+        "Proposed: every $5 of cumulative weekly spend"
+      ],
+      [
+        "Recipient & escalation",
+        "Who acts on the alert",
+        "Nick (budget owner)"
+      ],
+      [
+        "Fallback",
+        "Behavior if delivery fails",
+        "Hourly reconcile + dashboard only today"
+      ]
+    ],
+    "root_cause": "Budget is authorized and capped, but spend is only visible on reconcile — no interrupt path for Nick to throttle or reprioritize mid-week.",
+    "options": [
+      {
+        "name": "Telegram bot → Nick",
+        "upside": "Real-time; mobile; low friction once bot token is set.",
+        "downside": "Requires one-time bot setup and chat ID.",
+        "when": "Nick wants push alerts (recommended)."
+      },
+      {
+        "name": "Email digest (hourly)",
+        "upside": "No new infra beyond SMTP.",
+        "downside": "Slower; easy to miss.",
+        "when": "Telegram is undesirable."
+      },
+      {
+        "name": "Dashboard + reconcile only",
+        "upside": "Zero setup.",
+        "downside": "No proactive signal; Nick must pull.",
+        "when": "Acceptable only at very low spend velocity."
+      },
+      {
+        "name": "Hard stop at $18 auto-pause",
+        "upside": "Automatic cap protection.",
+        "downside": "No human judgment before pause; may halt good work.",
+        "when": "Combine with A or B, not alone."
+      }
+    ],
+    "recommendation": "**Telegram alerts at $5 / $10 / $15 / $20 cumulative weekly spend**, with reconcile as fallback witness. Pair with auto-pause at $18 if desired.",
+    "what_nick_must_do": "Confirm Telegram (provide chat ID or approve CTO to wire bot) or choose email/dashboard-only."
+  }
+}

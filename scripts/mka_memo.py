@@ -506,7 +506,7 @@ def mka_gated_queue_body(gated_items: list[tuple[str, dict]]) -> str:
         task = t.get("task", tid)
         rows.append(
             f"| {i + 1} | {t.get('priority', 'medium')} | `{tid}` | "
-            f"[{task}](gated/{tid}.html) |"
+            f"[{task}](../gate-room.html?task={tid}) |"
         )
 
     return f"""# Gated by Nick — priority queue

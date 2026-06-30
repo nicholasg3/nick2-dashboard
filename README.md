@@ -30,6 +30,33 @@ Agents never rewrite history. They append one JSON line per action.
 
 See `memos/policy.md`. Do not idle waiting on Nick.
 
+## Gate chat (Nick ↔ agent on gated items)
+
+Gated items open an **interactive gate room** (not a static markdown page):
+
+- **On dashboard:** click a gated row or **Discuss** — chat panel opens below the queue
+- **Deep link:** `gate-room.html?task=DEC-002`
+
+Messages live in `logs/gate-chats/{task_id}.jsonl` and deploy with the site. Nick's instructions also append `nick_gate_instruction` to the ledger when the bridge is running.
+
+### Enable live send/receive
+
+GitHub Pages is static — run the bridge on your Mac or droplet:
+
+```bash
+python3 scripts/gate_chat_server.py
+```
+
+Set `dashboard/config.json`:
+
+```json
+{ "gateChatApi": "http://YOUR_HOST:8787" }
+```
+
+Use ngrok/Cloudflare tunnel or the droplet (issue #78) so the public dashboard can reach it. Without the bridge, the UI still works: messages save locally and show a `curl` command + Telegram deep link.
+
+Optional agent hook: `GATE_AGENT_CMD='python3 path/to/agent.py'` — receives JSON on stdin.
+
 ## Update the dashboard
 
 ```bash

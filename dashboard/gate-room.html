@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gate room — Nick2</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="site-header">
+    <div class="header-inner">
+      <div class="brand">
+        <h1>Gate room</h1>
+        <p id="gate-room-subtitle" class="tagline">Loading…</p>
+      </div>
+      <div class="header-meta">
+        <a class="btn btn-ghost" href="index.html">← Dashboard</a>
+      </div>
+    </div>
+  </header>
+  <main class="container">
+    <div id="gate-room-root" class="panel gate-room-panel"></div>
+    <p id="gate-room-error" class="empty" hidden></p>
+  </main>
+  <script src="gate-chat.js"></script>
+  <script>
+    (async function () {
+      const params = new URLSearchParams(location.search);
+      const taskId = params.get('task');
+      const err = document.getElementById('gate-room-error');
+      const root = document.getElementById('gate-room-root');
+      if (!taskId) {
+        err.hidden = false;
+        err.textContent = 'Missing ?task=DEC-002 (or other gate ID).';
+        return;
+      }
+      let meta = { task_id: taskId, task: taskId, priority: 'medium', output: '' };
+      try {
+        const res = await fetch(`reports/gated.json?t=${Date.now()}`);
+        if (res.ok) {
+          const items = await res.json();
+          const hit = items.find((g) => g.task_id === taskId);
+          if (hit) meta = { ...meta, ...hit };
+        }
+      } catch (_) { /* fallback */ }
+      document.getElementById('gate-room-subtitle').textContent =
+        `${meta.task_id}: ${meta.task || 'Gated item'}`;
+      await Nick2GateChat.mountGateChat(root, meta);
+    })();
+  </script>
+</body>
+</html>

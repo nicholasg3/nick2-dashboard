@@ -350,6 +350,7 @@ function renderTable(el, headers, rows, emptyMsg) {
 
 function memoHref(kind, taskId) {
   if (!taskId || !kind) return null;
+  if (kind === 'gated') return `gate-room.html?task=${encodeURIComponent(taskId)}`;
   return `memos/${kind}/${taskId}.html`;
 }
 
@@ -500,23 +501,84 @@ function renderTrust(state) {
   );
 }
 
+let selectedGateId = null;
+
+function openGateChat(g) {
+  selectedGateId = g.task_id;
+  const panel = $('gate-chat-drawer');
+  const host = $('gate-chat-host');
+  if (!panel || !host || !window.Nick2GateChat) return;
+  panel.classList.remove('hidden');
+  panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  Nick2GateChat.unmountGateChat();
+  host.innerHTML = '<p class="empty">Loading gate room…</p>';
+  Nick2GateChat.mountGateChat(host, {
+    task_id: g.task_id,
+    task: g.task,
+    priority: g.priority,
+    output: g.output,
+  });
+  document.querySelectorAll('#nick-gate-queue tbody tr').forEach((tr) => {
+    tr.classList.toggle('gate-row-active', tr.dataset.taskId === g.task_id);
+  });
+}
+
 function renderNickGate(state) {
+  window._nickGateItems = state.gatedByNick;
   const rows = state.gatedByNick.map(
-    (g, i) => `<tr>
+    (g, i) => `<tr class="gate-row" data-task-id="${esc(g.task_id || '')}" tabindex="0">
       <td><strong>${i + 1}</strong></td>
       <td>${badge(g.priority || 'medium')}</td>
       <td>${taskMemoLink(g.task, 'gated', g.task_id)}</td>
       <td>${esc(g.task_id || '')}</td>
       <td>${esc(g.output?.slice(0, 80) || '')}</td>
       <td>${fmtTs(g.ts)}</td>
+      <td><button type="button" class="btn btn-sm gate-discuss-btn" data-task-id="${esc(g.task_id || '')}">Discuss</button></td>
     </tr>`
   );
   renderTable(
     $('nick-gate-queue'),
-    ['#', 'Priority', 'Waiting on Nick', 'ID', 'What Nick must do', 'Since'],
+    ['#', 'Priority', 'Waiting on Nick', 'ID', 'What Nick must do', 'Since', ''],
     rows,
     'Nothing gated — all work is unblocked or agents are executing autonomously.'
   );
+
+  const table = $('nick-gate-queue');
+  if (!table) return;
+  table.querySelectorAll('.gate-discuss-btn').forEach((btn) => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const tid = btn.dataset.taskId;
+      const g = state.gatedByNick.find((x) => x.task_id === tid);
+      if (g) openGateChat(g);
+    });
+  });
+  table.querySelectorAll('tbody tr.gate-row').forEach((tr) => {
+    const tid = tr.dataset.taskId;
+    const g = state.gatedByNick.find((x) => x.task_id === tid);
+    if (!g) return;
+    tr.addEventListener('click', () => openGateChat(g));
+    tr.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        openGateChat(g);
+      }
+    });
+  });
+
+  const drawer = $('gate-chat-drawer');
+  if (!state.gatedByNick.length) {
+    selectedGateId = null;
+    drawer?.classList.add('hidden');
+    Nick2GateChat?.unmountGateChat();
+    return;
+  }
+  if (selectedGateId && state.gatedByNick.some((g) => g.task_id === selectedGateId)) {
+    const g = state.gatedByNick.find((x) => x.task_id === selectedGateId);
+    if (g) openGateChat(g);
+  } else if (!selectedGateId) {
+    openGateChat(state.gatedByNick[0]);
+  }
 }
 
 function renderRoadmap(state) {
