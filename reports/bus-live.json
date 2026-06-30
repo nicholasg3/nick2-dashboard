@@ -1,46 +1,7 @@
 {
-  "generated_at": "2026-06-30T13:42:01Z",
+  "generated_at": "2026-06-30T13:45:02Z",
   "running": [],
-  "queued": [
-    {
-      "job_id": "JOB-20260630-820",
-      "short_job_id": "JOB-820",
-      "created_at": "2026-06-30T10:20:20Z",
-      "updated_at": "2026-06-30T10:20:20Z",
-      "started_at": "2026-06-30T10:20:20Z",
-      "display_name": "JOB-20260630-820",
-      "feature_name": "",
-      "objective_preview": "Smoke test",
-      "lane": "dashboard_worker",
-      "repo": "",
-      "to_session": "dashboard_worker",
-      "worker_status": "queued",
-      "hold_reason": "",
-      "status": "queued",
-      "branch": "",
-      "mission_id": "",
-      "memo_path": "memos/jobs/JOB-20260630-820.md"
-    },
-    {
-      "job_id": "JOB-20260630-446",
-      "short_job_id": "JOB-446",
-      "created_at": "2026-06-30T10:47:26Z",
-      "updated_at": "2026-06-30T10:47:26Z",
-      "started_at": "2026-06-30T10:47:26Z",
-      "display_name": "scheduler-unit-test-one [coder] \u00b7 queued",
-      "feature_name": "scheduler-unit-test-one",
-      "objective_preview": "scheduler unit test one",
-      "lane": "coder",
-      "repo": "ai-agents-workspace",
-      "to_session": "coding_worker",
-      "worker_status": "queued",
-      "hold_reason": "",
-      "status": "queued",
-      "branch": "job/20260630-446-scheduler-unit-test-one",
-      "mission_id": "",
-      "memo_path": "memos/jobs/JOB-20260630-446.md"
-    }
-  ],
+  "queued": [],
   "held": [],
   "recent_completed": [
     {
