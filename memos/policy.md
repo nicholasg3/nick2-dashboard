@@ -73,3 +73,25 @@ Any task in **Active Work Queue** (`queued`, `in_progress`, `approved`, `blocked
 Dashboard memos surface **Last Updated** from the ledger. Stale `in_progress` without a heartbeat is a policy violation — COO may flag in reconcile.
 
 **Idle/sleep:** Autonomous sub-agents (e.g. `cro_lit_memory`) that choose to sleep must append `status: idle` and a one-line reason; they are not “Executing” on the dashboard.
+
+## Bus–ledger coupling (POL-003)
+
+The **CEO ledger** and **agent-bus** are two witnesses. The dashboard must not cite a bus job as “executing” after that job has `status: completed` on the bus.
+
+### Automatic (no Nick action)
+
+1. **On every bus job finish** — `agent-bus/scripts/bus.py` calls `nick2-dashboard/scripts/bus_finish_sync.py`:
+   - Appends `bus-finish:JOB-…` heartbeat to any mission that cited the job
+   - Runs `reconcile-ledger.py` + `export_bus_live.py`
+2. **Every 15 minutes (droplet cron)** — `scripts/sync-dashboard-live.sh` reconciles, regenerates memos, pushes to `main`
+3. **Every GitHub Pages deploy** — `reconcile-ledger.py` runs in CI before assemble
+4. **Hourly** — `hourly-reconcile.yml` refreshes ledger + memos + `bus-live.json`
+
+### Drift detection
+
+`python3 scripts/witness_dashboard_honesty.py` must exit 0 (used as jesus-ralph gate). It runs `dashboard_honesty.detect_drift()` — fails if ledger cites completed jobs as active, or PMO is `in_progress` with no PMO worker on the bus.
+
+### Agents
+
+- Do not write “JOB-924 executing” in final reports after the job completes — `bus_finish_sync` owns the transition.
+- Cite **mission IDs** (SYS-002, PMO-001) in ledger; bus job IDs are implementation detail.
