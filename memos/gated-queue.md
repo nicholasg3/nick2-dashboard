@@ -7,10 +7,10 @@
 
 ## 2. Queue (MECE)
 
-| # | Priority | ID | Decision needed | Memo |
-|---|----------|-----|-----------------|------|
-| 1 | high | `DEC-002` | Approve PMO scoring framework | [memo](gated/DEC-002.html) |
-| 2 | medium | `DEC-003` | Confirm Telegram alert method for $5 spend thresholds | [memo](gated/DEC-003.html) |
+| # | Priority | ID | Decision needed |
+|---|----------|-----|-----------------|
+| 1 | high | `DEC-002` | [Approve PMO scoring framework](gated/DEC-002.html) |
+| 2 | medium | `DEC-003` | [Confirm Telegram alert method for $5 spend thresholds](gated/DEC-003.html) |
 
 ## 3. Root cause
 

@@ -1,6 +1,6 @@
 # Current focus — Nick2
 
-_Updated 2026-06-30 16:30 SGT (hourly cadence)_
+_Updated 2026-06-30 16:32 SGT (hourly cadence)_
 
 ## 1. Executive Framing
 
@@ -11,7 +11,7 @@ _Updated 2026-06-30 16:30 SGT (hourly cadence)_
 
 | Bucket | Now |
 |--------|-----|
-| **Focus** | PMO: Triage 13 ready-for-agent GitHub issues (`PMO-001`) |
+| **Focus** | PMO: [Triage 13 ready-for-agent GitHub issues](queue/PMO-001.html) (`PMO-001`) |
 | **Status** | queued |
 | **Budget** | $20.00/wk · spent $0.00 · mode capped |
 | **Gates** | 2 item(s) waiting on Nick |
@@ -23,6 +23,4 @@ Budget authorized ($20/week). Blocked on worker.enabled=false — enable in lane
 ## 5. Recommendation
 
 **Agents:** Execute analysis-only PMO triage (PMO-001) — no spend required.  
-**Nick:** Clear [DEC-002](gated/DEC-002.html) (scoring framework), then [DEC-003](gated/DEC-003.html) (alerts). Optionally enable `worker.enabled` in `lane.json`.
-
-[Full task memo](queue/PMO-001.html)
+**Nick:** Clear [Approve PMO scoring framework](gated/DEC-002.html), then [Confirm Telegram alert method](gated/DEC-003.html). Optionally enable `worker.enabled` in `lane.json`.

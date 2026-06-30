@@ -234,14 +234,36 @@ code {
   text-align: center;
 }
 
-.memo-link {
+.memo-link,
+.stat-link {
   color: var(--accent);
-  font-size: 0.82rem;
   text-decoration: none;
-  white-space: nowrap;
 }
 
-.memo-link:hover { text-decoration: underline; }
+.memo-link {
+  font-size: inherit;
+  font-weight: inherit;
+}
+
+.memo-link:hover,
+.stat-link:hover,
+.focus-headline .focus-link:hover { text-decoration: underline; }
+
+.stat-link {
+  font-size: inherit;
+  font-weight: 700;
+}
+
+.focus-headline .focus-link {
+  color: inherit;
+  font-size: inherit;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.focus-headline .focus-link:hover {
+  color: var(--accent);
+}
 
 .snapshot-grid {
   display: grid;

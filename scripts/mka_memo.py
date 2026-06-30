@@ -502,7 +502,7 @@ _Updated {now} (hourly cadence)_
 
 | Bucket | Now |
 |--------|-----|
-| **Focus** | {owner}: {task} (`{pid}`) |
+| **Focus** | {owner}: [{task}](queue/{pid}.html) (`{pid}`) |
 | **Status** | {status} |
 | **Budget** | ${weekly:.2f}/wk · spent ${spend:.2f} · mode {mode} |
 | **Gates** | {gated_count} item(s) waiting on Nick |
@@ -514,9 +514,7 @@ _Updated {now} (hourly cadence)_
 ## 5. Recommendation
 
 **Agents:** Execute analysis-only PMO triage (PMO-001) — no spend required.  
-**Nick:** Clear [DEC-002](gated/DEC-002.html) (scoring framework), then [DEC-003](gated/DEC-003.html) (alerts). Optionally enable `worker.enabled` in `lane.json`.
-
-[Full task memo](queue/{pid}.html)
+**Nick:** Clear [Approve PMO scoring framework](gated/DEC-002.html), then [Confirm Telegram alert method](gated/DEC-003.html). Optionally enable `worker.enabled` in `lane.json`.
 """
 
 
@@ -536,9 +534,10 @@ def mka_gated_queue_body(gated_items: list[tuple[str, dict]]) -> str:
 
     rows = []
     for i, (tid, t) in enumerate(gated_items):
+        task = t.get("task", tid)
         rows.append(
-            f"| {i + 1} | {t.get('priority', 'medium')} | `{tid}` | {t.get('task', tid)} | "
-            f"[memo](gated/{tid}.html) |"
+            f"| {i + 1} | {t.get('priority', 'medium')} | `{tid}` | "
+            f"[{task}](gated/{tid}.html) |"
         )
 
     return f"""# Gated by Nick — priority queue
@@ -550,8 +549,8 @@ def mka_gated_queue_body(gated_items: list[tuple[str, dict]]) -> str:
 
 ## 2. Queue (MECE)
 
-| # | Priority | ID | Decision needed | Memo |
-|---|----------|-----|-----------------|------|
+| # | Priority | ID | Decision needed |
+|---|----------|-----|-----------------|
 {chr(10).join(rows)}
 
 ## 3. Root cause

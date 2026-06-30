@@ -196,6 +196,18 @@ function buildState(events) {
 
   autonomyMode = budgetMode === 'off' ? 'manual_only' : workerEnabled(sorted) ? 'auto_dispatch' : 'recommend_only';
 
+  const memoKindByTaskId = new Map();
+  for (const t of taskList) {
+    const tid = t.task_id;
+    if (!tid) continue;
+    if (isGatedByNick(t, resolvedDecisionIds)) memoKindByTaskId.set(tid, 'gated');
+    else if (COMPLETED_STATUSES.has(t.status) || t.last_event === 'task_completed') {
+      memoKindByTaskId.set(tid, 'completed');
+    } else if (ACTIVE_STATUSES.has(t.status) && !QUEUE_SKIP_EVENTS.has(t.last_event)) {
+      memoKindByTaskId.set(tid, 'queue');
+    }
+  }
+
   return {
     sorted,
     weeklyBudget,
@@ -215,6 +227,7 @@ function buildState(events) {
     budgetEntries,
     spendByModel,
     spendByProject,
+    memoKindByTaskId,
   };
 }
 
@@ -259,6 +272,14 @@ function renderSnapshot(state) {
     },
     {
       label: 'CEO Focus',
+      valueHtml: state.currentCeoTask
+        ? taskMemoLinkFromState(
+            state.currentCeoTask.task?.slice(0, 40) || state.currentCeoTask.task_id,
+            state.currentCeoTask.task_id,
+            state,
+            'stat-link'
+          )
+        : null,
       value: state.currentCeoTask?.task?.slice(0, 40) || 'Idle',
       sub: state.currentCeoTask ? fmtTs(state.currentCeoTask.ts) : 'No active CEO task',
     },
@@ -275,14 +296,14 @@ function renderSnapshot(state) {
       (c) => `
     <div class="stat-card">
       <div class="stat-label">${esc(c.label)} ${c.badge || ''}</div>
-      <div class="stat-value">${esc(String(c.value))}</div>
+      <div class="stat-value">${c.valueHtml || esc(String(c.value))}</div>
       <div class="stat-sub">${esc(c.sub)}</div>
     </div>`
     )
     .join('');
 }
 
-function renderActivity(events) {
+function renderActivity(events, state) {
   const filtered = events
     .filter((ev) => {
       if (!filterText) return true;
@@ -304,7 +325,7 @@ function renderActivity(events) {
         <span class="feed-actor">${esc(ev.actor)} · ${esc(ev.event)} ${badge(ev.status)}</span>
         <span class="feed-ts">${fmtTs(ev.ts)}</span>
       </div>
-      <div class="feed-task">${esc(ev.task || ev.task_id || '')}</div>
+      <div class="feed-task">${taskMemoLinkFromState(ev.task || ev.task_id || '', ev.task_id, state)}</div>
       <div class="feed-output">${esc(ev.output || '')}${ev.cost_usd ? ` · ${fmtUsd(ev.cost_usd)}` : ''}</div>
     </div>`
     )
@@ -328,14 +349,20 @@ function renderTable(el, headers, rows, emptyMsg) {
 }
 
 function memoHref(kind, taskId) {
-  if (!taskId) return null;
+  if (!taskId || !kind) return null;
   return `memos/${kind}/${taskId}.html`;
 }
 
-function memoLink(kind, taskId) {
+/** Wrap label in memo link when a memo exists; otherwise plain escaped text. */
+function taskMemoLink(text, kind, taskId, className = 'memo-link') {
+  const label = text ?? '—';
   const href = memoHref(kind, taskId);
-  if (!href) return '—';
-  return `<a class="memo-link" href="${href}">memo</a>`;
+  if (!href) return esc(label);
+  return `<a class="${className}" href="${href}">${esc(label)}</a>`;
+}
+
+function taskMemoLinkFromState(text, taskId, state, className = 'memo-link') {
+  return taskMemoLink(text, state.memoKindByTaskId.get(taskId), taskId, className);
 }
 
 function pickCurrentFocus(state) {
@@ -351,31 +378,27 @@ function pickCurrentFocus(state) {
   return state.active[0] || snap || null;
 }
 
-function setFocusPanel(focus) {
+function setFocusPanel(focus, state) {
   const headline = $('focus-headline');
   const detail = $('focus-detail');
   const meta = $('focus-meta');
-  const link = $('focus-memo-link');
-  if (!headline || !detail || !meta || !link) return;
+  if (!headline || !detail || !meta) return;
 
   if (!focus) {
-    headline.textContent = 'Idle — no active work in queue';
+    headline.innerHTML =
+      '<a class="focus-link" href="memos/current.html">Idle — no active work in queue</a>';
     detail.textContent = 'Check the roadmap or authorize work in the ledger.';
     meta.innerHTML = '';
-    link.href = 'memos/current.html';
-    link.textContent = 'Focus memo →';
     return;
   }
 
   const owner = focus.owner || focus.actor || 'CEO';
   const taskId = focus.task_id || focus.focus_task_id;
-  headline.textContent = `${owner}: ${focus.task || '—'}`;
+  const title = `${owner}: ${focus.task || '—'}`;
+  headline.innerHTML = state
+    ? taskMemoLinkFromState(title, taskId, state, 'focus-link')
+    : esc(title);
   detail.textContent = focus.output || '';
-  const memoPath = focus.focus_task_id
-    ? memoHref('queue', focus.focus_task_id)
-    : memoHref('queue', taskId) || 'memos/current.html';
-  link.href = memoPath;
-  link.textContent = `Task memo (${taskId || 'current'}) →`;
   meta.innerHTML = `
     <span class="meta-pill">${badge(focus.status)}</span>
     <span class="meta-pill">${esc(taskId || '')}</span>
@@ -383,7 +406,7 @@ function setFocusPanel(focus) {
 }
 
 function renderCurrentFocus(state) {
-  setFocusPanel(pickCurrentFocus(state));
+  setFocusPanel(pickCurrentFocus(state), state);
 }
 
 function renderQueue(state) {
@@ -391,15 +414,14 @@ function renderQueue(state) {
     (t) => `<tr>
       <td>${badge(t.status)}</td>
       <td>${esc(t.owner || t.actor)}</td>
-      <td>${esc(t.task)}</td>
+      <td>${taskMemoLink(t.task, 'queue', t.task_id)}</td>
       <td>${esc(t.task_id || '')}</td>
-      <td>${memoLink('queue', t.task_id)}</td>
       <td>${fmtTs(t.ts)}</td>
     </tr>`
   );
   renderTable(
     $('work-queue'),
-    ['Status', 'Owner', 'Task', 'ID', 'Memo', 'Updated'],
+    ['Status', 'Owner', 'Task', 'ID', 'Updated'],
     rows,
     'No active work in queue.'
   );
@@ -410,15 +432,14 @@ function renderCompleted(state) {
     (t) => `<tr>
       <td>${fmtTs(t.ts)}</td>
       <td>${esc(t.actor)}</td>
-      <td>${esc(t.task)}</td>
+      <td>${taskMemoLink(t.task, 'completed', t.task_id)}</td>
       <td>${fmtUsd(t.cost_usd || 0)}</td>
-      <td>${memoLink('completed', t.task_id)}</td>
       <td>${esc((t.artifacts || []).join(', ') || '—')}</td>
     </tr>`
   );
   renderTable(
     $('completed-work'),
-    ['Time', 'Owner', 'Task', 'Cost', 'Memo', 'Artifacts'],
+    ['Time', 'Owner', 'Task', 'Cost', 'Artifacts'],
     rows,
     'No completed tasks yet.'
   );
@@ -484,16 +505,15 @@ function renderNickGate(state) {
     (g, i) => `<tr>
       <td><strong>${i + 1}</strong></td>
       <td>${badge(g.priority || 'medium')}</td>
-      <td>${esc(g.task)}</td>
+      <td>${taskMemoLink(g.task, 'gated', g.task_id)}</td>
       <td>${esc(g.task_id || '')}</td>
       <td>${esc(g.output?.slice(0, 80) || '')}</td>
-      <td>${memoLink('gated', g.task_id)}</td>
       <td>${fmtTs(g.ts)}</td>
     </tr>`
   );
   renderTable(
     $('nick-gate-queue'),
-    ['#', 'Priority', 'Waiting on Nick', 'ID', 'What Nick must do', 'Memo', 'Since'],
+    ['#', 'Priority', 'Waiting on Nick', 'ID', 'What Nick must do', 'Since'],
     rows,
     'Nothing gated — all work is unblocked or agents are executing autonomously.'
   );
@@ -542,7 +562,7 @@ function renderArtifacts(state) {
 function renderAll(state) {
   renderCurrentFocus(state);
   renderSnapshot(state);
-  renderActivity(state.sorted);
+  renderActivity(state.sorted, state);
   renderQueue(state);
   renderCompleted(state);
   renderBudget(state);
@@ -581,7 +601,7 @@ async function refresh() {
     showError(`Could not render dashboard: ${err.message}`);
     console.error(err);
     try {
-      setFocusPanel(pickCurrentFocus(buildState(events)));
+      setFocusPanel(pickCurrentFocus(buildState(events)), buildState(events));
     } catch (_) { /* ignore */ }
   }
 }
@@ -589,7 +609,10 @@ async function refresh() {
 $('refresh-btn').addEventListener('click', refresh);
 $('activity-filter').addEventListener('input', (e) => {
   filterText = e.target.value;
-  if (allEvents.length) renderActivity(buildState(allEvents).sorted);
+  if (allEvents.length) {
+    const st = buildState(allEvents);
+    renderActivity(st.sorted, st);
+  }
 });
 
 refresh();
