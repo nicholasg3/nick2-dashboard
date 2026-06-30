@@ -31,72 +31,23 @@ strong { color: #fff; }
   <div class="wrap">
     <p class="nav"><a href="../../index.html">← Dashboard</a></p>
     <p>[Tue Jun 30, 2026]</p>
-<h1>ISSUE-80: Nick2 dashboard: hourly ledger reconcile + memo generation on droplet</h1>
-<p><strong>Owner:</strong> coding  </p>
-<p><strong>Status:</strong> 🔴 Blocked  </p>
-<p><strong>Last Updated:</strong> 2026-06-30 22:30</p>
-<p>────────────────────────────────────────────</p>
-<h2>MISSION</h2>
-<h3>Objective</h3>
-<p>pmo-dispatch:bus submit failed: Traceback (most recent call last):</p>
-<p>  File &quot;/home/nicholas/ai-agents-workspace/agent-bus/scripts/bus.py&quot;, line 1305, in &lt;module&gt;</p>
-<p>    raise SystemExit(main())</p>
-<p>                     ^^^^^^</p>
-<p>  File &quot;/home/n</p>
-<h3>Success Criteria</h3>
-<p>☐ Mission completed per ledger</p>
-<h3>Mission Decomposition (MECE)</h3>
-<ol><li>1. Execute</li></ol>
-<p>Progress: ░░░░░░░░░░</p>
-<p>• pmo-dispatch:bus submit failed: Traceback (most recent call last):</p>
-<p>  File &quot;/home/nicholas/ai-agents-workspace/agent-bus/scripts/bus.py&quot;, line 1305, in &lt;module&gt;</p>
-<p>    raise SystemExit(main())</p>
-<p>                     ^^^^^^</p>
-<p>  File &quot;/home/n</p>
-<p>────────────────────────────────────────────</p>
-<h2>EXECUTION STATUS</h2>
-<h3>Overall Progress</h3>
-<p>░░░░░░░░░░ 5%</p>
-<h3>Budget</h3>
-<p>Spent: $0.00</p>
-<p>Remaining: $20.00</p>
-<p>Limit: $20.00/week</p>
-<h3>Critical Path</h3>
-<p>Start</p>
-<p>      ↓</p>
-<p>Execute</p>
-<p>      ↓</p>
-<p>Verify</p>
-<p>      ↓</p>
-<p>Report</p>
-<p>────────────────────────────────────────────</p>
-<h2>CURRENT WORKSTREAMS</h2>
-<p>░░░░░░░░░░</p>
-<p>Primary workstream</p>
-<p>────────────────────────────────────────────</p>
-<h2>BLOCKERS</h2>
-<p>• pmo-dispatch:bus submit failed: Traceback (most recent call last):</p>
-<p>  File &quot;/home/nicholas/ai-agents-workspace/agent-bus/scripts/bus.py&quot;, line 1305, in &lt;module&gt;</p>
-<p>    raise SystemExit(main())</p>
-<p>                     ^^^^^^</p>
-<p>  File &quot;/home/n</p>
-<p>────────────────────────────────────────────</p>
-<h2>NEXT MILESTONES</h2>
-<p>—</p>
-<p>_TBD_</p>
-<p>────────────────────────────────────────────</p>
-<h2>WAITING ON</h2>
-<p>• _None._</p>
-<p>────────────────────────────────────────────</p>
-<h2>RECENT EVENTS</h2>
-<p>22:30</p>
-<p>task_updated: pmo-dispatch:bus submit failed: Traceback (most recent call last):</p>
-<p>  File &quot;/home</p>
-<p>22:30</p>
-<p>task_queued: pmo-dispatch:rank 2 queued for coding_worker. Est $1.0.</p>
-<p>────────────────────────────────────────────</p>
+<p><a href="https://nicholasg3.github.io/nick2-dashboard/index.html">← Dashboard</a></p>
+<p><strong>ISSUE-80: Dashboard live-sync + honest memos</strong></p>
+<h2>SITUATION</h2>
+<p>Nick cannot tell what workers are doing from thin job memos and lagging exports. POL-003 requires reconcile-on-finish, bus-live export, and cron sync on the droplet.</p>
+<h2>MECE DECOMPOSITION</h2>
+<ul><li><strong>Live export</strong> — export_bus_live.py + generate_job_memos on sync tick</li><li><strong>Reconcile</strong> — reconcile-ledger.py flags stale in_progress per POL-002</li><li><strong>Cron</strong> — sync-dashboard-live.sh every 15m on droplet</li><li><strong>Witness</strong> — witness_dashboard_honesty.py exits 0</li></ul>
+<h2>PATHS CONSIDERED</h2>
+<ul><li>React rewrite</li><li>Extend gate server + vanilla JS (chosen for SYS-002)</li><li>Static-only shorter cron</li></ul>
+<h2>CHOSEN PATH + WHY</h2>
+<p>Extend existing Python gate server — same path as SYS-002 live mission; add POL-005 narrative job memos so Nick sees what each worker is actually doing.</p>
+<h2>WHERE IT STANDS</h2>
+<p>JOB-573 executing on nick2-dashboard in parallel with ISSUE-BUS-001 on workspace repo.</p>
+<h2>EFFORT &amp; COST</h2>
+<ul><li><strong>Time:</strong> Parallel lane #2 after PMO triage</li><li><strong>Work:</strong> coding_worker on nick2-dashboard</li><li><strong>Budget:</strong> spent $0.00 · remaining $20.00 · limit $20.00/week</li></ul>
 <h2>LINKS</h2>
-<ul><li><a href="https://nicholasg3.github.io/nick2-dashboard/">Dashboard</a></li><li><a href="https://nicholasg3.github.io/nick2-dashboard/memos/ledger.html">CEO Ledger</a></li><li>Ledger: <code>logs/ceo-ledger.jsonl</code> (<code>ISSUE-80</code>)</li></ul>
+<ul><li><a href="https://nicholasg3.github.io/nick2-dashboard/">Dashboard</a></li><li><a href="https://github.com/nicholasg3/ai-agents-workspace/issues/80">GitHub #80</a></li><li><a href="https://nicholasg3.github.io/nick2-dashboard/memos/ledger.html">CEO Ledger</a></li></ul>
+<p>_Last updated 2026-06-30 22:30 SGT_</p>
   </div>
 </body>
 </html>

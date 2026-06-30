@@ -1,94 +1,44 @@
 [Tue Jun 30, 2026]
 
-# ISSUE-BUS-001: Fix agent-bus worker_model crash
+[← Dashboard](https://nicholasg3.github.io/nick2-dashboard/index.html)
 
-**Owner:** coding  
-**Status:** 🟡 At Risk  
-**Last Updated:** 2026-06-30 22:30
+**ISSUE-BUS-001: Fix agent-bus worker_model crash**
 
-────────────────────────────────────────────
+## SITUATION
 
-## MISSION
+Coding workers cannot reliably spawn: `bus.py` calls `worker_model.py` to pick an OpenRouter slug, but an empty-string registry model breaks resolution. Until this lands, DISPATCH-001 jobs pile up held/queued behind dead harnesses.
 
-### Objective
+## MECE DECOMPOSITION
 
-pmo-dispatch:dispatched JOB-20260630-807 to coding_worker (held).
+- **Reproduce** — Scratch tests in worktree exercising resolve_or_ccr_default — in flight
+- **Patch** — bus.py passes None not "" when session meta has no model — patched in JOB-549 worktree
+- **Unit test** — Permanent test_worker_model.py under agent-bus/scripts — not merged yet
+- **Witness** — Tests exit 0; worker spawn shows model: line without traceback — open
 
-### Success Criteria
+## PATHS CONSIDERED
 
-☐ Mission completed per ledger
+- Patch bus.py only (minimal — empty string → None)
+- Rewrite worker_model tier routing (ISSUE-ROUTING-001 scope — defer)
+- Bypass worker_model and hardcode CCR default (hides bug)
 
-### Mission Decomposition (MECE)
+## CHOSEN PATH + WHY
 
-1. Execute
-Progress: ░░░░░░░░░░
+Minimal bus.py fix first because the crash is an integration bug (empty string is truthy bad input), not missing routing policy. Routing policy is rank #3 separately.
 
-• pmo-dispatch:dispatched JOB-20260630-807 to coding_worker (held).
+## WHERE IT STANDS
 
-────────────────────────────────────────────
+JOB-549 executing on ai-agents-workspace. Worktree shows 1-line bus.py fix plus scratch reproduce scripts; permanent test + witness still needed before complete.
 
-## EXECUTION STATUS
+## EFFORT & COST
 
-### Overall Progress
-
-░░░░░░░░░░ 5%
-
-### Budget
-
-Spent: $0.00
-Remaining: $20.00
-Limit: $20.00/week
-
-### Critical Path
-
-Start
-      ↓
-Execute
-      ↓
-Verify
-      ↓
-Report
-
-────────────────────────────────────────────
-
-## CURRENT WORKSTREAMS
-
-░░░░░░░░░░
-Primary workstream
-
-────────────────────────────────────────────
-
-## BLOCKERS
-
-• _None._
-
-────────────────────────────────────────────
-
-## NEXT MILESTONES
-
-—
-_TBD_
-
-────────────────────────────────────────────
-
-## WAITING ON
-
-• _None._
-
-────────────────────────────────────────────
-
-## RECENT EVENTS
-
-22:30
-task_updated: pmo-dispatch:dispatched JOB-20260630-807 to coding_worker (held).
-
-22:30
-task_queued: pmo-dispatch:rank 1 queued for coding_worker. Est $1.0.
-
-────────────────────────────────────────────
+- **Time:** Executing — watch 15m coding_worker timeout
+- **Work:** coding_worker branch job/20260630-549-issue-bus-001-fix-agent-bus-wo
+- **Budget:** spent $0.00 · remaining $20.00 · limit $20.00/week
 
 ## LINKS
 
 - [Dashboard](https://nicholasg3.github.io/nick2-dashboard/)
+- [worker_model.py](agent-bus/scripts/worker_model.py)
 - [CEO Ledger](https://nicholasg3.github.io/nick2-dashboard/memos/ledger.html)
-- Ledger: `logs/ceo-ledger.jsonl` (`ISSUE-BUS-001`)
+
+_Last updated 2026-06-30 22:30 SGT_

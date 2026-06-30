@@ -1,107 +1,44 @@
 [Tue Jun 30, 2026]
 
-# ISSUE-80: Nick2 dashboard: hourly ledger reconcile + memo generation on droplet
+[← Dashboard](https://nicholasg3.github.io/nick2-dashboard/index.html)
 
-**Owner:** coding  
-**Status:** 🔴 Blocked  
-**Last Updated:** 2026-06-30 22:30
+**ISSUE-80: Dashboard live-sync + honest memos**
 
-────────────────────────────────────────────
+## SITUATION
 
-## MISSION
+Nick cannot tell what workers are doing from thin job memos and lagging exports. POL-003 requires reconcile-on-finish, bus-live export, and cron sync on the droplet.
 
-### Objective
+## MECE DECOMPOSITION
 
-pmo-dispatch:bus submit failed: Traceback (most recent call last):
-  File "/home/nicholas/ai-agents-workspace/agent-bus/scripts/bus.py", line 1305, in <module>
-    raise SystemExit(main())
-                     ^^^^^^
-  File "/home/n
+- **Live export** — export_bus_live.py + generate_job_memos on sync tick
+- **Reconcile** — reconcile-ledger.py flags stale in_progress per POL-002
+- **Cron** — sync-dashboard-live.sh every 15m on droplet
+- **Witness** — witness_dashboard_honesty.py exits 0
 
-### Success Criteria
+## PATHS CONSIDERED
 
-☐ Mission completed per ledger
+- React rewrite
+- Extend gate server + vanilla JS (chosen for SYS-002)
+- Static-only shorter cron
 
-### Mission Decomposition (MECE)
+## CHOSEN PATH + WHY
 
-1. Execute
-Progress: ░░░░░░░░░░
+Extend existing Python gate server — same path as SYS-002 live mission; add POL-005 narrative job memos so Nick sees what each worker is actually doing.
 
-• pmo-dispatch:bus submit failed: Traceback (most recent call last):
-  File "/home/nicholas/ai-agents-workspace/agent-bus/scripts/bus.py", line 1305, in <module>
-    raise SystemExit(main())
-                     ^^^^^^
-  File "/home/n
+## WHERE IT STANDS
 
-────────────────────────────────────────────
+JOB-573 executing on nick2-dashboard in parallel with ISSUE-BUS-001 on workspace repo.
 
-## EXECUTION STATUS
+## EFFORT & COST
 
-### Overall Progress
-
-░░░░░░░░░░ 5%
-
-### Budget
-
-Spent: $0.00
-Remaining: $20.00
-Limit: $20.00/week
-
-### Critical Path
-
-Start
-      ↓
-Execute
-      ↓
-Verify
-      ↓
-Report
-
-────────────────────────────────────────────
-
-## CURRENT WORKSTREAMS
-
-░░░░░░░░░░
-Primary workstream
-
-────────────────────────────────────────────
-
-## BLOCKERS
-
-• pmo-dispatch:bus submit failed: Traceback (most recent call last):
-  File "/home/nicholas/ai-agents-workspace/agent-bus/scripts/bus.py", line 1305, in <module>
-    raise SystemExit(main())
-                     ^^^^^^
-  File "/home/n
-
-────────────────────────────────────────────
-
-## NEXT MILESTONES
-
-—
-_TBD_
-
-────────────────────────────────────────────
-
-## WAITING ON
-
-• _None._
-
-────────────────────────────────────────────
-
-## RECENT EVENTS
-
-22:30
-task_updated: pmo-dispatch:bus submit failed: Traceback (most recent call last):
-  File "/home
-
-22:30
-task_queued: pmo-dispatch:rank 2 queued for coding_worker. Est $1.0.
-
-────────────────────────────────────────────
+- **Time:** Parallel lane #2 after PMO triage
+- **Work:** coding_worker on nick2-dashboard
+- **Budget:** spent $0.00 · remaining $20.00 · limit $20.00/week
 
 ## LINKS
 
 - [Dashboard](https://nicholasg3.github.io/nick2-dashboard/)
+- [GitHub #80](https://github.com/nicholasg3/ai-agents-workspace/issues/80)
 - [CEO Ledger](https://nicholasg3.github.io/nick2-dashboard/memos/ledger.html)
-- Ledger: `logs/ceo-ledger.jsonl` (`ISSUE-80`)
+
+_Last updated 2026-06-30 22:30 SGT_
