@@ -74,6 +74,17 @@ strong { color: #fff; }
 <p>   - transition status to <code>idle</code> / <code>completed</code> / <code>blocked</code> with an explicit reason (do not leave <code>in_progress</code> with a stale timestamp).</p>
 <p>Dashboard memos surface <strong>Last Updated</strong> from the ledger. Stale <code>in_progress</code> without a heartbeat is a policy violation — COO may flag in reconcile.</p>
 <p><strong>Idle/sleep:</strong> Autonomous sub-agents (e.g. <code>cro_lit_memory</code>) that choose to sleep must append <code>status: idle</code> and a one-line reason; they are not “Executing” on the dashboard.</p>
+<h2>Bus–ledger coupling (POL-003)</h2>
+<p>The <strong>CEO ledger</strong> and <strong>agent-bus</strong> are two witnesses. The dashboard must not cite a bus job as “executing” after that job has <code>status: completed</code> on the bus.</p>
+<h3>Automatic (no Nick action)</h3>
+<ol><li>1. <strong>On every bus job finish</strong> — <code>agent-bus/scripts/bus.py</code> calls <code>nick2-dashboard/scripts/bus_finish_sync.py</code>:</li></ol>
+<p>   - Appends <code>bus-finish:JOB-…</code> heartbeat to any mission that cited the job</p>
+<p>   - Runs <code>reconcile-ledger.py</code> + <code>export_bus_live.py</code></p>
+<ol><li>2. <strong>Every 15 minutes (droplet cron)</strong> — <code>scripts/sync-dashboard-live.sh</code> reconciles, regenerates memos, pushes to <code>main</code></li><li>3. <strong>Every GitHub Pages deploy</strong> — <code>reconcile-ledger.py</code> runs in CI before assemble</li><li>4. <strong>Hourly</strong> — <code>hourly-reconcile.yml</code> refreshes ledger + memos + <code>bus-live.json</code></li></ol>
+<h3>Drift detection</h3>
+<p><code>python3 scripts/witness_dashboard_honesty.py</code> must exit 0 (used as jesus-ralph gate). It runs <code>dashboard_honesty.detect_drift()</code> — fails if ledger cites completed jobs as active, or PMO is <code>in_progress</code> with no PMO worker on the bus.</p>
+<h3>Agents</h3>
+<ul><li>Do not write “JOB-924 executing” in final reports after the job completes — <code>bus_finish_sync</code> owns the transition.</li><li>Cite <strong>mission IDs</strong> (SYS-002, PMO-001) in ledger; bus job IDs are implementation detail.</li></ul>
   </div>
 </body>
 </html>
