@@ -1,17 +1,6 @@
 {
-  "generated_at": "2026-06-30T11:30:01Z",
-  "running": [
-    {
-      "job_id": "JOB-20260630-755",
-      "display_name": "gate-dec-002-approve-pmo-scoring-framewo [pmo] \u00b7 executing",
-      "lane": "pmo",
-      "repo": "nick2-dashboard",
-      "to_session": "pmo",
-      "worker_status": "executing",
-      "hold_reason": "",
-      "status": "running"
-    }
-  ],
+  "generated_at": "2026-06-30T12:07:47Z",
+  "running": [],
   "queued": [
     {
       "job_id": "JOB-20260630-820",
@@ -34,11 +23,11 @@
       "status": "queued"
     },
     {
-      "job_id": "JOB-20260630-973",
-      "display_name": "gate-dec-003-confirm-telegram-alert-meth [pmo] \u00b7 queued",
-      "lane": "pmo",
-      "repo": "nick2-dashboard",
-      "to_session": "pmo",
+      "job_id": "JOB-20260630-438",
+      "display_name": "rewrite-telegram-job-completion-pings-gl [coder] \u00b7 executing",
+      "lane": "coder",
+      "repo": "ai-agents-workspace",
+      "to_session": "coding_worker",
       "worker_status": "queued",
       "hold_reason": "",
       "status": "queued"
@@ -46,17 +35,47 @@
   ],
   "held": [
     {
-      "job_id": "JOB-20260630-924",
-      "display_name": "dashboard-live-sync-no-react-fix-memo-le [dashboard] \u00b7 queued",
+      "job_id": "JOB-20260630-102",
+      "display_name": "replace-wip-execution-brief-template-wit [dashboard] \u00b7 queued",
       "lane": "dashboard",
       "repo": "nick2-dashboard",
       "to_session": "dashboard_worker",
       "worker_status": "queued",
-      "hold_reason": "repo nick2-dashboard claimed by JOB-20260630-755",
+      "hold_reason": "waiting for JOB-20260630-924 (queued)",
       "status": "held"
     }
   ],
   "recent_completed": [
+    {
+      "job_id": "JOB-20260630-034",
+      "display_name": "ops-clear-zombie-job-755-and-unblock-pmo [pmo] \u00b7 executing",
+      "lane": "pmo",
+      "repo": "nick2-dashboard",
+      "to_session": "pmo",
+      "worker_status": "done",
+      "hold_reason": "",
+      "status": "completed"
+    },
+    {
+      "job_id": "JOB-20260630-973",
+      "display_name": "gate-dec-003-confirm-telegram-alert-meth [pmo] \u00b7 completed",
+      "lane": "pmo",
+      "repo": "nick2-dashboard",
+      "to_session": "pmo",
+      "worker_status": "done",
+      "hold_reason": "",
+      "status": "completed"
+    },
+    {
+      "job_id": "JOB-20260630-755",
+      "display_name": "gate-dec-002-approve-pmo-scoring-framewo [pmo] \u00b7 completed",
+      "lane": "pmo",
+      "repo": "nick2-dashboard",
+      "to_session": "pmo",
+      "worker_status": "done",
+      "hold_reason": "",
+      "status": "completed"
+    },
     {
       "job_id": "JOB-20260630-453",
       "display_name": "gate-room-live-agent-bus-dispatch-auto-c [heavy] \u00b7 completed",
@@ -86,34 +105,14 @@
       "worker_status": "done",
       "hold_reason": "",
       "status": "completed"
-    },
-    {
-      "job_id": "JOB-20260630-647",
-      "display_name": "redesign-agent-fleet-org-tree-panel-for [dashboard] \u00b7 completed",
-      "lane": "dashboard",
-      "repo": "nick2-dashboard",
-      "to_session": "dashboard_worker",
-      "worker_status": "done",
-      "hold_reason": "",
-      "status": "completed"
-    },
-    {
-      "job_id": "JOB-20260630-494",
-      "display_name": "scheduler-deploy-verify-reply-json-compl [pmo] \u00b7 completed",
-      "lane": "pmo",
-      "repo": "ai-agents-workspace",
-      "to_session": "pmo",
-      "worker_status": "done",
-      "hold_reason": "",
-      "status": "completed"
     }
   ],
   "pmo_focus": {
     "task_id": "PMO-001",
     "task": "Triage 13 ready-for-agent GitHub issues",
-    "ledger_status": "blocked",
-    "since": "2026-06-30T19:24:23+08:00",
-    "bus_state": "executing",
-    "note": "PMO worker running on agent-bus"
+    "ledger_status": "in_progress",
+    "since": "2026-06-30T19:30:59+08:00",
+    "bus_state": "stale",
+    "note": "Ledger says in_progress but no PMO job on the bus \u2014 triage not actively running"
   }
 }
