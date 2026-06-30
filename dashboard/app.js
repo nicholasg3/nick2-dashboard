@@ -9,6 +9,9 @@ const BUS_LIVE_URL = 'reports/bus-live.json';
 const GATED_URL = 'reports/gated.json';
 const GATED_POLL_MS = 20000;
 const BUS_LIVE_POLL_MS = 8000;
+const WIP_STALE_MS = 30 * 60 * 1000;
+const BUS_STALE_MS = 5 * 60 * 1000;
+let liveTimerInterval = null;
 const ROADMAP_LANES = {
   near_term: 'Near-term',
   capability: 'Capability-building',
@@ -71,6 +74,77 @@ function fmtTs(ts) {
 function fmtUsd(n) {
   if (n == null || Number.isNaN(n)) return '—';
   return `$${Number(n).toFixed(2)}`;
+}
+
+function parseIso(ts) {
+  if (!ts) return null;
+  try {
+    const d = new Date(String(ts).replace(/\+08:00$/, '+08:00'));
+    return Number.isNaN(d.getTime()) ? null : d;
+  } catch {
+    return null;
+  }
+}
+
+function ageMs(ts) {
+  const d = parseIso(ts);
+  return d ? Math.max(0, Date.now() - d.getTime()) : null;
+}
+
+function formatLiveDuration(ms) {
+  if (ms == null) return '—';
+  const s = Math.floor(ms / 1000);
+  if (s < 60) return `${s}s`;
+  const m = Math.floor(s / 60);
+  if (m < 60) return `${m}m ${s % 60}s`;
+  const h = Math.floor(m / 60);
+  if (h < 48) return `${h}h ${m % 60}m`;
+  const d = Math.floor(h / 24);
+  return `${d}d ${h % 24}h`;
+}
+
+function liveTimerSpan(sinceIso, label, { stale = false } = {}) {
+  if (!sinceIso) return '';
+  return `<span class="live-timer${stale ? ' live-timer-stale' : ''}" data-live-since="${esc(sinceIso)}" data-live-label="${esc(label)}" data-live-stale="${stale ? '1' : '0'}">${esc(label)} …</span>`;
+}
+
+function tickLiveTimers() {
+  document.querySelectorAll('[data-live-since]').forEach((el) => {
+    const ms = ageMs(el.dataset.liveSince);
+    if (ms == null) return;
+    const label = el.dataset.liveLabel || 'On';
+    el.textContent = `${label} ${formatLiveDuration(ms)}`;
+    const stale = el.dataset.liveStale === '1' || ms >= WIP_STALE_MS;
+    el.classList.toggle('live-timer-stale', stale);
+  });
+  const fleetUpdated = $('org-fleet-updated');
+  if (fleetUpdated?.dataset.busGeneratedAt) {
+    const ms = ageMs(fleetUpdated.dataset.busGeneratedAt);
+    if (ms != null) {
+      const snap = formatLiveDuration(ms);
+      const stale = ms >= BUS_STALE_MS;
+      fleetUpdated.textContent = stale
+        ? `Bus snapshot ${snap} ago (stale)`
+        : `Bus live · ${snap} ago`;
+      fleetUpdated.classList.toggle('meta-stale', stale);
+    }
+  }
+  const lastUp = $('last-updated');
+  if (lastUp?.dataset.ledgerTs) {
+    const ms = ageMs(lastUp.dataset.ledgerTs);
+    if (ms != null) {
+      const stale = ms >= WIP_STALE_MS;
+      lastUp.textContent = stale
+        ? `Ledger ${formatLiveDuration(ms)} ago (POL-002)`
+        : `Ledger ${formatLiveDuration(ms)} ago`;
+      lastUp.classList.toggle('meta-stale', stale);
+    }
+  }
+}
+
+function startLiveTimers() {
+  tickLiveTimers();
+  if (!liveTimerInterval) liveTimerInterval = setInterval(tickLiveTimers, 1000);
 }
 
 async function loadLedger() {
@@ -499,10 +573,11 @@ function setFocusPanel(focus, state) {
     : esc(line);
   const detailSrc = focus.focus_detail || focus.output || '';
   detail.textContent = detailSrc.length > 220 ? `${detailSrc.slice(0, 217)}…` : detailSrc;
+  const focusStale = focus.ts && ageMs(focus.ts) >= WIP_STALE_MS;
   meta.innerHTML = `
     <span class="meta-pill">${badge(focus.status)}</span>
     <span class="meta-pill">${esc(taskId || '')}</span>
-    <span class="meta-pill">Updated ${fmtTs(focus.ts)}</span>`;
+    <span class="meta-pill">${liveTimerSpan(focus.ts, 'Focus age', { stale: focusStale })}</span>`;
   bindWorkOpenLinks(headline);
   bindGateOpenLinks(headline);
 }
@@ -512,18 +587,22 @@ function renderCurrentFocus(state) {
 }
 
 function renderQueue(state) {
-  const rows = state.active.map(
-    (t) => `<tr>
-      <td>${badge(t.status)}</td>
+  const rows = state.active.map((t) => {
+    const stale = t.ts && ageMs(t.ts) >= WIP_STALE_MS;
+    const statusCell = stale
+      ? `${badge(t.status)} <span class="queue-stale-tag" title="POL-002: no ledger heartbeat 30+ min">stale</span>`
+      : badge(t.status);
+    return `<tr class="${stale ? 'queue-row-stale' : ''}">
+      <td>${statusCell}</td>
       <td>${esc(t.owner || t.actor)}</td>
       <td>${taskMemoLink(t.task, 'queue', t.task_id)}</td>
       <td>${esc(t.task_id || '')}</td>
-      <td>${fmtTs(t.ts)}</td>
-    </tr>`
-  );
+      <td>${liveTimerSpan(t.ts, 'Since update', { stale })}</td>
+    </tr>`;
+  });
   renderTable(
     $('work-queue'),
-    ['Status', 'Owner', 'Task', 'ID', 'Updated'],
+    ['Status', 'Owner', 'Task', 'ID', 'Age'],
     rows,
     'No active work in queue.'
   );
@@ -721,8 +800,9 @@ function renderOrgFleetContext(ctx, bus) {
   if (pmo?.task_id) {
     const state = pmo.bus_state || pmo.ledger_status || 'unknown';
     const warn = state === 'stale' || state === 'held' ? ' org-context-warn' : '';
+    const pmoTimer = pmo.since ? liveTimerSpan(pmo.since, 'PMO ledger', { stale: state === 'stale' }) : '';
     chips.push(
-      `<div class="org-context-chip${warn}" title="${esc(pmo.note || '')}">PMO ${esc(pmo.task_id)} · ${esc(state)}</div>`
+      `<div class="org-context-chip${warn}" title="${esc(pmo.note || '')}">PMO ${esc(pmo.task_id)} · ${esc(state)} ${pmoTimer}</div>`
     );
   } else if (ctx?.focus?.task_id) {
     chips.push(
@@ -794,6 +874,15 @@ function busWorkCard(job, kind) {
   const linkRow = links.length
     ? `<p class="fleet-job-links">${links.join('<span class="fleet-job-link-sep">·</span>')}</p>`
     : '';
+  let timerRow = '';
+  if (kind === 'running') {
+    const sessionSince = job.started_at || job.updated_at || job.created_at;
+    timerRow = `<p class="fleet-job-timers">${liveTimerSpan(sessionSince, 'Worker on')} ${liveTimerSpan(job.created_at, 'Job queued')}</p>`;
+  } else if (kind === 'queued') {
+    timerRow = `<p class="fleet-job-timers">${liveTimerSpan(job.created_at, 'Queued')}</p>`;
+  } else if (kind === 'held') {
+    timerRow = `<p class="fleet-job-timers">${liveTimerSpan(job.updated_at || job.created_at, 'Held')}</p>`;
+  }
   const fullId =
     job.job_id && (job.short_job_id || shortJobId(job.job_id)) !== job.job_id
       ? `<p class="fleet-job-id" title="${esc(job.job_id)}">${esc(job.job_id)}</p>`
@@ -807,6 +896,7 @@ function busWorkCard(job, kind) {
     <h4 class="fleet-job-title">${jobBrief ? `<a class="fleet-job-title-link" href="${esc(jobBrief)}">${esc(title)}</a>` : esc(title)}</h4>
     ${fullId}
     <p class="fleet-job-meta">${esc(job.repo || '')} · ${esc(job.worker_status || job.status || kind)}</p>
+    ${timerRow}
     ${preview}
     ${linkRow}
     ${hold}
@@ -947,8 +1037,14 @@ function renderOrgFleet(orgData, busData) {
   }
   const ts = busData?.generated_at || orgData?.generated_at;
   if (updated) {
-    updated.textContent = ts ? `Snapshot ${fmtTs(ts)}` : 'Snapshot';
+    if (ts) {
+      updated.dataset.busGeneratedAt = ts;
+      updated.classList.toggle('meta-stale', (ageMs(ts) || 0) >= BUS_STALE_MS);
+    } else {
+      delete updated.dataset.busGeneratedAt;
+    }
   }
+  startLiveTimers();
 }
 
 async function loadOrgFleet() {
@@ -991,7 +1087,16 @@ function renderAll(state) {
   renderArtifacts(state);
 
   const latest = state.sorted[state.sorted.length - 1];
-  $('last-updated').textContent = latest ? `Last event: ${fmtTs(latest.ts)}` : 'No events';
+  const lastUp = $('last-updated');
+  if (lastUp) {
+    if (latest?.ts) {
+      lastUp.dataset.ledgerTs = latest.ts;
+    } else {
+      delete lastUp.dataset.ledgerTs;
+      lastUp.textContent = 'No events';
+    }
+  }
+  startLiveTimers();
 }
 
 function showError(msg) {

@@ -947,6 +947,38 @@ tr:hover td { background: rgba(79, 156, 249, 0.05); }
   word-break: break-word;
 }
 
+.fleet-job-timers {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 0.75rem;
+  margin: 0.35rem 0 0.5rem;
+  font-size: 0.78rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.live-timer {
+  color: var(--muted);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+.live-timer-stale,
+.meta-stale {
+  color: var(--warning);
+  font-weight: 600;
+}
+
+.queue-stale-tag {
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--warning);
+  margin-left: 0.35rem;
+}
+
+.queue-row-stale td {
+  background: rgba(255, 180, 60, 0.06);
+}
+
 .fleet-job-meta {
   margin: 0.3rem 0 0;
   font-size: 0.72rem;

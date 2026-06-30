@@ -8,16 +8,27 @@ Rules (each emits at most one corrective event per run per rule):
 - Superseded open decisions → decision_resolved when ledger already answers them
 
 Never edits existing lines. Idempotent: skips if corrective event already present this week.
+- agent-bus reality → refresh SYS-002 / PMO-001 when ledger cites completed jobs or goes stale
 """
 from __future__ import annotations
 
 import json
+import os
+import re
+import sqlite3
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 LEDGER = ROOT / "logs" / "ceo-ledger.jsonl"
+BUS_DB = Path(
+    os.environ.get(
+        "AGENT_BUS_DB",
+        ROOT.parent / "ai-agents-workspace" / "agent-bus" / "jobs.sqlite",
+    )
+)
 SGT = timezone(timedelta(hours=8))
+WIP_STALE_MIN = 30
 
 
 def now_sgt() -> str:
@@ -56,6 +67,173 @@ def has_event(events: list[dict], *, event: str, task_id: str | None = None) -> 
         if ev.get("event") == event and (task_id is None or ev.get("task_id") == task_id):
             return True
     return False
+
+
+def has_output_marker(events: list[dict], task_id: str, marker: str) -> bool:
+    for ev in reversed(events):
+        if ev.get("task_id") == task_id and marker in (ev.get("output") or ""):
+            return True
+    return False
+
+
+def _parse_ts(ts: str) -> datetime | None:
+    if not ts:
+        return None
+    try:
+        raw = ts.replace("Z", "+00:00")
+        if raw.endswith("+08:00"):
+            return datetime.fromisoformat(raw)
+        return datetime.fromisoformat(raw)
+    except ValueError:
+        return None
+
+
+def minutes_since(ts: str) -> float | None:
+    dt = _parse_ts(ts)
+    if not dt:
+        return None
+    if dt.tzinfo is None:
+        dt = dt.replace(tzinfo=SGT)
+    return (datetime.now(SGT) - dt.astimezone(SGT)).total_seconds() / 60.0
+
+
+def cited_job_suffixes(text: str) -> list[str]:
+    return list(dict.fromkeys(re.findall(r"JOB-(\d+)", text or "")))
+
+
+def reconcile_bus(events: list[dict], tasks: dict[str, dict], base: dict) -> int:
+    """Align ledger missions with agent-bus — POL-002 honesty."""
+    if not BUS_DB.is_file():
+        return 0
+    n = 0
+    conn = sqlite3.connect(BUS_DB)
+    conn.row_factory = sqlite3.Row
+
+    def job_for_suffix(suffix: str) -> sqlite3.Row | None:
+        return conn.execute(
+            "SELECT job_id, status, updated_at, to_session, repo FROM jobs "
+            "WHERE job_id LIKE ? ORDER BY updated_at DESC LIMIT 1",
+            (f"%-{suffix}",),
+        ).fetchone()
+
+    def session_running(session: str) -> bool:
+        return bool(
+            conn.execute(
+                "SELECT 1 FROM jobs WHERE status='running' AND to_session=? LIMIT 1",
+                (session,),
+            ).fetchone()
+        )
+
+    # SYS-002 still cites a completed bus job as "executing"
+    sys = tasks.get("SYS-002", {})
+    if sys.get("status") == "in_progress":
+        for suffix in cited_job_suffixes(sys.get("output", "")):
+            row = job_for_suffix(suffix)
+            if not row or row["status"] != "completed":
+                continue
+            marker = f"reconcile-bus:sys002-job-{suffix}-done"
+            if has_output_marker(events, "SYS-002", marker):
+                continue
+            dash_running = conn.execute(
+                "SELECT job_id FROM jobs WHERE status='running' "
+                "AND to_session='dashboard_worker' AND repo='nick2-dashboard' LIMIT 1"
+            ).fetchone()
+            if dash_running:
+                new_job = dash_running["job_id"]
+                short = re.search(r"-(\d+)$", new_job)
+                short_id = f"JOB-{short.group(1)}" if short else new_job
+                append({
+                    **base,
+                    "event": "task_updated",
+                    "task_id": "SYS-002",
+                    "task": sys.get("task", "Make the dashboard live"),
+                    "status": "in_progress",
+                    "owner": "dashboard_worker",
+                    "output": (
+                        f"{marker} Prior {row['job_id']} completed; now {short_id} executing on bus."
+                    ),
+                })
+            else:
+                append({
+                    **base,
+                    "event": "task_updated",
+                    "task_id": "SYS-002",
+                    "task": sys.get("task", "Make the dashboard live"),
+                    "status": "completed",
+                    "owner": "dashboard_worker",
+                    "output": (
+                        f"{marker} {row['job_id']} completed on bus — live dashboard mission landed. "
+                        "No dashboard_worker job running."
+                    ),
+                })
+                append({
+                    **base,
+                    "event": "focus_snapshot",
+                    "task_id": "FOCUS-001",
+                    "focus_task_id": "SYS-002",
+                    "task": sys.get("task", "Make the dashboard live"),
+                    "focus_line": "Dashboard live mission complete — no dashboard worker on bus",
+                    "focus_detail": f"{row['job_id']} completed; reconcile marked SYS-002 done.",
+                    "status": "completed",
+                    "owner": "dashboard_worker",
+                    "output": marker,
+                })
+            n += 1
+            events = load_events()
+            break
+
+    # PMO-001 in_progress but no PMO worker on bus (POL-002 stale)
+    pmo = tasks.get("PMO-001", {})
+    if pmo.get("status") == "in_progress":
+        age = minutes_since(pmo.get("ts", ""))
+        marker = "reconcile-bus:pmo-stale-no-worker"
+        if (
+            age is not None
+            and age > WIP_STALE_MIN
+            and not session_running("pmo")
+            and not has_output_marker(events, "PMO-001", marker)
+        ):
+            append({
+                **base,
+                "event": "task_updated",
+                "task_id": "PMO-001",
+                "task": pmo.get("task", "PMO triage"),
+                "status": "blocked",
+                "owner": "PMO",
+                "output": (
+                    f"{marker} No PMO job on bus for {int(age)}m (POL-002). "
+                    "Triage stalled — dispatch PMO worker or set idle."
+                ),
+            })
+            n += 1
+            events = load_events()
+
+    # P-001 approved proposal stale >30m with no CEO activity
+    prop = tasks.get("P-001", {})
+    if prop.get("status") == "approved":
+        age = minutes_since(prop.get("ts", ""))
+        marker = "reconcile-bus:p001-stale-approved"
+        if (
+            age is not None
+            and age > WIP_STALE_MIN
+            and not has_output_marker(events, "P-001", marker)
+        ):
+            append({
+                **base,
+                "event": "task_updated",
+                "task_id": "P-001",
+                "task": prop.get("task", "PMO triage proposal"),
+                "status": "idle",
+                "owner": "CEO",
+                "output": (
+                    f"{marker} Tier B proposal approved {int(age)}m ago with no heartbeat — "
+                    "handoff to PMO-001 or close."
+                ),
+            })
+            n += 1
+
+    conn.close()
+    return n
 
 
 def append(event: dict) -> bool:
@@ -169,6 +347,8 @@ def reconcile(events: list[dict]) -> int:
             "output": "Hourly focus: PMO triage queued; enable frontier worker to start.",
         })
         n += 1
+
+    n += reconcile_bus(events, tasks, base)
 
     return n
 

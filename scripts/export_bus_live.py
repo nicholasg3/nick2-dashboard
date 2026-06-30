@@ -83,6 +83,17 @@ def load_pmo_focus() -> dict:
     }
 
 
+def running_started_at(job_id: str) -> str | None:
+    run_file = BUS_DB.parent / "running" / f"{job_id}.json"
+    if not run_file.is_file():
+        return None
+    try:
+        data = json.loads(run_file.read_text(encoding="utf-8"))
+        return data.get("started_at") or None
+    except (json.JSONDecodeError, OSError):
+        return None
+
+
 def row_job(row: sqlite3.Row, events: list[dict]) -> dict:
     lane = (row["display_name"] or "").split("[")[-1].split("]")[0].strip() if row["display_name"] else ""
     job_id = row["job_id"]
@@ -92,9 +103,13 @@ def row_job(row: sqlite3.Row, events: list[dict]) -> dict:
     objective = (row["objective"] or "").strip()
     preview = objective.split("\n\n")[0].replace("\n", " ")[:160] if objective else ""
     mission_id = mission_for_job(job_id, events)
+    started = running_started_at(job_id) if row["status"] == "running" else None
     return {
         "job_id": job_id,
         "short_job_id": short_job_id(job_id),
+        "created_at": row["created_at"] or "",
+        "updated_at": row["updated_at"] or "",
+        "started_at": started or row["created_at"] or "",
         "display_name": row["display_name"] or job_id,
         "feature_name": feature,
         "objective_preview": preview,
