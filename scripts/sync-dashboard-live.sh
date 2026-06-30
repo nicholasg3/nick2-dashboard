@@ -21,16 +21,15 @@ if git diff --staged --quiet; then
 fi
 
 git commit -m "chore: dashboard-live sync $(date -u +%Y-%m-%dT%H:%MZ)"
-STASHED=0
-if ! git diff --quiet || ! git diff --cached --quiet; then
-  git stash push -m "sync-dashboard-live stash $(date -u +%Y-%m-%dT%H:%MZ)" --include-untracked || true
-  STASHED=1
+# Never stash a human in-progress edit; the old git stash/pop with || true
+# silently dropped uncommitted work on a pop conflict. If anything outside
+# our generated paths is dirty, defer the rebase/push to a later tick.
+if [ -n "$(git status --porcelain | grep -vE '^.. (reports/|memos/|logs/)')" ]; then
+  echo "sync-dashboard-live: deferring push (non-generated changes present)"
+  exit 0
 fi
-git pull --rebase origin main
+git pull --rebase --autostash origin main
 git push origin main
-if [ "$STASHED" = "1" ]; then
-  git stash pop || true
-fi
 
 date -u +%Y-%m-%dT%H:%M:%SZ > logs/sync-heartbeat.txt
 python3 scripts/cron_health.py || true
