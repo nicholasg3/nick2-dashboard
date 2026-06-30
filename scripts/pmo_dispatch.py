@@ -545,6 +545,16 @@ def retry_undispatched(*, dry_run: bool = False) -> dict:
         if job_id:
             prior_chain[chain_key] = job_id
             if not dry_run:
+                bus_status = (bus_out or {}).get("status", "queued")
+                if bus_status in ("running", "linked-existing"):
+                    row_status = "in_progress"
+                elif bus_status == "held":
+                    row_status = "queued"
+                else:
+                    row_status = "queued"
+                note = f"retry dispatched {job_id}"
+                if bus_status == "linked-existing":
+                    note = f"retry linked existing {job_id}"
                 append_ledger(
                     {
                         **base,
@@ -553,9 +563,9 @@ def retry_undispatched(*, dry_run: bool = False) -> dict:
                         "event": "task_updated",
                         "task_id": tid,
                         "task": t.get("task"),
-                        "status": "queued",
+                        "status": row_status,
                         "owner": t.get("owner"),
-                        "output": f"{DISPATCH_MARKER}retry dispatched {job_id}.",
+                        "output": f"{DISPATCH_MARKER}{note}.",
                         "artifacts": [f"agent-bus {job_id}"],
                     }
                 )
