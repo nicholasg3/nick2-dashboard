@@ -105,6 +105,19 @@ strong { color: #fff; }
 <h2>Smoke and witness (POL-007)</h2>
 <p><strong>Smoke checks and acceptance witnesses are steps inside the job that owns the work</strong> — not separate <code>JOB-*</code> rows on the dashboard.</p>
 <ul><li><strong>Do:</strong> run the witness command on the job branch before the worker report; cite <code>exit 0</code> in evidence.</li><li><strong>Do not:</strong> <code>bus.py submit</code> with <code>smoke</code> in the objective (rejected at submit unless <code>--allow-smoke</code> for infra harness only).</li><li><strong>Dashboard:</strong> <code>export_bus_live.py</code> and <code>generate_job_memos.py</code> hide smoke packets entirely.</li><li><strong>Cleanup:</strong> <code>python3 agent-bus/scripts/cancel_duplicate_jobs.py --smoke-only</code> on the droplet.</li></ul>
+<h2>Bus queue hygiene (POL-008)</h2>
+<p><strong>COO janitor runs before every PMO dispatch/retry</strong> (<code>coo_janitor.py</code> via <code>pmo_cycle.py</code> and <code>reconcile-ledger.py</code>):</p>
+<ol><li>1. Close smoke packets (<code>cancel_duplicate_jobs.py --smoke-only</code>)</li><li>2. Deduplicate active <code>(repo, feature_name)</code> groups</li><li>3. Supersede active jobs for <code>dispatch: false</code> rows in <code>pmo_001_result.json</code></li><li>4. Release repo claims held by terminal/blocked-done jobs</li><li>5. Supersede jobs held behind terminal/blocked dependencies (default 10m stale)</li><li>6. Remove orphan <code>hold/*.json</code> when SQLite status is not <code>held</code></li><li>7. <code>promote_held</code> — move cleared jobs from hold → inbox</li></ol>
+<p>Manual escape hatch: <code>python3 nick2-dashboard/scripts/coo_janitor.py --ledger</code></p>
+<p><code>bus.py supersede</code> also clears <code>hold_reason</code> and deletes matching hold files.</p>
+<h2>Landed on main + catalog enrich (POL-009)</h2>
+<p>Before dispatch/retry (<code>job_catalog.py</code> via <code>ceo_supervisor.py</code> / <code>pmo_dispatch.py</code>):</p>
+<ol><li>1. <strong>Enrich</strong> thin <code>job_work_catalog.json</code> rows from GitHub issue body + triage item</li><li>2. <strong>Audit landed</strong> — for each triage row (not decision-gated): all <code>touch_paths</code> exist on</li></ol>
+<p>   <code>main</code> checkout <strong>and</strong> catalog <code>witness</code> command exits 0 → auto-set <code>dispatch: false</code></p>
+<p>   in <code>pmo_001_result.json</code> with <code>POL-009 landed on main</code> reason</p>
+<ol><li>3. <strong>CEO supervisor</strong> runs landed audit + enrich + POL-008 janitor + dashboard witness</li></ol>
+<p>Decision-gated issues (<code>needs-nick</code>, Nick&#x27;s queue, p3 decide-if/when) are never auto-landed.</p>
+<p>Manual: <code>python3 scripts/job_catalog.py --audit-landed</code> / <code>--enrich</code></p>
   </div>
 </body>
 </html>

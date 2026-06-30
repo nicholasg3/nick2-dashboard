@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-30T15:15:02Z",
+  "generated_at": "2026-06-30T15:15:13Z",
   "running": [
     {
       "job_id": "JOB-20260630-703",
@@ -22,27 +22,7 @@
     }
   ],
   "queued": [],
-  "held": [
-    {
-      "job_id": "JOB-20260630-472",
-      "short_job_id": "JOB-472",
-      "created_at": "2026-06-30T15:14:32Z",
-      "updated_at": "2026-06-30T15:14:51Z",
-      "started_at": "2026-06-30T15:14:32Z",
-      "display_name": "work-task-issue-24-decision-revisit-tele [pmo] \u00b7 queued",
-      "feature_name": "work-task-issue-24-decision-revisit-tele",
-      "objective_preview": "Work task ISSUE-24 (DECISION: revisit Telegram bot permission posture): Nick instructs \u2014 take this out of the work queue. This is only something for me, Nick, t",
-      "lane": "pmo",
-      "repo": "nick2-dashboard",
-      "to_session": "pmo",
-      "worker_status": "queued",
-      "hold_reason": "repo nick2-dashboard claimed by JOB-20260630-703",
-      "status": "held",
-      "branch": "",
-      "mission_id": "",
-      "memo_path": "memos/jobs/JOB-20260630-472.md"
-    }
-  ],
+  "held": [],
   "recent_completed": [
     {
       "job_id": "JOB-20260630-183",
@@ -164,7 +144,6 @@
     "task": "Triage 13 ready-for-agent GitHub issues",
     "ledger_status": "completed",
     "since": "2026-06-30T21:30:34+08:00",
-    "bus_state": "held",
-    "note": "repo nick2-dashboard claimed by JOB-20260630-703"
+    "bus_state": "idle"
   }
 }
