@@ -1,6 +1,26 @@
 {
-  "generated_at": "2026-06-30T13:06:01Z",
-  "running": [],
+  "generated_at": "2026-06-30T13:09:02Z",
+  "running": [
+    {
+      "job_id": "JOB-20260630-792",
+      "short_job_id": "JOB-792",
+      "created_at": "2026-06-30T13:06:32Z",
+      "updated_at": "2026-06-30T13:06:32Z",
+      "started_at": "2026-06-30T13:06:32Z",
+      "display_name": "pmo-001-roi-ranked-triage-of-13-ready-fo [pmo] \u00b7 executing",
+      "feature_name": "pmo-001-roi-ranked-triage-of-13-ready-fo",
+      "objective_preview": "PMO-001: ROI-ranked triage of 13 ready-for-agent GitHub issues. Inventory all 13, score with interim rubric, rank top-5, dispatch frontier workers within $20/wk",
+      "lane": "pmo",
+      "repo": "ai-agents-workspace",
+      "to_session": "pmo",
+      "worker_status": "executing",
+      "hold_reason": "",
+      "status": "running",
+      "branch": "",
+      "mission_id": "",
+      "memo_path": "memos/jobs/JOB-20260630-792.md"
+    }
+  ],
   "queued": [
     {
       "job_id": "JOB-20260630-820",
@@ -163,6 +183,7 @@
     "task": "Triage 13 ready-for-agent GitHub issues",
     "ledger_status": "blocked",
     "since": "2026-06-30T20:55:39+08:00",
-    "bus_state": "idle"
+    "bus_state": "executing",
+    "note": "PMO worker running on agent-bus"
   }
 }
