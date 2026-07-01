@@ -4,6 +4,10 @@ Read-only view of `logs/ceo-ledger.jsonl`.
 
 | Time | Actor | Event | Task ID | Task |
 |------|-------|-------|---------|------|
+| 2026-07-01T09:15:05 | CEO | focus_snapshot | FOCUS-001 | CEO supervision |
+| 2026-07-01T09:10:31 | CEO | focus_snapshot | FOCUS-001 | CEO supervision |
+| 2026-07-01T09:05:28 | CEO | focus_snapshot | FOCUS-001 | CEO supervision |
+| 2026-07-01T09:00:25 | CEO | focus_snapshot | FOCUS-001 | CEO supervision |
 | 2026-07-01T09:00:07 | CEO | focus_snapshot | FOCUS-001 | CEO supervision |
 | 2026-07-01T08:55:22 | CEO | focus_snapshot | FOCUS-001 | CEO supervision |
 | 2026-07-01T08:50:20 | CEO | focus_snapshot | FOCUS-001 | CEO supervision |
@@ -40,7 +44,3 @@ Read-only view of `logs/ceo-ledger.jsonl`.
 | 2026-07-01T07:24:21 | CEO | ceo_reflect | FOCUS-001 | CEO reflection and bottleneck pass |
 | 2026-07-01T07:24:21 | CEO | focus_snapshot | FOCUS-001 | CEO supervision |
 | 2026-07-01T07:24:21 | CEO | ceo_reflect_llm | FOCUS-001 | CEO LLM reflection |
-| 2026-07-01T07:19:13 | CEO | focus_snapshot | FOCUS-001 | CEO supervision |
-| 2026-07-01T07:15:06 | CEO | focus_snapshot | FOCUS-001 | CEO supervision |
-| 2026-07-01T07:14:09 | CEO | focus_snapshot | FOCUS-001 | CEO supervision |
-| 2026-07-01T07:09:06 | CEO | focus_snapshot | FOCUS-001 | CEO supervision |
