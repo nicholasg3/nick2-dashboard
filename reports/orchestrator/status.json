@@ -1,14 +1,14 @@
 {
-  "ts": "2026-07-01T01:25:45Z",
+  "ts": "2026-07-01T01:40:54Z",
   "mode": "live",
   "reason": "heartbeat",
   "healthy": true,
-  "last_tick_at": "2026-07-01T01:25:45Z",
-  "summary": "CEO loop took 1 bounded action(s). Bus: 0 running, 0 held, 0 queued. Bottlenecks: 0. Role chat messages: CEO 14, COO 8, PMO 0.",
+  "last_tick_at": "2026-07-01T01:40:54Z",
+  "summary": "CEO loop checked the system; no action was needed. Bus: 0 running, 0 held, 0 queued. Bottlenecks: 0. Role chat messages: CEO 2, COO 2, PMO 0.",
   "survey": {
-    "ts": "2026-07-01T01:25:45Z",
+    "ts": "2026-07-01T01:40:54Z",
     "bus_live": {
-      "generated_at": "2026-07-01T01:25:39Z",
+      "generated_at": "2026-07-01T01:40:53Z",
       "running": [],
       "queued": [],
       "held": [],
@@ -137,7 +137,7 @@
       }
     },
     "ceo_queue": {
-      "ts": "2026-07-01T01:25:39Z",
+      "ts": "2026-07-01T01:40:54Z",
       "mode": "ceo_reflect",
       "context": {
         "counts": {
@@ -162,13 +162,7 @@
           "one delegation slot available"
         ]
       },
-      "actions": [
-        {
-          "action": "llm_delegate_rejected",
-          "task_id": "ISSUE-BUS-001",
-          "reason": "ISSUE-BUS-001 already active on ledger"
-        }
-      ],
+      "actions": [],
       "proposals": [
         {
           "kind": "already_deferred",
@@ -189,137 +183,18 @@
           "kind": "already_deferred",
           "task_id": "ISSUE-24",
           "detail": "Nick personal queue — decision on Telegram PA permissions (not agent research)"
-        },
-        {
-          "kind": "llm_unstick",
-          "detail": "Manually investigate and unblock one blocked job related to ISSUE-BUS-001 to resume progress on the critical worker_model crash fix.",
-          "suggested": "Since retries are not allowed and no jobs are running, manually unblocking a single job can restart the pipeline without exceeding admission limits."
-        },
-        {
-          "kind": "llm_unstick",
-          "detail": "Promote any held or deferred jobs if possible, especially those related to ISSUE-80, to test and harden the dashboard reconciliation.",
-          "suggested": "Promoting held jobs can utilize existing work without adding new delegation load."
-        },
-        {
-          "kind": "llm_delegate",
-          "task_id": "ISSUE-BUS-001",
-          "detail": "With one delegation slot available and no retries allowed, dispatching the critical ISSUE-BUS-001 fix task will address the root cause of the worker_model crash and unblock downstream work."
-        },
-        {
-          "kind": "llm_nick_attention",
-          "detail": "Review and decide on the deferred decision-gated issues ISSUE-15 and ISSUE-24 to enable future agent implementations and permissions."
-        },
-        {
-          "kind": "llm_nick_attention",
-          "detail": "Confirm manual unblocking steps for blocked jobs to ensure smooth resumption of work."
-        },
-        {
-          "kind": "llm_nick_attention",
-          "detail": "Monitor the impact of dispatching ISSUE-BUS-001 on system stability and admission limits."
         }
       ],
       "bottleneck_count": 0,
       "llm": {
         "enabled": true,
-        "ran": true,
-        "skip_reason": "interval elapsed (61m >= 60m)",
-        "execute": true,
-        "meta": {
-          "model": "openai/gpt-4.1-mini",
-          "usage": {
-            "prompt_tokens": 1878,
-            "completion_tokens": 438,
-            "total_tokens": 2316,
-            "cost": 0.001452,
-            "is_byok": false,
-            "prompt_tokens_details": {
-              "cached_tokens": 0,
-              "cache_write_tokens": 0,
-              "audio_tokens": 0,
-              "video_tokens": 0
-            },
-            "cost_details": {
-              "upstream_inference_cost": 0.001452,
-              "upstream_inference_prompt_cost": 0.0007512,
-              "upstream_inference_completions_cost": 0.0007008
-            },
-            "completion_tokens_details": {
-              "reasoning_tokens": 0,
-              "image_tokens": 0,
-              "audio_tokens": 0
-            }
-          },
-          "cost_usd": 0.001452
-        },
-        "reflection": {
-          "situation_summary": "Currently, there are no active or running tasks, and no bottlenecks detected. However, multiple jobs related to ISSUE-BUS-001 and ISSUE-80 are blocked, preventing progress on critical fixes and hardening tasks. Admission allows one new delegation, but retries are disallowed, limiting immediate remediation options.",
-          "root_causes": [
-            "Blocked jobs on ISSUE-BUS-001 and ISSUE-80 are preventing forward progress despite no running or queued tasks.",
-            "No retries allowed to attempt automatic unblocking or re-execution of failed jobs.",
-            "Key decision-gated issues remain deferred, so no new work can be dispatched to resolve dependencies.",
-            "No held jobs to promote or retry, limiting unblocking options."
-          ],
-          "unstick_ideas": [
-            {
-              "idea": "Manually investigate and unblock one blocked job related to ISSUE-BUS-001 to resume progress on the critical worker_model crash fix.",
-              "rationale": "Since retries are not allowed and no jobs are running, manually unblocking a single job can restart the pipeline without exceeding admission limits."
-            },
-            {
-              "idea": "Promote any held or deferred jobs if possible, especially those related to ISSUE-80, to test and harden the dashboard reconciliation.",
-              "rationale": "Promoting held jobs can utilize existing work without adding new delegation load."
-            }
-          ],
-          "delegate_recommendation": {
-            "task_id": "ISSUE-BUS-001",
-            "rationale": "With one delegation slot available and no retries allowed, dispatching the critical ISSUE-BUS-001 fix task will address the root cause of the worker_model crash and unblock downstream work."
-          },
-          "focus_shift": null,
-          "nick_attention": [
-            "Review and decide on the deferred decision-gated issues ISSUE-15 and ISSUE-24 to enable future agent implementations and permissions.",
-            "Confirm manual unblocking steps for blocked jobs to ensure smooth resumption of work.",
-            "Monitor the impact of dispatching ISSUE-BUS-001 on system stability and admission limits."
-          ]
-        },
-        "llm_proposals": [
-          {
-            "kind": "llm_unstick",
-            "detail": "Manually investigate and unblock one blocked job related to ISSUE-BUS-001 to resume progress on the critical worker_model crash fix.",
-            "suggested": "Since retries are not allowed and no jobs are running, manually unblocking a single job can restart the pipeline without exceeding admission limits."
-          },
-          {
-            "kind": "llm_unstick",
-            "detail": "Promote any held or deferred jobs if possible, especially those related to ISSUE-80, to test and harden the dashboard reconciliation.",
-            "suggested": "Promoting held jobs can utilize existing work without adding new delegation load."
-          },
-          {
-            "kind": "llm_delegate",
-            "task_id": "ISSUE-BUS-001",
-            "detail": "With one delegation slot available and no retries allowed, dispatching the critical ISSUE-BUS-001 fix task will address the root cause of the worker_model crash and unblock downstream work."
-          },
-          {
-            "kind": "llm_nick_attention",
-            "detail": "Review and decide on the deferred decision-gated issues ISSUE-15 and ISSUE-24 to enable future agent implementations and permissions."
-          },
-          {
-            "kind": "llm_nick_attention",
-            "detail": "Confirm manual unblocking steps for blocked jobs to ensure smooth resumption of work."
-          },
-          {
-            "kind": "llm_nick_attention",
-            "detail": "Monitor the impact of dispatching ISSUE-BUS-001 on system stability and admission limits."
-          }
-        ],
-        "actions": [
-          {
-            "action": "llm_delegate_rejected",
-            "task_id": "ISSUE-BUS-001",
-            "reason": "ISSUE-BUS-001 already active on ledger"
-          }
-        ]
+        "ran": false,
+        "skip_reason": "interval not elapsed (15m < 60m)",
+        "execute": true
       }
     },
     "org_fleet": {
-      "generated_at": "2026-07-01T01:25:45Z",
+      "generated_at": "2026-07-01T01:40:54Z",
       "legend": {
         "live": "🟢 Running now (24/7 service)",
         "timer": "⏰ Scheduled — fires on systemd timer",
@@ -348,12 +223,12 @@
         },
         "open_gate_count": 0,
         "orchestrator": {
-          "running": true,
-          "fresh": true,
-          "age_min": 5.1,
+          "running": false,
+          "fresh": false,
+          "age_min": 15.2,
           "healthy": true,
           "mode": "live",
-          "summary": "CEO loop checked the system; no action was needed. Bus: 0 running, 0 held, 0 queued. Bottlenecks: 0. Role chat messages: CEO 14, COO 8, PMO 0."
+          "summary": "CEO loop took 1 bounded action(s). Bus: 0 running, 0 held, 0 queued. Bottlenecks: 0. Role chat messages: CEO 14, COO 8, PMO 0."
         }
       },
       "root": {
@@ -369,10 +244,10 @@
           {
             "id": "ceo_office",
             "title": "CEO Office",
-            "status": "live",
-            "icon": "🟢",
+            "status": "timer",
+            "icon": "⏰",
             "maps_to": "CEO role office",
-            "detail": "CEO loop checked the system; no action was needed. Bus: 0 running, 0 held, 0 queued. Bottlenecks: 0. Role chat messages: CEO 14, COO 8, PMO 0. (5.1m ago)",
+            "detail": "CEO loop took 1 bounded action(s). Bus: 0 running, 0 held, 0 queued. Bottlenecks: 0. Role chat messages: CEO 14, COO 8, PMO 0. (15.2m ago)",
             "schedule": "24/7 via dashboard bridge",
             "chat_role": "ceo",
             "children": []
@@ -582,16 +457,16 @@
     "gated": [],
     "role_chats": {
       "ceo": {
-        "messages": 14,
+        "messages": 2,
         "last_actor": "CEO",
-        "last_ts": "2026-07-01T02:30:49+08:00",
-        "last_text": "Nick,\n\n- Currently, no jobs are running, queued, or held, and the system is fully idle with the weekly budget untouched at $20.\n- I cannot directly inspect files on the droplet from here; my access is limited to system state, job queues, an"
+        "last_ts": "2026-07-01T09:40:41+08:00",
+        "last_text": "Nick,\n\n- The system is currently fully idle: no running, queued, or held jobs, and the weekly budget remains untouched at $20. Recent completed work includes diagnostics, triage of 13 ready-for-agent GitHub issues (PMO-001), and dashboard u"
       },
       "coo": {
-        "messages": 8,
+        "messages": 2,
         "last_actor": "COO",
-        "last_ts": "2026-07-01T02:37:57+08:00",
-        "last_text": "- The system is fully idle with no running, queued, or held jobs; the weekly budget remains untouched at $20.\n- Recent completed work includes diagnostics, triage of 13 ready-for-agent GitHub issues (PMO-001), and dashboard updates; no stuc"
+        "last_ts": "2026-07-01T09:38:07+08:00",
+        "last_text": "- The system is fully idle: no running, queued, or held jobs, and the weekly budget remains untouched at $20.\n- Recent completed work includes diagnostics, triage of 13 ready-for-agent GitHub issues (PMO-001), and dashboard updates; no stuc"
       },
       "pmo": {
         "messages": 0,
@@ -602,7 +477,7 @@
     }
   },
   "last_report": {
-    "ts": "2026-07-01T01:25:45Z",
+    "ts": "2026-07-01T01:40:54Z",
     "mode": "supervisor_corrective",
     "landed": {
       "updated": 0,
@@ -639,11 +514,11 @@
     },
     "checkin": {
       "exit_code": 0,
-      "summary": "CEO check-in 2026-07-01T01:25:39Z\nRunning: 0 | Queued: 0 | Held: 0\nPMO-001: completed — \nIssues: none — workers healthy",
+      "summary": "CEO check-in 2026-07-01T01:40:54Z\nRunning: 0 | Queued: 0 | Held: 0\nPMO-001: completed — \nIssues: none — workers healthy",
       "issues": false
     },
     "reflect": {
-      "ts": "2026-07-01T01:25:39Z",
+      "ts": "2026-07-01T01:40:54Z",
       "mode": "ceo_reflect",
       "context": {
         "counts": {
@@ -668,13 +543,7 @@
           "one delegation slot available"
         ]
       },
-      "actions": [
-        {
-          "action": "llm_delegate_rejected",
-          "task_id": "ISSUE-BUS-001",
-          "reason": "ISSUE-BUS-001 already active on ledger"
-        }
-      ],
+      "actions": [],
       "proposals": [
         {
           "kind": "already_deferred",
@@ -695,137 +564,18 @@
           "kind": "already_deferred",
           "task_id": "ISSUE-24",
           "detail": "Nick personal queue — decision on Telegram PA permissions (not agent research)"
-        },
-        {
-          "kind": "llm_unstick",
-          "detail": "Manually investigate and unblock one blocked job related to ISSUE-BUS-001 to resume progress on the critical worker_model crash fix.",
-          "suggested": "Since retries are not allowed and no jobs are running, manually unblocking a single job can restart the pipeline without exceeding admission limits."
-        },
-        {
-          "kind": "llm_unstick",
-          "detail": "Promote any held or deferred jobs if possible, especially those related to ISSUE-80, to test and harden the dashboard reconciliation.",
-          "suggested": "Promoting held jobs can utilize existing work without adding new delegation load."
-        },
-        {
-          "kind": "llm_delegate",
-          "task_id": "ISSUE-BUS-001",
-          "detail": "With one delegation slot available and no retries allowed, dispatching the critical ISSUE-BUS-001 fix task will address the root cause of the worker_model crash and unblock downstream work."
-        },
-        {
-          "kind": "llm_nick_attention",
-          "detail": "Review and decide on the deferred decision-gated issues ISSUE-15 and ISSUE-24 to enable future agent implementations and permissions."
-        },
-        {
-          "kind": "llm_nick_attention",
-          "detail": "Confirm manual unblocking steps for blocked jobs to ensure smooth resumption of work."
-        },
-        {
-          "kind": "llm_nick_attention",
-          "detail": "Monitor the impact of dispatching ISSUE-BUS-001 on system stability and admission limits."
         }
       ],
       "bottleneck_count": 0,
       "llm": {
         "enabled": true,
-        "ran": true,
-        "skip_reason": "interval elapsed (61m >= 60m)",
-        "execute": true,
-        "meta": {
-          "model": "openai/gpt-4.1-mini",
-          "usage": {
-            "prompt_tokens": 1878,
-            "completion_tokens": 438,
-            "total_tokens": 2316,
-            "cost": 0.001452,
-            "is_byok": false,
-            "prompt_tokens_details": {
-              "cached_tokens": 0,
-              "cache_write_tokens": 0,
-              "audio_tokens": 0,
-              "video_tokens": 0
-            },
-            "cost_details": {
-              "upstream_inference_cost": 0.001452,
-              "upstream_inference_prompt_cost": 0.0007512,
-              "upstream_inference_completions_cost": 0.0007008
-            },
-            "completion_tokens_details": {
-              "reasoning_tokens": 0,
-              "image_tokens": 0,
-              "audio_tokens": 0
-            }
-          },
-          "cost_usd": 0.001452
-        },
-        "reflection": {
-          "situation_summary": "Currently, there are no active or running tasks, and no bottlenecks detected. However, multiple jobs related to ISSUE-BUS-001 and ISSUE-80 are blocked, preventing progress on critical fixes and hardening tasks. Admission allows one new delegation, but retries are disallowed, limiting immediate remediation options.",
-          "root_causes": [
-            "Blocked jobs on ISSUE-BUS-001 and ISSUE-80 are preventing forward progress despite no running or queued tasks.",
-            "No retries allowed to attempt automatic unblocking or re-execution of failed jobs.",
-            "Key decision-gated issues remain deferred, so no new work can be dispatched to resolve dependencies.",
-            "No held jobs to promote or retry, limiting unblocking options."
-          ],
-          "unstick_ideas": [
-            {
-              "idea": "Manually investigate and unblock one blocked job related to ISSUE-BUS-001 to resume progress on the critical worker_model crash fix.",
-              "rationale": "Since retries are not allowed and no jobs are running, manually unblocking a single job can restart the pipeline without exceeding admission limits."
-            },
-            {
-              "idea": "Promote any held or deferred jobs if possible, especially those related to ISSUE-80, to test and harden the dashboard reconciliation.",
-              "rationale": "Promoting held jobs can utilize existing work without adding new delegation load."
-            }
-          ],
-          "delegate_recommendation": {
-            "task_id": "ISSUE-BUS-001",
-            "rationale": "With one delegation slot available and no retries allowed, dispatching the critical ISSUE-BUS-001 fix task will address the root cause of the worker_model crash and unblock downstream work."
-          },
-          "focus_shift": null,
-          "nick_attention": [
-            "Review and decide on the deferred decision-gated issues ISSUE-15 and ISSUE-24 to enable future agent implementations and permissions.",
-            "Confirm manual unblocking steps for blocked jobs to ensure smooth resumption of work.",
-            "Monitor the impact of dispatching ISSUE-BUS-001 on system stability and admission limits."
-          ]
-        },
-        "llm_proposals": [
-          {
-            "kind": "llm_unstick",
-            "detail": "Manually investigate and unblock one blocked job related to ISSUE-BUS-001 to resume progress on the critical worker_model crash fix.",
-            "suggested": "Since retries are not allowed and no jobs are running, manually unblocking a single job can restart the pipeline without exceeding admission limits."
-          },
-          {
-            "kind": "llm_unstick",
-            "detail": "Promote any held or deferred jobs if possible, especially those related to ISSUE-80, to test and harden the dashboard reconciliation.",
-            "suggested": "Promoting held jobs can utilize existing work without adding new delegation load."
-          },
-          {
-            "kind": "llm_delegate",
-            "task_id": "ISSUE-BUS-001",
-            "detail": "With one delegation slot available and no retries allowed, dispatching the critical ISSUE-BUS-001 fix task will address the root cause of the worker_model crash and unblock downstream work."
-          },
-          {
-            "kind": "llm_nick_attention",
-            "detail": "Review and decide on the deferred decision-gated issues ISSUE-15 and ISSUE-24 to enable future agent implementations and permissions."
-          },
-          {
-            "kind": "llm_nick_attention",
-            "detail": "Confirm manual unblocking steps for blocked jobs to ensure smooth resumption of work."
-          },
-          {
-            "kind": "llm_nick_attention",
-            "detail": "Monitor the impact of dispatching ISSUE-BUS-001 on system stability and admission limits."
-          }
-        ],
-        "actions": [
-          {
-            "action": "llm_delegate_rejected",
-            "task_id": "ISSUE-BUS-001",
-            "reason": "ISSUE-BUS-001 already active on ledger"
-          }
-        ]
+        "ran": false,
+        "skip_reason": "interval not elapsed (15m < 60m)",
+        "execute": true
       },
       "healthy": true
     },
-    "corrective_actions": 1,
+    "corrective_actions": 0,
     "issues": [],
     "healthy": true
   },

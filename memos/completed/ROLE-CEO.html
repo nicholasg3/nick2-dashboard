@@ -31,18 +31,21 @@ strong { color: #fff; }
   <div class="wrap">
     <p class="nav"><a href="../../index.html">← Dashboard</a></p>
     <h1>ROLE-CEO: Talk with CEO Office — Completed</h1>
-<p><strong>Owner:</strong> CEO · <strong>Status:</strong> completed · <strong>Updated:</strong> 2026-07-01T02:30 · <strong>Cost:</strong> $0.00</p>
+<p><strong>Owner:</strong> CEO · <strong>Status:</strong> completed · <strong>Updated:</strong> 2026-07-01T09:40 · <strong>Cost:</strong> $0.00</p>
 <h2>1. Executive Framing</h2>
 <p><strong>Objective:</strong> Advance: Talk with CEO Office  </p>
 <p><strong>Outcome:</strong> Nick,</p>
-<ul><li>Currently, no jobs are running, queued, or held, and the system is fully idle with the weekly budget untouched at $20.</li><li>I cannot directly inspect files on the droplet from here; my access is limited to system state, job queues, and logs.</li><li>The CTO role manages the droplet infrastructure (systemd services, CCR on port 3456), and workers under CTO control could potentially access files if authorized.</li><li>No task currently exists to grant file access permissions to me, the CTO, or CTO-managed workers.</li><li>The highest-leverage next move is to create a delegation task that, once you approve, will enable file inspection access for the CTO and/or designated workers.</li><li>This task is not running or planned yet; it requires your explicit approval to be added and assigned.</li></ul>
-<p>Next concrete step: Confirm if you approve creating and assigning a delegation task to grant file inspection access on the droplet to the CTO and/or their workers. I will prepare the task for your approval.</p>
+<ul><li>The system is currently fully idle: no running, queued, or held jobs, and the weekly budget remains untouched at $20. Recent completed work includes diagnostics, triage of 13 ready-for-agent GitHub issues (PMO-001), and dashboard updates.</li></ul>
+<ul><li>However, multiple jobs related to ISSUE-BUS-001 and ISSUE-80 remain blocked, preventing progress on critical fixes and dashboard hardening. No retries are allowed, and no held jobs exist to promote or retry.</li></ul>
+<ul><li>One delegation slot is available, but ISSUE-BUS-001 is already active on the ledger, so direct dispatch is blocked. Manual unblocking of one blocked job related to ISSUE-BUS-001 is recommended to resume progress on the critical worker_model crash fix.</li></ul>
+<ul><li>Deferred decision-gated issues ISSUE-15 (tier schema choice) and ISSUE-24 (Telegram PA permissions) still require your review and decision to enable future agent implementations and permissions.</li></ul>
+<ul><li>The highest-leverage next move is to confirm manual unblocking steps for the blocked</li></ul>
 <h2>2. What shipped (MECE)</h2>
 <table><thead><tr><th>Bucket</th><th>Scope</th><th>Current state</th></tr></thead><tbody>
 <tr><td>Work unit</td><td>Talk with CEO Office</td><td>Nick,</td></tr>
 </tbody></table>
-<ul><li>Currently, no jobs are running, queued, or held, and the system is fully idle with the weekly budget untouched  |</li></ul>
-<table><thead><tr><th>Status &amp; owner</th><th>completed / CEO</th><th>2026-07-01T02:30</th></tr></thead><tbody>
+<ul><li>The system is currently fully idle: no running, queued, or held jobs, and the weekly budget remains untouched a |</li></ul>
+<table><thead><tr><th>Status &amp; owner</th><th>completed / CEO</th><th>2026-07-01T09:40</th></tr></thead><tbody>
 <tr><td>Dependencies</td><td>Gates, budget, worker</td><td>See dashboard Gated queue and budget panel</td></tr>
 <tr><td>Deliverable</td><td>Ledger event + artifacts</td><td>Not listed</td></tr>
 </tbody></table>
