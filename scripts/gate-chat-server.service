@@ -1,0 +1,19 @@
+[Unit]
+Description=Nick2 gate chat server (role rooms + work-room live API)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=nicholas
+Group=nicholas
+Environment=HOME=/home/nicholas
+Environment=PATH=/home/nicholas/.local/bin:/usr/local/bin:/usr/bin:/bin
+Environment=NICK2_ROOT=/home/nicholas/nick2-dashboard
+WorkingDirectory=/home/nicholas/nick2-dashboard
+ExecStart=/usr/bin/python3 /home/nicholas/nick2-dashboard/scripts/gate_chat_server.py
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
