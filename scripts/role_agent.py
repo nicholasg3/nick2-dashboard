@@ -1,27 +1,35 @@
 #!/usr/bin/env python3
 """Talkable CEO/COO/PMO role responder for the Nick2 live dashboard.
 
-This is not the full autonomous orchestrator. It is the first honest, useful
-role-chat loop: the live dashboard sends a role message, this script gathers the
-current operating context, asks a cheap OpenRouter model when available, and
-returns a concise executive reply.
+Each role maintains a PERSISTENT Claude CLI session (claude --resume <session_id>)
+so conversations have genuine continuity — Nick can ask follow-up questions and
+the agent remembers what was said. Session IDs are stored in
+nick2-dashboard/sessions/role-<role>.json and survive server restarts.
+
+On the first message the agent receives a rich system prompt (injected as a
+user-turn preamble) describing its role and the live dashboard context.
+Subsequent turns get a compact context refresh + the new message, so the model
+always has current data without re-reading the full prompt each time.
+
+Falls back to a stateless OpenRouter call if the Claude CLI is not available.
 """
 from __future__ import annotations
 
 import argparse
 import json
 import os
+import subprocess
 import sys
-import urllib.error
-import urllib.request
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
 ROOT = Path(os.environ.get("NICK2_ROOT", Path(__file__).resolve().parents[1]))
 HERMES_ENV = Path(os.environ.get("HERMES_ENV", Path.home() / ".hermes" / ".env"))
+SESSIONS_DIR = ROOT / "sessions"
 OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions"
-DEFAULT_MODEL = os.environ.get("ROLE_AGENT_MODEL", "openai/gpt-4.1-mini")
+DEFAULT_OR_MODEL = os.environ.get("ROLE_AGENT_MODEL", "openai/gpt-4.1-mini")
+CLAUDE_BIN = os.environ.get("CLAUDE_BIN", "claude")
 
 LEDGER = ROOT / "logs" / "ceo-ledger.jsonl"
 REPORTS = ROOT / "reports"
@@ -32,24 +40,29 @@ ROLE_DEFS = {
         "name": "CEO",
         "title": "CEO Office",
         "brief": (
-            "You are the CEO of Nick2. Give Nick a truthful operating read, name the "
-            "highest-leverage next move, and distinguish what is running from what is only planned."
+            "You are the CEO of Nick2, Nick Garcia's AI-agent workspace. "
+            "You have a persistent memory of your conversations with Nick. "
+            "Give truthful operating reads, name the highest-leverage next move, "
+            "and clearly distinguish what is actually running from what is only planned. "
+            "You remember what Nick told you in previous messages in this session."
         ),
     },
     "coo": {
         "name": "COO",
         "title": "COO Office",
         "brief": (
-            "You are the COO of Nick2. Focus on execution state, handoffs, stuck work, "
-            "services, and what should be reconciled next."
+            "You are the COO of Nick2. You remember prior conversations with Nick. "
+            "Focus on execution state, stuck work, service health, and handoffs. "
+            "Tell Nick what needs to be reconciled or unblocked."
         ),
     },
     "pmo": {
         "name": "PMO",
         "title": "PMO Office",
         "brief": (
-            "You are the PMO of Nick2. Focus on backlog order, issue triage, worker "
-            "dispatch readiness, gates, and evidence required before closing work."
+            "You are the PMO of Nick2. You remember prior conversations with Nick. "
+            "Focus on backlog order, issue triage, dispatch readiness, gates, "
+            "and evidence required before closing work."
         ),
     },
 }
@@ -68,7 +81,7 @@ def _read_json(path: Path, default: Any) -> Any:
     return default
 
 
-def _read_text(path: Path, limit: int = 4000) -> str:
+def _read_text(path: Path, limit: int = 3000) -> str:
     try:
         if path.is_file():
             text = path.read_text(encoding="utf-8")
@@ -78,7 +91,7 @@ def _read_text(path: Path, limit: int = 4000) -> str:
     return ""
 
 
-def _ledger_tail(limit: int = 30) -> list[dict]:
+def _ledger_tail(limit: int = 20) -> list[dict]:
     if not LEDGER.is_file():
         return []
     out: list[dict] = []
@@ -93,7 +106,21 @@ def _ledger_tail(limit: int = 30) -> list[dict]:
     return out
 
 
-def _load_env_key() -> str:
+def _load_session(role: str) -> str | None:
+    SESSIONS_DIR.mkdir(parents=True, exist_ok=True)
+    path = SESSIONS_DIR / f"role-{role}.json"
+    data = _read_json(path, {})
+    return data.get("session_id") or None
+
+
+def _save_session(role: str, session_id: str) -> None:
+    SESSIONS_DIR.mkdir(parents=True, exist_ok=True)
+    path = SESSIONS_DIR / f"role-{role}.json"
+    path.write_text(json.dumps({"role": role, "session_id": session_id, "updated": _now()},
+                               indent=2), encoding="utf-8")
+
+
+def _load_or_key() -> str:
     if os.environ.get("OPENROUTER_API_KEY"):
         return os.environ["OPENROUTER_API_KEY"].strip()
     if not HERMES_ENV.is_file():
@@ -102,25 +129,16 @@ def _load_env_key() -> str:
         line = line.strip()
         if not line or line.startswith("#") or "=" not in line:
             continue
-        key, _, value = line.partition("=")
-        if key.strip() == "OPENROUTER_API_KEY":
-            return value.strip().strip('"').strip("'")
+        k, _, v = line.partition("=")
+        if k.strip() == "OPENROUTER_API_KEY":
+            return v.strip().strip('"').strip("'")
     return ""
 
 
-def build_context(role: str, message: str, history: list[dict]) -> dict:
+def _context_snapshot() -> dict:
+    """Current dashboard state — injected into every turn so the agent is grounded."""
     return {
         "ts": _now(),
-        "role": role,
-        "message": message,
-        "recent_chat": [
-            {
-                "actor": h.get("actor") or h.get("role"),
-                "text": (h.get("text") or "")[:500],
-                "ts": h.get("ts"),
-            }
-            for h in history[-12:]
-        ],
         "bus_live": _read_json(REPORTS / "bus-live.json", {}),
         "ceo_queue": _read_json(REPORTS / "ceo-queue.json", {}),
         "org_fleet": _read_json(REPORTS / "org-fleet.json", {}),
@@ -131,92 +149,170 @@ def build_context(role: str, message: str, history: list[dict]) -> dict:
     }
 
 
-def fallback_reply(role: str, ctx: dict) -> str:
-    role_name = ROLE_DEFS.get(role, ROLE_DEFS["ceo"])["name"]
-    bus = ctx.get("bus_live") or {}
-    running = len(bus.get("running") or [])
-    held = len(bus.get("held") or [])
-    queued = len(bus.get("queued") or [])
-    gates = ctx.get("gated") or []
-    memo = (ctx.get("ceo_reflect_latest") or "").strip()
-    memo_line = "No CEO reflection memo is loaded."
-    for line in memo.splitlines():
-        stripped = line.strip("# -")
-        if stripped and "CEO reflection" not in stripped:
-            memo_line = stripped[:240]
-            break
-    return (
-        f"{role_name} office is reachable, but OpenRouter is not available for a fresh "
-        f"model reply right now.\n\n"
-        f"Current mechanical read: {running} running, {held} held, {queued} queued; "
-        f"{len(gates)} Nick gate(s). Latest memo signal: {memo_line}\n\n"
-        "I can still record instructions here; the next LLM-backed pass will have this chat "
-        "history and the ledger context."
-    )
+def _build_prompt(role: str, message: str, is_first_turn: bool) -> str:
+    """Build the user-turn prompt.
 
-
-def call_model(role: str, ctx: dict) -> str | None:
-    key = _load_env_key()
-    if not key:
-        return None
+    First turn: full system brief + context + message (establishes the persona).
+    Subsequent turns: compact context refresh + message (keeps data current cheaply).
+    """
     role_def = ROLE_DEFS.get(role, ROLE_DEFS["ceo"])
-    system = (
-        f"{role_def['brief']}\n"
-        "Be concise, specific, and honest. If something is not running, say so. "
-        "Do not claim commits, services, or worker state unless present in context. "
-        "Reply directly to Nick in 3-7 short bullets or paragraphs. "
-        "If Nick is asking for action, say the next concrete step and whether it needs approval."
-    )
-    body = {
-        "model": os.environ.get(f"{role.upper()}_ROLE_MODEL", DEFAULT_MODEL),
-        "temperature": 0.25,
-        "max_tokens": int(os.environ.get("ROLE_AGENT_MAX_TOKENS", "900")),
-        "messages": [
-            {"role": "system", "content": system},
-            {"role": "user", "content": json.dumps(ctx, ensure_ascii=False, indent=2)},
-        ],
-    }
+    ctx = _context_snapshot()
+    ctx_json = json.dumps(ctx, ensure_ascii=False, indent=2)
+
+    if is_first_turn:
+        return (
+            f"[SYSTEM — read this once, then remember it for all future turns]\n"
+            f"Role: {role_def['brief']}\n"
+            f"Instructions: Be concise and specific. Reply in 3-7 bullets or short paragraphs. "
+            f"Never claim something is running unless it appears in the context data. "
+            f"When Nick asks for action, state the next concrete step and whether it needs his approval.\n\n"
+            f"[LIVE DASHBOARD CONTEXT — {ctx['ts']}]\n{ctx_json}\n\n"
+            f"[NICK'S MESSAGE]\n{message}"
+        )
+    else:
+        # Compact refresh: just the parts that change frequently
+        compact = {
+            "ts": ctx["ts"],
+            "bus_live": ctx["bus_live"],
+            "ledger_tail": ctx["ledger_tail"][-10:],
+            "gated": ctx["gated"],
+        }
+        return (
+            f"[CONTEXT REFRESH — {ctx['ts']}]\n"
+            f"{json.dumps(compact, ensure_ascii=False, indent=2)}\n\n"
+            f"[NICK'S MESSAGE]\n{message}"
+        )
+
+
+def call_claude_persistent(role: str, message: str) -> tuple[str, str | None]:
+    """Call claude --resume for persistent session. Returns (reply_text, new_session_id)."""
+    session_id = _load_session(role)
+    is_first_turn = session_id is None
+
+    prompt = _build_prompt(role, message, is_first_turn)
+
+    cmd = [CLAUDE_BIN, "-p", "--output-format", "json", "--permission-mode", "bypassPermissions"]
+    if session_id:
+        cmd += ["--resume", session_id]
+    cmd += [prompt]
+
+    try:
+        r = subprocess.run(
+            cmd,
+            capture_output=True,
+            text=True,
+            timeout=120,
+            cwd=str(ROOT),
+        )
+        if r.returncode != 0:
+            err = (r.stderr or r.stdout or "")[:500]
+            return f"Claude session error (rc={r.returncode}): {err}", None
+
+        data = json.loads((r.stdout or "").strip())
+        new_sid = data.get("session_id")
+        result = str(data.get("result") or data.get("text") or "").strip()
+
+        if data.get("is_error"):
+            return f"Claude in-band error: {result[:300]}", None
+
+        if new_sid:
+            _save_session(role, new_sid)
+
+        return result or "(empty response)", new_sid
+
+    except subprocess.TimeoutExpired:
+        return "Role office timed out (>120s). Try again.", None
+    except (json.JSONDecodeError, OSError) as e:
+        return f"Claude CLI error: {e}", None
+
+
+def call_openrouter_fallback(role: str, message: str, history: list[dict]) -> str:
+    """Stateless OpenRouter fallback — no continuity, but always available."""
+    import urllib.error
+    import urllib.request
+
+    key = _load_or_key()
+    if not key:
+        return fallback_reply(role)
+
+    role_def = ROLE_DEFS.get(role, ROLE_DEFS["ceo"])
+    ctx = _context_snapshot()
+    messages = [
+        {"role": "system", "content": role_def["brief"] + "\nBe concise. Reply in 3-7 bullets."},
+    ]
+    for h in history[-12:]:
+        actor = (h.get("actor") or h.get("role") or "").lower()
+        messages.append({
+            "role": "assistant" if actor != "nicholas" else "user",
+            "content": (h.get("text") or "")[:600],
+        })
+    messages.append({"role": "user", "content": f"Context: {json.dumps(ctx)}\n\nMessage: {message}"})
+
+    body = {"model": DEFAULT_OR_MODEL, "temperature": 0.25, "max_tokens": 900, "messages": messages}
     req = urllib.request.Request(
         OPENROUTER_URL,
-        data=json.dumps(body).encode("utf-8"),
-        headers={
-            "Content-Type": "application/json",
-            "Authorization": f"Bearer {key}",
-            "HTTP-Referer": "https://github.com/nicholasg3/nick2-dashboard",
-            "X-Title": "nick2-role-office",
-        },
+        data=json.dumps(body).encode(),
+        headers={"Content-Type": "application/json", "Authorization": f"Bearer {key}",
+                 "HTTP-Referer": "https://github.com/nicholasg3/nick2-dashboard"},
         method="POST",
     )
     try:
         with urllib.request.urlopen(req, timeout=90) as resp:
             data = json.load(resp)
         content = (data.get("choices") or [{}])[0].get("message", {}).get("content") or ""
-        return content.strip() or None
-    except (urllib.error.URLError, urllib.error.HTTPError, TimeoutError, json.JSONDecodeError) as e:
-        return f"Model call failed: {str(e)[:240]}\n\n{fallback_reply(role, ctx)}"
+        return content.strip() or fallback_reply(role)
+    except Exception as e:
+        return f"Model call failed: {str(e)[:200]}\n\n{fallback_reply(role)}"
+
+
+def fallback_reply(role: str) -> str:
+    role_name = ROLE_DEFS.get(role, ROLE_DEFS["ceo"])["name"]
+    bus = _read_json(REPORTS / "bus-live.json", {})
+    running = len(bus.get("running") or [])
+    held = len(bus.get("held") or [])
+    queued = len(bus.get("queued") or [])
+    return (
+        f"{role_name} office is reachable but the model is unavailable right now. "
+        f"Mechanical read: {running} running, {held} held, {queued} queued. "
+        "Your message has been logged and will be in context on the next live pass."
+    )
 
 
 def reply(role: str, message: str, history: list[dict] | None = None) -> str:
     role_key = role if role in ROLE_DEFS else "ceo"
-    ctx = build_context(role_key, message, history or [])
-    return call_model(role_key, ctx) or fallback_reply(role_key, ctx)
+    text, _ = call_claude_persistent(role_key, message)
+    if text and not text.startswith("Claude session error") and not text.startswith("Claude CLI error"):
+        return text
+    # Fallback to OpenRouter if Claude CLI fails
+    return call_openrouter_fallback(role_key, message, history or [])
 
 
 def selftest() -> None:
-    ctx = build_context("ceo", "What is going on?", [])
-    out = fallback_reply("ceo", ctx)
-    assert "CEO" in out or "running" in out or "Model call failed" in out
-    assert build_context("pmo", "hello", [])["role"] == "pmo"
+    assert _build_prompt("ceo", "hello", True).startswith("[SYSTEM")
+    assert _build_prompt("ceo", "hello", False).startswith("[CONTEXT REFRESH")
+    assert ROLE_DEFS["pmo"]["name"] == "PMO"
     print("role_agent selftest OK")
 
 
 def main() -> int:
     parser = argparse.ArgumentParser(description="Nick2 role chat responder")
     parser.add_argument("--selftest", action="store_true")
+    parser.add_argument("--reset-session", metavar="ROLE", help="Clear stored session for role")
     args = parser.parse_args()
+
     if args.selftest:
         selftest()
         return 0
+
+    if args.reset_session:
+        path = SESSIONS_DIR / f"role-{args.reset_session.lower()}.json"
+        if path.exists():
+            path.unlink()
+            print(f"Session cleared for {args.reset_session}")
+        else:
+            print(f"No session file found for {args.reset_session}")
+        return 0
+
     raw = sys.stdin.read()
     if not raw.strip():
         print("No role payload on stdin.", file=sys.stderr)
