@@ -1267,3 +1267,36 @@ tr:hover td { background: rgba(79, 156, 249, 0.05); }
     grid-template-columns: 1fr;
   }
 }
+
+/* Heartbeat toggle */
+.heartbeat-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.8rem;
+  color: var(--muted);
+  user-select: none;
+  margin-left: 0.5rem;
+  padding: 0.2rem 0.4rem;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface);
+}
+
+.heartbeat-toggle input[type="checkbox"] {
+  accent-color: var(--accent);
+  width: 14px;
+  height: 14px;
+  cursor: pointer;
+}
+
+.heartbeat-toggle .toggle-label {
+  font-weight: 500;
+  margin-right: 0.1rem;
+}
+
+#heartbeat-status {
+  font-size: 0.7rem;
+  padding: 0.1em 0.4em;
+  background: var(--surface-2);
+}

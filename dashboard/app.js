@@ -1291,6 +1291,46 @@ async function loadOrchestratorStatus() {
   return null;
 }
 
+async function loadHeartbeatControl() {
+  const url = dataUrls.heartbeat || 'reports/orchestrator/heartbeat.json';
+  try {
+    const res = await fetch(`${url}?t=${Date.now()}`);
+    if (res.ok) {
+      const data = await res.json();
+      return { enabled: data.enabled !== false, ...data };
+    }
+  } catch (e) {
+    // default to enabled if no control file
+  }
+  return { enabled: true };
+}
+
+async function setHeartbeatEnabled(enabled) {
+  const base = dataUrls.apiBase || '';
+  const url = base ? `${base}/api/control/heartbeat` : '/api/control/heartbeat';
+  try {
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ enabled, by: 'dashboard-ui' }),
+    });
+    if (!res.ok) throw new Error('toggle failed');
+    return await res.json();
+  } catch (e) {
+    console.error('Failed to toggle heartbeat', e);
+    // fallback: try relative
+    try {
+      const res2 = await fetch('/api/control/heartbeat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ enabled, by: 'dashboard-ui' }),
+      });
+      return res2.ok ? await res2.json() : { ok: false };
+    } catch {}
+    return { ok: false, error: e.message };
+  }
+}
+
 async function refreshFleetPanel() {
   const [orgFleet, busLive] = await Promise.all([loadOrgFleet(), loadBusLive()]);
   renderOrgFleet(orgFleet, busLive);
@@ -1373,6 +1413,12 @@ async function refresh() {
     busLiveDataCache = busLive;
     orchestratorDataCache = orchestrator;
     allEvents = events;
+
+    // keep the heartbeat toggle in sync on every refresh
+    try {
+      const hb = await loadHeartbeatControl();
+      updateHeartbeatToggleUI(hb.enabled);
+    } catch (_) {}
   } catch (err) {
     const hint = dataUrls.source === 'github-static'
       ? ' Set config.json liveDataApi to your droplet gate URL, or open the dashboard on :8788.'
@@ -1384,6 +1430,7 @@ async function refresh() {
   try {
     renderOrgFleet(orgFleet, busLive);
     renderAll(buildState(events));
+    initHeartbeatToggle();  // initialize the auto-heartbeat toggle (non-blocking)
   } catch (err) {
     showError(`Could not render dashboard: ${err.message}`);
     console.error(err);
@@ -1401,6 +1448,53 @@ $('activity-filter').addEventListener('input', (e) => {
     renderActivity(st.sorted, st);
   }
 });
+
+let heartbeatEnabledCache = true;
+
+function updateHeartbeatToggleUI(enabled) {
+  const cb = $('heartbeat-toggle');
+  const statusEl = $('heartbeat-status');
+  if (!cb) return;
+  cb.checked = !!enabled;
+  heartbeatEnabledCache = !!enabled;
+  if (statusEl) {
+    statusEl.textContent = enabled ? 'ON' : 'OFF';
+    statusEl.style.background = enabled ? 'var(--success)' : 'var(--danger)';
+    statusEl.style.color = '#fff';
+  }
+}
+
+let heartbeatListenerAttached = false;
+
+async function initHeartbeatToggle() {
+  const cb = $('heartbeat-toggle');
+  if (!cb) return;
+
+  const ctl = await loadHeartbeatControl();
+  updateHeartbeatToggleUI(ctl.enabled);
+
+  if (!heartbeatListenerAttached) {
+    cb.addEventListener('change', async () => {
+      const newVal = cb.checked;
+      cb.disabled = true;
+      const res = await setHeartbeatEnabled(newVal);
+      if (res && res.ok !== false) {
+        updateHeartbeatToggleUI(newVal);
+        // brief refresh of status/orchestrator views
+        setTimeout(() => {
+          refresh().catch(() => {});
+        }, 400);
+      } else {
+        // revert on failure
+        cb.checked = !newVal;
+        updateHeartbeatToggleUI(!newVal);
+        alert('Failed to update heartbeat toggle (check gate server logs).');
+      }
+      cb.disabled = false;
+    });
+    heartbeatListenerAttached = true;
+  }
+}
 
 async function refreshGatedSection() {
   if (!allEvents.length) return;

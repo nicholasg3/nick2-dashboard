@@ -34,6 +34,7 @@ STATUS = REPORTS / "orchestrator" / "status.json"
 TICKS = LOGS / "orchestrator" / "ticks.jsonl"
 LOCK = ROOT / ".ceo-orchestrator.lock"
 ROLE_CHATS = LOGS / "role-chats"
+HEARTBEAT_CONTROL = REPORTS / "orchestrator" / "heartbeat.json"
 
 sys.path.insert(0, str(SCRIPTS))
 import ceo_supervisor as supervisor  # noqa: E402
@@ -50,6 +51,18 @@ def read_json(path: Path, default: Any) -> Any:
     except (OSError, json.JSONDecodeError):
         pass
     return default
+
+
+def is_heartbeat_enabled() -> bool:
+    """Check env killswitch first, then file-based toggle (for dashboard UI control)."""
+    env_val = os.environ.get("CEO_ORCH_ENABLED", "1").strip().lower()
+    if env_val in ("0", "false", "no", "off"):
+        return False
+
+    ctl = read_json(HEARTBEAT_CONTROL, {})
+    if "enabled" in ctl:
+        return bool(ctl.get("enabled"))
+    return True  # default on if no control file
 
 
 def write_json(path: Path, obj: Any) -> None:
@@ -190,12 +203,13 @@ def write_memo(status: dict) -> None:
 
 
 def run_once(*, dry_run: bool = False, reason: str = "manual", persist: bool = True) -> dict:
-    if os.environ.get("CEO_ORCH_ENABLED", "1").strip().lower() in ("0", "false", "no", "off"):
+    if not is_heartbeat_enabled():
         status = {
             "ts": now(),
             "mode": "disabled",
             "healthy": True,
-            "reason": "CEO_ORCH_ENABLED=0",
+            "reason": "heartbeat disabled via toggle/env",
+            "heartbeat_enabled": False,
         }
         if persist:
             write_json(STATUS, status)
@@ -228,6 +242,7 @@ def run_once(*, dry_run: bool = False, reason: str = "manual", persist: bool = T
             "last_report": report,
             "refresh": refresh,
             "error": error,
+            "heartbeat_enabled": is_heartbeat_enabled(),
         }
         if persist:
             write_json(STATUS, status)

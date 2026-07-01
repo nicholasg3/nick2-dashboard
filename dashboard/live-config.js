@@ -11,6 +11,7 @@
     ceoQueue: 'reports/ceo-queue.json',
     gateBriefs: 'reports/gate-briefs.json',
     orchestrator: 'reports/orchestrator/status.json',
+    heartbeat: 'reports/orchestrator/heartbeat.json',
   };
 
   let cached = null;
@@ -47,6 +48,7 @@
         ceoQueue: `${prefix}/api/live/ceo-queue`,
         gateBriefs: `${prefix}/api/live/gate-briefs`,
         orchestrator: `${prefix}/api/live/orchestrator`,
+        heartbeat: `${prefix}/api/live/heartbeat`,
         gateChatApi: (cfg.gateChatApi || prefix).replace(/\/$/, ''),
       };
     } else if (cfg.dataSource === 'droplet' && cfg.gateChatApi) {
@@ -61,10 +63,11 @@
         ceoQueue: `${b}/api/live/ceo-queue`,
         gateBriefs: `${b}/api/live/gate-briefs`,
         orchestrator: `${b}/api/live/orchestrator`,
+        heartbeat: `${b}/api/live/heartbeat`,
         gateChatApi: b,
       };
     } else {
-      cached = { source: 'github-static', apiBase: '', gateChatApi: cfg.gateChatApi || '', ...STATIC };
+      cached = { source: 'github-static', apiBase: '', gateChatApi: cfg.gateChatApi || '', heartbeat: 'reports/orchestrator/heartbeat.json', ...STATIC };
     }
     return cached;
   }

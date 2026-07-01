@@ -74,6 +74,7 @@ LIVE_FILES = {
     "/api/live/ceo-queue": (REPORTS / "ceo-queue.json", "application/json"),
     "/api/live/gate-briefs": (REPORTS / "gate-briefs.json", "application/json"),
     "/api/live/orchestrator": (REPORTS / "orchestrator" / "status.json", "application/json"),
+    "/api/live/heartbeat": (REPORTS / "orchestrator" / "heartbeat.json", "application/json"),
 }
 
 STATIC_MIME = {
@@ -112,11 +113,15 @@ def read_json(path: Path, default):
 
 def compact_orchestrator_status() -> dict:
     data = read_json(REPORTS / "orchestrator" / "status.json", {})
-    return {
+    hb = read_json(REPORTS / "orchestrator" / "heartbeat.json", {})
+    out = {
         k: data.get(k)
-        for k in ("ts", "mode", "reason", "healthy", "last_tick_at", "summary")
+        for k in ("ts", "mode", "reason", "healthy", "last_tick_at", "summary", "heartbeat_enabled")
         if k in data
     }
+    if "enabled" in hb:
+        out["heartbeat_enabled"] = hb["enabled"]
+    return out
 
 
 def append_ledger(event: dict) -> None:
@@ -633,6 +638,37 @@ class Handler(BaseHTTPRequestHandler):
             }
             append_jsonl(WORK_CHATS / f"{task_id}.jsonl", agent_msg)
             self._json(200, {"ok": True, "reply": reply, "task_id": task_id})
+            return
+
+        if path == "/api/control/heartbeat":
+            try:
+                n = int(self.headers.get("Content-Length", 0))
+                body = json.loads(self.rfile.read(n) or b"{}")
+                enabled = bool(body.get("enabled", True))
+                ctl = {
+                    "enabled": enabled,
+                    "updated_at": now_sgt(),
+                    "updated_by": body.get("by") or "ui",
+                }
+                HEARTBEAT_CTL = REPORTS / "orchestrator" / "heartbeat.json"
+                HEARTBEAT_CTL.parent.mkdir(parents=True, exist_ok=True)
+                HEARTBEAT_CTL.write_text(json.dumps(ctl, indent=2) + "\n", encoding="utf-8")
+
+                # Also log to ledger for audit
+                append_ledger({
+                    "actor": "Nicholas",
+                    "role": "Owner",
+                    "event": "heartbeat_toggle",
+                    "task_id": "SYS-ORCH",
+                    "task": "Automatic heartbeats",
+                    "status": "completed" if enabled else "idle",
+                    "output": f"Automatic CEO heartbeats set to {'ON' if enabled else 'OFF'} (money saver mode)",
+                    "needs_nicholas": False,
+                })
+
+                self._json(200, {"ok": True, "enabled": enabled})
+            except Exception as e:
+                self._json(400, {"ok": False, "error": str(e)})
             return
 
         if path.startswith("/api/role/") and path.endswith("/message"):
