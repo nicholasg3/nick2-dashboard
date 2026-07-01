@@ -174,6 +174,7 @@ def gather_context() -> dict:
         },
         "issue_tasks": issue_tasks,
         "memories_tail": memories,
+        "events_tail": events[-20:],  # for open CEO reasoning context
     }
 
 

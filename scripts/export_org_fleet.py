@@ -95,6 +95,19 @@ def ledger_context(events: list[dict]) -> dict:
         for tid, t in tasks.items()
         if tid.startswith("ISSUE-") or tid == "DISPATCH-001"
     )
+
+    # CEO initiatives / autonomous creative work (visible in fleet when heartbeat or chat CEO acts)
+    ceo_initiatives = []
+    for tid, t in sorted(tasks.items()):
+        if tid.upper().startswith("CEO-") or (t.get("actor") == "CEO" and "initiative" in str(t.get("output", "")).lower()):
+            if (t.get("status") or "") in ("queued", "in_progress", "active"):
+                ceo_initiatives.append({
+                    "task_id": tid,
+                    "task": t.get("task") or tid,
+                    "status": t.get("status"),
+                    "owner": t.get("owner", "CEO"),
+                })
+
     return {
         "gates": gates,
         "focus": focus,
@@ -104,6 +117,7 @@ def ledger_context(events: list[dict]) -> dict:
         "worker_enabled": worker_enabled,
         "budget": budget,
         "open_gate_count": len(gates),
+        "ceo_initiatives": ceo_initiatives,
     }
 
 
@@ -197,6 +211,10 @@ def build_tree(ctx: dict) -> dict:
     if orch.get("summary"):
         age = "fresh" if orch.get("age_min") is None else f"{orch['age_min']}m ago"
         orch_detail = f"{orch.get('summary')} ({age})"
+
+    inits = ctx.get("ceo_initiatives") or []
+    if inits:
+        ceo_detail += " · %d active CEO initiative(s)" % len(inits)
 
     children = [
         _node(
@@ -308,6 +326,17 @@ def build_tree(ctx: dict) -> dict:
             ),
         ),
     ]
+
+    # Surface CEO's autonomous creative work as visible fleet members
+    for i, init in enumerate((ctx.get("ceo_initiatives") or [])[:4]):
+        children.append(_node(
+            f"ceo_init_{i}",
+            init.get("task_id", "CEO-INIT"),
+            status="active" if (init.get("status") or "").startswith("in_") else "timer",
+            icon="🟡",
+            detail=(init.get("task") or "")[:80],
+            schedule="CEO heartbeat / autonomous",
+        ))
 
     budget_note = ""
     if budget.get("weekly_usd"):

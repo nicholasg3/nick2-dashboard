@@ -19,24 +19,39 @@ OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions"
 DEFAULT_MODEL = os.environ.get("CEO_REFLECT_MODEL", "openai/gpt-4.1-mini")
 MARKER = "ceo-reflect-llm:"
 
-SYSTEM_PROMPT = """You are the CEO supervisor for Nick2 — coordinate only, never implement code.
+SYSTEM_PROMPT = """You are the CEO for Nick2 — an autonomous executive that improves the organization during idle time.
 
-You receive rule-based bottleneck detection and admission caps. Your job:
-1. Synthesize what is really stuck and why (org-level, not generic advice).
-2. Propose fixes that respect admission limits — do NOT recommend flooding the bus.
-3. Suggest at most one delegate target (ISSUE-*) only if admission allows new work.
-4. Never recommend dispatching decision-gated or dispatch:false triage rows.
-5. Prefer unstick (janitor, promote held, retry one failed submit) before new work.
+Core mission: when the bus is idle (0 running/queued/held), continuously identify the highest expected-value action for long-term capability:
+- What bottleneck limits progress?
+- What repetitive work can be automated or eliminated?
+- What system can be made more autonomous?
+- What technical debt, missing docs, or leverage improvement has high ROI?
 
-Respond with JSON only (no markdown fence), schema:
+You have standing authority (within weekly budget + trust boundaries) to:
+- Spawn tracked sub-agents (claude -p with bypassPermissions) for diagnostics, audits, improvements.
+- Edit code, commit, write memos, update skills.
+- Register new tracked CEO initiatives (use CEO-INIT-* IDs).
+- Reconsider org structure.
+
+You must output JSON only. Schema (all fields optional except situation_summary):
 {
-  "situation_summary": "2-4 sentences",
+  "situation_summary": "2-4 sentences of current state + opportunity",
   "root_causes": ["..."],
   "unstick_ideas": [{"idea": "...", "rationale": "..."}],
   "delegate_recommendation": null | {"task_id": "ISSUE-N", "rationale": "..."},
-  "focus_shift": null | {"task_id": "ISSUE-N", "focus_line": "one plain sentence"},
-  "nick_attention": ["optional items for Nick only — not agent work"]
+  "open_initiative": null | {
+    "initiative_id": "CEO-INIT-YYYYMMDD-NNN or short name",
+    "title": "one line",
+    "why_now": "why highest EV",
+    "est_cost_usd": 0.5,
+    "first_step": "concrete action or claude -p command skeleton",
+    "expected_outcome": "..."
+  },
+  "focus_shift": null | {"task_id": "ISSUE-N or CEO-INIT-xxx", "focus_line": "plain sentence"},
+  "nick_attention": ["only for irreversible Level 3+ decisions"]
 }
+
+When idle with budget and no high bottlenecks, prefer proposing 1 open_initiative over waiting. Be specific, actionable, and cost-conscious. Prefer reversible, low-blast-radius actions with clear value.
 """
 
 
@@ -152,6 +167,17 @@ def _compact_context(ctx: dict, bottlenecks: list[dict], admission: dict, propos
             "hold_reason": (row.get("hold_reason") or "")[:100],
             "objective": (row.get("objective") or "")[:120],
         })
+    # Surface recent CEO activity and idle signal for open reasoning
+    recent_ceo = []
+    for ev in reversed((ctx.get("events_tail") or [])[-8:]):
+        if (ev.get("actor") or "").upper() == "CEO":
+            recent_ceo.append({
+                "ts": ev.get("ts"),
+                "event": ev.get("event"),
+                "task_id": ev.get("task_id"),
+                "output": (ev.get("output") or "")[:180],
+            })
+    idle = (ctx.get("counts") or {}).get("running", 0) == 0 and (ctx.get("counts") or {}).get("queued", 0) == 0
     return {
         "counts": ctx.get("counts"),
         "budget_remaining_usd": ctx.get("ledger_base", {}).get("budget_remaining_usd"),
@@ -161,6 +187,8 @@ def _compact_context(ctx: dict, bottlenecks: list[dict], admission: dict, propos
         "active_issues": active_issues,
         "triage": triage_rows,
         "bus_jobs": bus,
+        "recent_ceo_activity": recent_ceo,
+        "is_idle": idle,
         "memories": [
             {"kind": m.get("kind"), "text": (m.get("text") or "")[:300]}
             for m in (ctx.get("memories_tail") or [])
@@ -391,6 +419,47 @@ def apply_llm_actions(
             )
             actions.append({"action": "llm_focus_shift", "task_id": fid})
 
+    # NEW: open_initiative support — register as a visible CEO-INIT-* task so it appears
+    # in Active Work Queue and Agent Fleet. The supervisor or chat CEO can then execute.
+    init = llm.get("open_initiative")
+    if isinstance(init, dict) and init.get("initiative_id") and append_fn:
+        iid = str(init.get("initiative_id"))
+        title = init.get("title") or iid
+        cost = float(init.get("est_cost_usd") or 0.3)
+        pd.append_ledger(
+            {
+                **base,
+                "actor": "CEO",
+                "role": "Chief Executive Officer",
+                "event": "task_queued",
+                "task_id": iid,
+                "task": title,
+                "status": "queued",
+                "owner": "CEO",
+                "output": f"{MARKER}open initiative: {init.get('why_now','')[:160]}",
+                "cost_usd": cost,
+                "est_cost_usd": cost,
+                "initiative": init,
+            },
+            append_fn,
+        )
+        # Immediately mark in_progress for visibility (CEO will execute or spawn)
+        pd.append_ledger(
+            {
+                **base,
+                "actor": "CEO",
+                "role": "Chief Executive Officer",
+                "event": "task_updated",
+                "task_id": iid,
+                "task": title,
+                "status": "in_progress",
+                "owner": "CEO",
+                "output": f"First step: {init.get('first_step','(see initiative)')[:200]}",
+            },
+            append_fn,
+        )
+        actions.append({"action": "open_initiative_registered", "initiative_id": iid, "title": title})
+
     return actions
 
 
@@ -409,6 +478,15 @@ def llm_proposals_from_response(llm: dict) -> list[dict]:
             "kind": "llm_delegate",
             "task_id": rec.get("task_id"),
             "detail": rec.get("rationale"),
+        })
+    init = llm.get("open_initiative")
+    if isinstance(init, dict) and init.get("initiative_id"):
+        out.append({
+            "kind": "llm_open_initiative",
+            "task_id": init.get("initiative_id"),
+            "detail": init.get("title"),
+            "suggested": init.get("why_now"),
+            "est_cost": init.get("est_cost_usd"),
         })
     for item in llm.get("nick_attention") or []:
         if item:

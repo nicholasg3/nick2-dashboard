@@ -102,9 +102,25 @@ def run_cycle(
     if cron_issues and not dry_run:
         cron_alert = ch.maybe_alert(cron_issues)
     checkin = run_checkin_summary()
+
+    # Heartbeat now drives full CEO reasoning (not just fixed scripted passes).
+    # On idle: run the LLM reflect with open-initative mode enabled so CEO can
+    # creatively decide high-EV autonomous improvements and register them visibly.
+    idle = False
+    try:
+        # Peek at recent context cheaply
+        import pmo_dispatch as pd  # noqa
+        evs = pd.load_events()[-5:]
+        # simple idle heuristic
+        idle = all((e.get("event") or "").endswith("cycle") or "idle" in (e.get("output") or "").lower() for e in evs[-3:])
+    except Exception:
+        pass
+
     reflect = cr.run_reflect(
         dry_run=dry_run,
         append_ledger=append_ledger and not dry_run,
+        llm=True,            # always attempt LLM layer
+        force_llm=idle,      # force fresh open reasoning when heartbeat sees idle
     )
 
     corrective = (
