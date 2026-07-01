@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-01T00:15:08Z",
+  "generated_at": "2026-07-01T00:30:11Z",
   "legend": {
     "live": "\ud83d\udfe2 Running now (24/7 service)",
     "timer": "\u23f0 Scheduled \u2014 fires on systemd timer",
@@ -30,7 +30,7 @@
     "orchestrator": {
       "running": true,
       "fresh": true,
-      "age_min": 0.3,
+      "age_min": 0.1,
       "healthy": true,
       "mode": "live",
       "summary": "CEO loop checked the system; no action was needed. Bus: 0 running, 0 held, 0 queued. Bottlenecks: 0. Role chat messages: CEO 14, COO 8, PMO 0."
@@ -52,7 +52,7 @@
         "status": "live",
         "icon": "\ud83d\udfe2",
         "maps_to": "CEO role office",
-        "detail": "CEO loop checked the system; no action was needed. Bus: 0 running, 0 held, 0 queued. Bottlenecks: 0. Role chat messages: CEO 14, COO 8, PMO 0. (0.3m ago)",
+        "detail": "CEO loop checked the system; no action was needed. Bus: 0 running, 0 held, 0 queued. Bottlenecks: 0. Role chat messages: CEO 14, COO 8, PMO 0. (0.1m ago)",
         "schedule": "24/7 via dashboard bridge",
         "chat_role": "ceo",
         "children": []
