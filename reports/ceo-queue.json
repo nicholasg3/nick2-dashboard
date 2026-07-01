@@ -1,5 +1,5 @@
 {
-  "ts": "2026-07-01T01:45:11Z",
+  "ts": "2026-07-01T02:55:09Z",
   "mode": "ceo_reflect",
   "context": {
     "counts": {
@@ -49,9 +49,9 @@
   ],
   "bottleneck_count": 0,
   "llm": {
-    "enabled": true,
+    "enabled": false,
     "ran": false,
-    "skip_reason": "interval not elapsed (19m < 60m)",
+    "skip_reason": "CEO_REFLECT_LLM off or no OPENROUTER_API_KEY",
     "execute": true
   }
 }

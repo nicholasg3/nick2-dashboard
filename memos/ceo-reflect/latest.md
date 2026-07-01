@@ -1,4 +1,4 @@
-# CEO reflection — 2026-07-01T01:45:11Z
+# CEO reflection — 2026-07-01T02:55:09Z
 
 ## Situation
 - Running: 0 | Held: 0 | Queued: 0
@@ -18,5 +18,5 @@
 - [already_deferred] Nick must pick Option A vs B and tier schema before agents implement; p3 decision-gated
 - [already_deferred] Nick personal queue — decision on Telegram PA permissions (not agent research)
 
-_LLM reflect skipped: interval not elapsed (19m < 60m)_
+_LLM reflect skipped: CEO_REFLECT_LLM off or no OPENROUTER_API_KEY_
 
