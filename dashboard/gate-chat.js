@@ -363,6 +363,13 @@
       await sendMessage(taskMeta.task_id, text, taskMeta, statusEl, messagesEl);
     });
 
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        form.requestSubmit();
+      }
+    });
+
     clearBtn.addEventListener('click', async () => {
       const tid = taskMeta.task_id;
       const note = input.value.trim() || 'Gate cleared by Nicholas via dashboard.';
@@ -569,6 +576,13 @@
       input.value = '';
       await sendWorkMessage(taskId, text, taskMeta, statusEl, messagesEl);
     });
+
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        form.requestSubmit();
+      }
+    });
   }
 
   function unmountWorkChat() {
@@ -704,6 +718,13 @@
       if (!text) return;
       input.value = '';
       await sendRoleMessage(role, text, statusEl, messagesEl);
+    });
+
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        form.requestSubmit();
+      }
     });
   }
 
